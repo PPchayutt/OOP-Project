@@ -124,6 +124,24 @@ public class GamePanel extends JPanel implements Runnable {
     }
 
     private void updateMonsters() {
+        for (Monster monster : monsters) {
+        monster.update();
+        
+        int oldX = monster.getX();
+        int oldY = monster.getY();
+        
+        for (Monster otherMonster : monsters) {
+            if (monster != otherMonster && monster.collidesWith(otherMonster)) {
+                monster.setX(oldX);
+                monster.setY(oldY);
+                
+
+                monster.setX(oldX + random.nextInt(10) - 5);
+                monster.setY(oldY + random.nextInt(10) - 5);
+                break;
+            }
+        }
+    }
         Iterator<Monster> it = monsters.iterator();
         while (it.hasNext()) {
             Monster monster = it.next();
@@ -132,19 +150,14 @@ public class GamePanel extends JPanel implements Runnable {
             if (!monster.isAlive()) {
                 it.remove();
                 levelManager.monsterKilled();
+                
+                player.addScore(monster.getPoints());
 
                 if (monster.dropsPowerup()) {
                     spawnPowerup(monster.getX(), monster.getY());
                 }
-                continue;
             }
 
-            if (random.nextInt(100) < 2) {
-                EnemyBullet bullet = monster.attack();
-                if (bullet != null) {
-                    enemyBullets.add(bullet);
-                }
-            }
         }
     }
 
@@ -157,6 +170,8 @@ public class GamePanel extends JPanel implements Runnable {
             if (!boss.isAlive()) {
                 it.remove();
                 levelManager.bossKilled();
+                
+                player.addScore(boss.getPoints());
 
                 spawnPowerup(boss.getX() + boss.getWidth() / 2, boss.getY() + boss.getHeight() / 2);
                 continue;
@@ -264,9 +279,9 @@ public class GamePanel extends JPanel implements Runnable {
 
     private void spawnMonster() {
         int[] pos = levelManager.getRandomMonsterPosition();
-        monsters.add(new Monster(pos[0], pos[1]));
+        monsters.add(new Monster(pos[0], pos[1], player));
     }
-
+    
     private void spawnBoss() {
         int[] pos = levelManager.getBossPosition();
         bosses.add(new Boss(pos[0], pos[1], levelManager.getCurrentLevel()));

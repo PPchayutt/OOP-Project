@@ -33,8 +33,34 @@ public class LevelManager {
     }
 
     public int[] getRandomMonsterPosition() {
-        int x = random.nextInt(700) + 50;
-        return new int[]{x, 0};
+    // สุ่มว่าจะเกิดทางไหน (0 = ซ้าย, 1 = ขวา, 2 = บน, 3 = ล่าง)
+    int side = random.nextInt(4);
+    int x, y;
+    
+    switch (side) {
+        case 0 -> {
+            // ด้านซ้าย
+            x = 0;
+            y = random.nextInt(500) + 50; // ระหว่าง 50-550
+            }
+        case 1 -> {
+            // ด้านขวา
+            x = 800 - 30; // ลบด้วยความกว้างของมอนสเตอร์
+            y = random.nextInt(500) + 50;
+            }
+        case 2 -> {
+            // ด้านบน
+            x = random.nextInt(700) + 50;
+            y = 0;
+            }
+        default -> {
+            // ด้านล่าง
+            x = random.nextInt(700) + 50;
+            y = 600 - 30; // ลบด้วยความสูงของมอนสเตอร์
+            }
+    }
+    
+        return new int[]{x, y};
     }
 
     public int[] getBossPosition() {
