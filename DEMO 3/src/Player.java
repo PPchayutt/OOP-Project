@@ -2,10 +2,7 @@ import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Player คือคลาสที่แทนตัวละครหลักที่ควบคุมโดยผู้เล่น
- * รับผิดชอบการจัดการการเคลื่อนที่, การยิง, และสถานะต่างๆ ของผู้เล่น
- */
+
 public class Player extends Entity {
 
     private int lives = 3;    // จำนวนชีวิตเริ่มต้น
@@ -101,13 +98,9 @@ public class Player extends Entity {
     public void render(Graphics g) {
         // ถ้าอยู่ในช่วงอมตะให้กะพริบ
         if (invincibleTime <= 0 || invincibleTime % 10 < 5) {
-            g.setColor(Color.BLUE);
-            g.fillRect((int) x, (int) y, width, height);
-            
-            // วาดเครื่องหมายเล็ง
-            g.setColor(Color.WHITE);
-            g.drawOval((int) x + width / 4, (int) y + height / 4, width / 2, height / 2);
-            
+            // วาดรูปภาพผู้เล่น
+            g.drawImage(ImageManager.getImage("player"), (int) x, (int) y, width, height, null);
+
             // แสดงแถบพลังชีวิต
             g.setColor(Color.RED);
             g.fillRect((int) x, (int) y - 10, width, 3);
@@ -115,7 +108,7 @@ public class Player extends Entity {
             int healthBarWidth = (int) ((float) health / maxHealth * width);
             g.fillRect((int) x, (int) y - 10, healthBarWidth, 3);
         }
-        
+
         // วาดกระสุน
         for (PlayerBullet bullet : bullets) {
             bullet.render(g);

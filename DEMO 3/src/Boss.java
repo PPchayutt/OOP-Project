@@ -51,22 +51,41 @@ public class Boss extends Enemy {
 
     @Override
     public void render(Graphics g) {
-        g.setColor(new Color(180, 0, 0));
-        g.fillRect((int) x, (int) y, width, height);
+        // ใช้รูปภาพจาก ImageManager
+        Image bossImage = ImageManager.getImage("boss");
+        if (bossImage != null) {
+            g.drawImage(bossImage, (int) x, (int) y, width, height, null);
 
-        // ตาของบอส
-        g.setColor(Color.YELLOW);
-        g.fillOval((int) x + width / 4, (int) y + height / 4, width / 5, height / 5);
-        g.fillOval((int) x + width * 3 / 5, (int) y + height / 4, width / 5, height / 5);
+            // วาดแถบพลังชีวิตเหนือบอส
+            g.setColor(Color.RED);
+            g.fillRect((int) x, (int) y - 10, width, 5);
+            g.setColor(Color.GREEN);
+            int healthBarWidth = (int) ((double) health / (200 * level) * width);
+            g.fillRect((int) x, (int) y - 10, healthBarWidth, 5);
+        } else {
+            // ถ้าไม่มีรูปภาพให้วาดรูปทรงพื้นฐานแทน
+            g.setColor(new Color(180, 0, 0));
+            g.fillRect((int) x, (int) y, width, height);
 
-        // ปากของบอส
-        g.setColor(Color.BLACK);
-        g.fillRect((int) x + width / 4, (int) y + height * 2 / 3, width / 2, height / 8);
+            // ตาของบอส
+            g.setColor(Color.YELLOW);
+            g.fillOval((int) x + width / 4, (int) y + height / 4, width / 5, height / 5);
+            g.fillOval((int) x + width * 3 / 5, (int) y + height / 4, width / 5, height / 5);
 
-        // แถบพลังชีวิต
-        g.setColor(Color.GREEN);
-        int healthBarWidth = (int) ((double) health / (200 * level) * width);
-        g.fillRect((int) x, (int) y - 10, healthBarWidth, 5);
+            // ปากของบอส
+            g.setColor(Color.BLACK);
+            g.fillRect((int) x + width / 4, (int) y + height * 2 / 3, width / 2, height / 8);
+
+            // แถบพลังชีวิต
+            g.setColor(Color.GREEN);
+            int healthBarWidth = (int) ((double) health / (200 * level) * width);
+            g.fillRect((int) x, (int) y - 10, healthBarWidth, 5);
+        }
+
+        // พิมพ์ข้อความแสดงสถานะใต้บอส (เพื่อการดีบัก)
+        g.setColor(Color.WHITE);
+        g.setFont(new Font("Arial", Font.PLAIN, 10));
+        g.drawString("Boss Lv." + level + " HP:" + health, (int) x, (int) y + height + 15);
     }
 
     @Override

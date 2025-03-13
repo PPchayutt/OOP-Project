@@ -67,9 +67,9 @@ public class Monster extends Enemy {
     
     @Override
     public void render(Graphics g) {
-        g.setColor(Color.RED);
-        g.fillRect((int) x, (int) y, width, height);
-        
+        // วาดรูปภาพมอนสเตอร์
+        g.drawImage(ImageManager.getImage("monster"), (int) x, (int) y, width, height, null);
+
         // วาดแถบพลังชีวิต
         g.setColor(Color.RED);
         g.fillRect((int) x, (int) y - 5, width, 3);
