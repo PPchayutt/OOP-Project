@@ -10,4 +10,4 @@ public interface GameObject {
     
     // ขอบเขตสำหรับการตรวจสอบการชน
     Rectangle getBounds();
-}
+} 
