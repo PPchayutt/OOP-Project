@@ -1,62 +1,67 @@
 import javax.swing.*;
+import java.awt.*;
 
 public class Game {
+
     private JFrame window;
+    private MenuPanel menuPanel;
     private GamePanel gamePanel;
-    
+    private CardLayout cardLayout;
+    private JPanel mainPanel;
+    private GameState currentState;
+
     public Game() {
-        // สร้างหน้าต่างหลัก
-        window = new JFrame("2D Bullet Hell Game");
+        window = new JFrame("The IT Journey");
         window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         window.setResizable(false);
+
+        // สร้าง CardLayout เพื่อสลับระหว่างหน้าต่างๆ
+        cardLayout = new CardLayout();
+        mainPanel = new JPanel(cardLayout);
         
-        try {
-            // สร้าง Game Panel
-            gamePanel = new GamePanel();
-            
-            // เรียกใช้ setupGame เพื่อเตรียมพร้อมสำหรับเกม
-            gamePanel.setupGame();
-            
-            // เพิ่ม Panel เข้าไปในหน้าต่าง
-            window.add(gamePanel);
-            
-            // ปรับขนาดหน้าต่างให้พอดีกับ Panel
-            window.pack();
-            
-            // จัดตำแหน่งหน้าต่างให้อยู่กลางจอ
-            window.setLocationRelativeTo(null);
-            
-            // แสดงหน้าต่าง
-            window.setVisible(true);
-            
-            // ทำให้ Panel ได้รับ focus
-            gamePanel.requestFocus();
-            
-            // เริ่มการทำงานของเกมลูป
-            gamePanel.startGameLoop();
-            
-            System.out.println("เกมเริ่มทำงานเรียบร้อยแล้ว");
-        } catch (Exception e) {
-            System.err.println("เกิดข้อผิดพลาดในการเริ่มเกม: " + e.getMessage());
-            e.printStackTrace();
+        // สร้างเมนูหลัก
+        menuPanel = new MenuPanel(this);
+        mainPanel.add(menuPanel, "Menu");
+        currentState = menuPanel;
+        
+        window.add(mainPanel);
+        window.pack();
+        window.setLocationRelativeTo(null);
+        window.setVisible(true);
+    }
+
+    public void startGame() {
+        // สร้างเกมใหม่และเริ่มเล่น
+        if (gamePanel == null) {
+            gamePanel = new GamePanel(this);
+            mainPanel.add(gamePanel, "Game");
+        } else {
+            gamePanel.restartGame(); // รีเซ็ตเกมหากมีอยู่แล้ว
         }
+        
+        // หยุดเพลงและแอนิเมชั่นในเมนู
+        menuPanel.cleanup();
+        
+        // เปลี่ยนไปที่หน้าเกม
+        cardLayout.show(mainPanel, "Game");
+        gamePanel.requestFocusInWindow(); // สำหรับรับ input
+        gamePanel.startGameLoop();
+        currentState = gamePanel;
     }
     
+    public void returnToMenu() {
+        // หยุดเกมและกลับไปที่เมนู
+        if (gamePanel != null) {
+            gamePanel.stopGameLoop();
+        }
+        
+        cardLayout.show(mainPanel, "Menu");
+        menuPanel.requestFocusInWindow();
+        menuPanel.playMusic();
+        currentState = menuPanel;
+    }
+
     public static void main(String[] args) {
-        // เรียกใช้ SwingUtilities เพื่อสร้าง GUI ใน Event Dispatch Thread
-        SwingUtilities.invokeLater(() -> {
-            try {
-                new Game();
-            } catch (Exception e) {
-                System.err.println("เกิดข้อผิดพลาดในการสร้างเกม: " + e.getMessage());
-                e.printStackTrace();
-                
-                // แสดงข้อความแจ้งเตือน
-                JOptionPane.showMessageDialog(null, 
-                    "เกิดข้อผิดพลาดในการเริ่มเกม: " + e.getMessage(), 
-                    "ข้อผิดพลาด", 
-                    JOptionPane.ERROR_MESSAGE);
-            }
-        });
+        new Game();
     }
 }

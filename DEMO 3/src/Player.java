@@ -31,16 +31,48 @@ public class Player extends Entity {
     // ค่าความเสียหายของกระสุน
     private int bulletDamage = 25;
 
-    /**
-     * สร้างผู้เล่นใหม่
-     * @param x ตำแหน่ง x เริ่มต้น
-     * @param y ตำแหน่ง y เริ่มต้น
-     */
-    public Player(float x, float y) {
-        super(x, y, 30, 30, 100, 5);
+    private int score = 0;
+    
+    public Player(float x, float y, int width, int height, int health, int speed) {
+        super(x, y, width, height, health, speed);
         this.maxHealth = 100;
     }
+    
+    public int getScore() {
+        return score;
+    }
 
+    public void addScore(int points) {
+        this.score += points;
+    }
+    public void move(int dx, int dy) {
+        float targetX = 0;
+        float targetY = 0;
+
+        if (dx != 0 || dy != 0) {
+            // แปลงค่า dx, dy เป็นความเร็วเป้าหมาย
+            targetX = dx * speed;
+            targetY = dy * speed;
+
+            // ปรับความเร็วเมื่อเคลื่อนที่แนวทแยง
+            if (dx != 0 && dy != 0) {
+                targetX *= 0.7071f; // ประมาณ 1/sqrt(2)
+                targetY *= 0.7071f;
+            }
+        }
+
+        setTargetVelocity(targetX, targetY);
+    }
+
+    // เพิ่ม method takeDamage ที่รับ boolean
+    public void takeDamage(int damage, boolean isBossDamage) {
+        if (isBossDamage) {
+            takeDamage(damage * 2); // ความเสียหายจากบอสให้คูณ 2
+        } else {
+            takeDamage(damage);
+        }
+    }
+    
     @Override
     public void update() {
         // การเคลื่อนที่แบบนุ่มนวล

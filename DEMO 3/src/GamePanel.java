@@ -6,886 +6,527 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
 
-public class GamePanel extends JPanel implements Runnable {
+public class GamePanel extends JPanel implements Runnable, GameState  {
 
-    // ค่าคงที่ของเกม
     public static final int WIDTH = 800;
     public static final int HEIGHT = 600;
-    public static final int FPS = 60;
-    
-    // สถานะของเกม
-    private enum GameState {
-        MENU, PLAYING, PAUSED, GAMEOVER
-    }
-    private GameState currentState = GameState.MENU;
-    
-    // ส่วนประกอบหลักของเกม
+    private static final int FPS = 60;
+
     private Thread gameThread;
     private boolean running = false;
-    private Random random = new Random();
     
-    // ผู้เล่นและวัตถุในเกม
+    private LevelManager levelManager;
+    private Random random = new Random();
+
+    private boolean gameOver = false;
+    private boolean gamePaused = false;
+    private int monsterSpawnTimer = 0;
+
     private Player player;
     private List<Monster> monsters;
-    private Boss boss;
+    private List<Boss> bosses;
     private List<PlayerBullet> playerBullets;
     private List<EnemyBullet> enemyBullets;
     private List<Powerup> powerups;
     
-    // ตัวจัดการระดับ
-    private LevelManager levelManager;
-    
-    // ข้อมูลเกม
-    private int score = 0;
-    private int currentLevel = 1;
-    private int monstersKilled = 0;
-    private int monstersRequired = 20;
-    private boolean bossSpawned = false;
-    
-    // timer
-    private long lastMonsterSpawnTime = 0;
-    private int monsterSpawnInterval = 1000; // มิลลิวินาที
-    
-    public GamePanel() {
+    private Game game;
+
+    public GamePanel(Game game) {
+        this.game = game;
         setPreferredSize(new Dimension(WIDTH, HEIGHT));
         setBackground(Color.BLACK);
-        setDoubleBuffered(true);
         setFocusable(true);
 
-        try {
-            // โหลดรูปภาพทั้งหมด
-            ImageManager.loadImages();
-        } catch (Exception e) {
-            System.err.println("Error loading images: " + e.getMessage());
-        }
+        initGame();
 
-        setupInput();
+        InputHandler inputHandler = new InputHandler(this);
+        addKeyListener(inputHandler);
+        addMouseListener(inputHandler);
+        addMouseMotionListener(inputHandler);
     }
-    
-    // ตั้งค่าการรับ input จากผู้เล่น
-    private void setupInput() {
-        try {
-            InputHandler inputHandler = new InputHandler(this);
-            addKeyListener(inputHandler);
-            addMouseListener(inputHandler);
-            addMouseMotionListener(inputHandler);
-        } catch (Exception e) {
-            System.err.println("Error setting up input: " + e.getMessage());
-        }
+
+    private void initGame() {
+        player = new Player(WIDTH / 2 - 16, HEIGHT - 100, 32, 32, 100, 5);
+        monsters = new ArrayList<>();
+        bosses = new ArrayList<>();
+        playerBullets = new ArrayList<>();
+        enemyBullets = new ArrayList<>();
+        powerups = new ArrayList<>();
+
+        levelManager = new LevelManager();
     }
-    
-    // ตัวแปรสำหรับเก็บการกดปุ่ม
-    private boolean upPressed, downPressed, leftPressed, rightPressed;
-    
-    // จัดการกับปุ่มที่กด (public เพื่อให้ InputHandler เรียกใช้ได้)
-    public void handleKeyPressed(int keyCode) {
-        switch (currentState) {
-            case MENU:
-                if (keyCode == KeyEvent.VK_SPACE) {
-                    startGame();
-                }
-                break;
-                
-            case PLAYING:
-                switch (keyCode) {
-                    case KeyEvent.VK_W:
-                        upPressed = true;
-                        break;
-                    case KeyEvent.VK_S:
-                        downPressed = true;
-                        break;
-                    case KeyEvent.VK_A:
-                        leftPressed = true;
-                        break;
-                    case KeyEvent.VK_D:
-                        rightPressed = true;
-                        break;
-                    case KeyEvent.VK_ESCAPE:
-                        togglePause();
-                        break;
-                }
-                break;
-                
-            case PAUSED:
-                if (keyCode == KeyEvent.VK_ESCAPE) {
-                    togglePause();
-                }
-                break;
-                
-            case GAMEOVER:
-                if (keyCode == KeyEvent.VK_R) {
-                    setupGame();
-                    startGame();
-                }
-                break;
-        }
-    }
-    
-    // จัดการกับปุ่มที่ปล่อย (public เพื่อให้ InputHandler เรียกใช้ได้)
-    public void handleKeyReleased(int keyCode) {
-        if (currentState == GameState.PLAYING) {
-            switch (keyCode) {
-                case KeyEvent.VK_W:
-                    upPressed = false;
-                    break;
-                case KeyEvent.VK_S:
-                    downPressed = false;
-                    break;
-                case KeyEvent.VK_A:
-                    leftPressed = false;
-                    break;
-                case KeyEvent.VK_D:
-                    rightPressed = false;
-                    break;
-            }
-        }
-    }
-    
-    // อัพเดทการเคลื่อนที่ของผู้เล่น
-    private void updatePlayerMovement() {
-        if (currentState != GameState.PLAYING || player == null) return;
-        
-        float targetVelX = 0;
-        float targetVelY = 0;
-        
-        // คำนวณทิศทางการเคลื่อนที่
-        if (leftPressed && !rightPressed) {
-            targetVelX = -player.getMaxSpeed();
-        } else if (rightPressed && !leftPressed) {
-            targetVelX = player.getMaxSpeed();
-        }
-        
-        if (upPressed && !downPressed) {
-            targetVelY = -player.getMaxSpeed();
-        } else if (downPressed && !upPressed) {
-            targetVelY = player.getMaxSpeed();
-        }
-        
-        // ปรับแก้ความเร็วเมื่อเคลื่อนที่แนวทแยง
-        if (targetVelX != 0 && targetVelY != 0) {
-            float factor = 0.7071f; // ประมาณ 1/sqrt(2)
-            targetVelX *= factor;
-            targetVelY *= factor;
-        }
-        
-        // ส่งค่าให้ player
-        player.setTargetVelocity(targetVelX, targetVelY);
-    }
-    
-    // จัดการกับการคลิกเมาส์ (public เพื่อให้ InputHandler เรียกใช้ได้)
-    public void handleMousePressed(int x, int y) {
-        if (currentState == GameState.PLAYING && player != null) {
-            player.shoot(x, y);
-        }
-    }
-    
-    // ตั้งค่าเกมใหม่
-    public void setupGame() {
-        try {
-            System.out.println("กำลังตั้งค่าเกมใหม่...");
-            
-            player = new Player(WIDTH / 2 - 15, HEIGHT / 2 - 15);
-            monsters = new ArrayList<>();
-            playerBullets = new ArrayList<>();
-            enemyBullets = new ArrayList<>();
-            powerups = new ArrayList<>();
-            
-            levelManager = new LevelManager();
-            
-            score = 0;
-            currentLevel = 1;
-            monstersKilled = 0;
-            monstersRequired = 20;
-            bossSpawned = false;
-            boss = null;
-            
-            upPressed = false;
-            downPressed = false;
-            leftPressed = false;
-            rightPressed = false;
-            
-            currentState = GameState.MENU;
-            
-            System.out.println("ตั้งค่าเกมใหม่เรียบร้อยแล้ว");
-        } catch (Exception e) {
-            System.err.println("Error setting up game: " + e.getMessage());
-            e.printStackTrace();
-        }
-    }
-    
-    // เริ่มเกม
-    private void startGame() {
-        if (currentState != GameState.PLAYING) {
-            currentState = GameState.PLAYING;
-            if (!running) {
-                startGameLoop();
-            }
-        }
-    }
-    
-    // เริ่มการทำงานของ game loop
+
     public void startGameLoop() {
+        if (gameThread == null || !running) {
+            gameThread = new Thread(this);
+            running = true;
+            gameThread.start();
+        }
+    }
+    
+    public void stopGameLoop() {
+        running = false;
         try {
-            if (gameThread == null || !running) {
-                // เรียก setupGame() ก่อนเริ่ม thread ถ้า player ยังเป็น null
-                if (player == null) {
-                    setupGame();
-                }
-
-                running = true;
-                gameThread = new Thread(this);
-                gameThread.start();
-                System.out.println("เริ่มการทำงานของ game loop");
+            if (gameThread != null) {
+                gameThread.join(1000); // รอสูงสุด 1 วินาที
             }
-        } catch (Exception e) {
-            System.err.println("Error starting game loop: " + e.getMessage());
+        } catch (InterruptedException e) {
             e.printStackTrace();
         }
-    }
-    
-    // สลับสถานะหยุดชั่วคราว
-    private void togglePause() {
-        if (currentState == GameState.PLAYING) {
-            currentState = GameState.PAUSED;
-        } else if (currentState == GameState.PAUSED) {
-            currentState = GameState.PLAYING;
-        }
-    }
-    
-    // เมื่อเกมจบ
-    private void gameOver() {
-        currentState = GameState.GAMEOVER;
     }
 
     @Override
     public void run() {
-        try {
-            // ตั้งค่าการจำกัด FPS
-            double drawInterval = 1000000000 / FPS;
-            double delta = 0;
-            long lastTime = System.nanoTime();
-            long currentTime;
-            
-            // game loop หลัก
-            while (running) {
-                currentTime = System.nanoTime();
-                
-                delta += (currentTime - lastTime) / drawInterval;
-                lastTime = currentTime;
-                
-                if (delta >= 1) {
-                    // อัพเดทและวาดเกม
+        long lastTime = System.nanoTime();
+        double amountOfTicks = FPS;
+        double ns = 1000000000 / amountOfTicks;
+        double delta = 0;
+
+        while (running) {
+            long now = System.nanoTime();
+            delta += (now - lastTime) / ns;
+            lastTime = now;
+
+            while (delta >= 1) {
+                if (!gamePaused && !gameOver) {
                     update();
-                    repaint();
-                    delta--;
                 }
-                
-                // ป้องกัน CPU ทำงานหนักเกินไป
-                Thread.sleep(1);
+                delta--;
             }
-        } catch (InterruptedException e) {
-            System.err.println("Game loop interrupted: " + e.getMessage());
-        } catch (Exception e) {
-            System.err.println("Error in game loop: " + e.getMessage());
-            e.printStackTrace();
+
+            repaint();
+
+            try {
+                Thread.sleep(1);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         }
     }
-    
-    // อัพเดทสถานะเกม
-    private void update() {
-        if (currentState != GameState.PLAYING) {
+
+    @Override
+    public void update() {
+        player.update();
+
+        if (!player.isAlive()) {
+            gameOver = true;
             return;
         }
-        
-        try {
-            // อัพเดทผู้เล่น
-            if (player != null) {
-                player.update();
-                
-                // ตรวจสอบว่าผู้เล่นยังมีชีวิตอยู่หรือไม่
-                if (!player.isAlive()) {
-                    gameOver();
-                    return;
-                }
-                
-                // อัพเดทการเคลื่อนที่ของผู้เล่น
-                updatePlayerMovement();
-            }
-            
-            // สร้างมอนสเตอร์
-            long currentTime = System.currentTimeMillis();
-            if (!bossSpawned && currentTime - lastMonsterSpawnTime > monsterSpawnInterval) {
-                spawnMonster();
-                lastMonsterSpawnTime = currentTime;
-            }
-            
-            // ตรวจสอบว่าควรจะสร้างบอสหรือไม่
-            if (monstersKilled >= monstersRequired && !bossSpawned) {
-                spawnBoss();
-            }
-            
-            // อัพเดทมอนสเตอร์
-            updateMonsters();
-            
-            // อัพเดทบอส
-            updateBoss();
-            
-            // อัพเดทกระสุนของผู้เล่น
-            updatePlayerBullets();
-            
-            // อัพเดทกระสุนของศัตรู
-            updateEnemyBullets();
-            
-            // อัพเดทพาวเวอร์อัพ
-            updatePowerups();
-            
-            // ตรวจสอบการชนกัน
-            checkCollisions();
-        } catch (Exception e) {
-            System.err.println("Error updating game: " + e.getMessage());
-            e.printStackTrace();
-        }
-    }
-    
-    // วาดกราฟิกของเกม
-    @Override
-    protected void paintComponent(Graphics g) {
-        super.paintComponent(g);
-        
-        try {
-            Graphics2D g2d = (Graphics2D) g;
-            
-            // เปิดการทำ anti-aliasing
-            g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-            
-            // วาดตามสถานะปัจจุบันของเกม
-            switch (currentState) {
-                case MENU:
-                    drawMenu(g2d);
-                    break;
-                case PLAYING:
-                    drawGame(g2d);
-                    break;
-                case PAUSED:
-                    drawGame(g2d);
-                    drawPauseScreen(g2d);
-                    break;
-                case GAMEOVER:
-                    drawGame(g2d);
-                    drawGameOverScreen(g2d);
-                    break;
-            }
-        } catch (Exception e) {
-            System.err.println("Error rendering game: " + e.getMessage());
-            e.printStackTrace();
-            
-            // ในกรณีที่เกิดข้อผิดพลาดในการวาด ให้แสดงข้อความแจ้งเตือน
-            Graphics2D g2d = (Graphics2D) g;
-            g2d.setColor(Color.RED);
-            g2d.setFont(new Font("Arial", Font.BOLD, 20));
-            g2d.drawString("เกิดข้อผิดพลาดในการแสดงผลเกม!", 200, 200);
-            g2d.drawString("โปรดตรวจสอบคอนโซล", 200, 230);
-        }
-    }
-    
-    // วาดหน้าเมนู
-    private void drawMenu(Graphics2D g) {
-        // วาดพื้นหลัง
-        g.setColor(new Color(0, 0, 30)); // สีฟ้าเข้มเกือบดำ
-        g.fillRect(0, 0, WIDTH, HEIGHT);
-        
-        // วาดชื่อเกม
-        g.setFont(new Font("Arial", Font.BOLD, 50));
-        g.setColor(Color.WHITE);
-        String title = "2D Bullet Hell";
-        int titleX = (WIDTH - g.getFontMetrics().stringWidth(title)) / 2;
-        g.drawString(title, titleX, HEIGHT / 3);
-        
-        // คำแนะนำ
-        g.setFont(new Font("Arial", Font.PLAIN, 20));
-        String startText = "กด SPACE เพื่อเริ่มเกม";
-        int startX = (WIDTH - g.getFontMetrics().stringWidth(startText)) / 2;
-        g.drawString(startText, startX, HEIGHT / 2);
-        
-        // คำแนะนำการเล่น
-        g.setFont(new Font("Arial", Font.PLAIN, 16));
-        String[] instructions = {
-            "WASD - เคลื่อนที่",
-            "เมาส์คลิกซ้าย - ยิง",
-            "ESC - หยุดชั่วคราว"
-        };
-        
-        int y = HEIGHT / 2 + 50;
-        for (String text : instructions) {
-            int x = (WIDTH - g.getFontMetrics().stringWidth(text)) / 2;
-            g.drawString(text, x, y);
-            y += 25;
-        }
-    }
-    
-    private void drawGame(Graphics2D g) {
-        try {
-            // วาดพื้นหลัง
-            g.drawImage(ImageManager.getImage("background"), 0, 0, WIDTH, HEIGHT, null);
 
-            // วาดพาวเวอร์อัพ
-            if (powerups != null) {
-                for (Powerup powerup : powerups) {
-                    if (powerup != null) {
-                        powerup.render(g);
-                    }
-                }
-            }
-
-            // วาดมอนสเตอร์
-            if (monsters != null) {
-                for (Monster monster : monsters) {
-                    if (monster != null) {
-                        monster.render(g);
-                    }
-                }
-            }
-
-            // วาดบอส
-            if (boss != null && bossSpawned) {
-                boss.render(g);
-            }
-
-            // วาดกระสุนของศัตรู
-            if (enemyBullets != null) {
-                for (EnemyBullet bullet : enemyBullets) {
-                    if (bullet != null) {
-                        bullet.render(g);
-                    }
-                }
-            }
-
-            // วาดผู้เล่น
-            if (player != null) {
-                player.render(g);
-            }
-
-            // วาด UI
-            drawUI(g);
-        } catch (Exception e) {
-            System.err.println("Error in drawGame: " + e.getMessage());
-            e.printStackTrace();
+        monsterSpawnTimer++;
+        if (monsterSpawnTimer >= levelManager.getMonsterSpawnRate() && bosses.isEmpty()) {
+            spawnMonster();
+            monsterSpawnTimer = 0;
         }
-    }
-    
-    // วาดหน้าจอหยุดชั่วคราว
-    private void drawPauseScreen(Graphics2D g) {
-        g.setColor(new Color(0, 0, 0, 150)); // พื้นหลังโปร่งใส
-        g.fillRect(0, 0, WIDTH, HEIGHT);
-        
-        g.setFont(new Font("Arial", Font.BOLD, 50));
-        g.setColor(Color.WHITE);
-        String pauseText = "เกมหยุดชั่วคราว";
-        int pauseX = (WIDTH - g.getFontMetrics().stringWidth(pauseText)) / 2;
-        g.drawString(pauseText, pauseX, HEIGHT / 2);
-        
-        g.setFont(new Font("Arial", Font.PLAIN, 20));
-        String resumeText = "กด ESC เพื่อเล่นต่อ";
-        int resumeX = (WIDTH - g.getFontMetrics().stringWidth(resumeText)) / 2;
-        g.drawString(resumeText, resumeX, HEIGHT / 2 + 50);
-    }
-    
-    // วาดหน้าจอเกมจบ
-    private void drawGameOverScreen(Graphics2D g) {
-        g.setColor(new Color(0, 0, 0, 150)); // พื้นหลังโปร่งใส
-        g.fillRect(0, 0, WIDTH, HEIGHT);
-        
-        g.setFont(new Font("Arial", Font.BOLD, 50));
-        g.setColor(Color.RED);
-        g.setFont(new Font("Arial", Font.BOLD, 50));
-        g.setColor(Color.RED);
-        String gameOverText = "เกมจบ";
-        int gameOverX = (WIDTH - g.getFontMetrics().stringWidth(gameOverText)) / 2;
-        g.drawString(gameOverText, gameOverX, HEIGHT / 2 - 50);
-        
-        g.setFont(new Font("Arial", Font.BOLD, 30));
-        g.setColor(Color.WHITE);
-        String scoreText = "คะแนน: " + score;
-        int scoreX = (WIDTH - g.getFontMetrics().stringWidth(scoreText)) / 2;
-        g.drawString(scoreText, scoreX, HEIGHT / 2);
-        
-        g.setFont(new Font("Arial", Font.PLAIN, 20));
-        String restartText = "กด R เพื่อเริ่มใหม่";
-        int restartX = (WIDTH - g.getFontMetrics().stringWidth(restartText)) / 2;
-        g.drawString(restartText, restartX, HEIGHT / 2 + 50);
-    }
-        private void drawUI(Graphics2D g) {
-        // แสดงคะแนน
-        g.setFont(new Font("Arial", Font.BOLD, 20));
-        g.setColor(Color.WHITE);
-        g.drawString("คะแนน: " + score, 20, 30);
-        
-        // แสดงพลังชีวิต
-        if (player != null) {
-            g.drawString("HP: " + player.getHealth(), 20, 60);
-            
-            // แสดงแถบพลังชีวิต
-            g.setColor(Color.RED);
-            g.fillRect(120, 45, 100, 15);
-            g.setColor(Color.GREEN);
-            int healthBarWidth = (int) ((float) player.getHealth() / player.getMaxHealth() * 100);
-            g.fillRect(120, 45, healthBarWidth, 15);
-            g.setColor(Color.WHITE);
-            g.drawRect(120, 45, 100, 15);
+
+        if (levelManager.shouldSpawnBoss() && bosses.isEmpty()) {
+            spawnBoss();
+            levelManager.bossSpawned();
         }
-        
-        // แสดงระดับ
-        g.setColor(Color.WHITE);
-        g.drawString("ระดับ: " + currentLevel, 20, 90);
-        
-        // แสดงจำนวนมอนสเตอร์ที่ฆ่าไป
-        g.drawString("มอนสเตอร์: " + monstersKilled + "/" + monstersRequired, 20, 120);
-        
-        // แสดงจำนวนชีวิตที่เหลือ
-        if (player != null) {
-            g.drawString("ชีวิต: " + player.getLives(), WIDTH - 100, 30);
-        }
+
+        updateMonsters();
+        updateBosses();
+        updatePlayerBullets();
+        updateEnemyBullets();
+        updatePowerups();
+        checkCollisions();
     }
-    
-    // สร้างมอนสเตอร์
-    private void spawnMonster() {
-        try {
-            // สุ่มตำแหน่งรอบขอบจอ
-            int x, y;
-            int side = random.nextInt(4); // 0=บน, 1=ขวา, 2=ล่าง, 3=ซ้าย
-            
-            switch (side) {
-                case 0: // บน
-                    x = random.nextInt(WIDTH - 30);
-                    y = -30;
-                    break;
-                case 1: // ขวา
-                    x = WIDTH;
-                    y = random.nextInt(HEIGHT - 30);
-                    break;
-                case 2: // ล่าง
-                    x = random.nextInt(WIDTH - 30);
-                    y = HEIGHT;
-                    break;
-                default: // ซ้าย
-                    x = -30;
-                    y = random.nextInt(HEIGHT - 30);
-                    break;
-            }
-            
-            monsters.add(new Monster(x, y, player));
-            System.out.println("สร้างมอนสเตอร์ที่ตำแหน่ง (" + x + ", " + y + ")");
-        } catch (Exception e) {
-            System.err.println("Error spawning monster: " + e.getMessage());
-            e.printStackTrace();
-        }
-    }
-    
-    // สร้างบอส
-    private void spawnBoss() {
-        try {
-            boss = new Boss(WIDTH / 2 - 40, 50, currentLevel);
-            bossSpawned = true;
-            System.out.println("สร้างบอสระดับ " + currentLevel);
-        } catch (Exception e) {
-            System.err.println("Error spawning boss: " + e.getMessage());
-            e.printStackTrace();
-        }
-    }
-    
-    // อัพเดทมอนสเตอร์
+
     private void updateMonsters() {
-        if (monsters == null) return;
-        
-        try {
-            Iterator<Monster> it = monsters.iterator();
-            while (it.hasNext()) {
-                Monster monster = it.next();
-                monster.update();
-                
-                // ลบมอนสเตอร์ที่ตายแล้ว
-                if (!monster.isAlive()) {
-                    it.remove();
-                    monstersKilled++;
-                    score += monster.getPoints();
+        for (Monster monster : monsters) {
+            monster.update();
+            
+            int oldX = (int) monster.getX();
+            int oldY = (int) monster.getY();
+            
+            for (Monster otherMonster : monsters) {
+                if (monster != otherMonster && monster.collidesWith(otherMonster)) {
+                    monster.setX(oldX);
+                    monster.setY(oldY);
                     
-                    // สุ่มว่าจะดรอปพาวเวอร์อัพหรือไม่
-                    if (monster.dropsPowerup()) {
-                        spawnPowerup(monster.getX(), monster.getY());
-                    }
-                    continue;
-                }
-                
-                // มอนสเตอร์ยิงกระสุน
-                if (random.nextInt(100) < 2) { // 2% โอกาสต่อเฟรม
-                    EnemyBullet bullet = monster.attack();
-                    if (bullet != null) {
-                        enemyBullets.add(bullet);
-                    }
+                    monster.setX(oldX + random.nextInt(10) - 5);
+                    monster.setY(oldY + random.nextInt(10) - 5);
+                    break;
                 }
             }
-        } catch (Exception e) {
-            System.err.println("Error updating monsters: " + e.getMessage());
-            e.printStackTrace();
+        }
+        
+        Iterator<Monster> it = monsters.iterator();
+        while (it.hasNext()) {
+            Monster monster = it.next();
+            monster.update();
+
+            if (!monster.isAlive()) {
+                it.remove();
+                levelManager.monsterKilled();
+                
+                player.addScore(monster.getPoints());
+
+                if (monster.dropsPowerup()) {
+                    spawnPowerup((int) monster.getX(), (int) monster.getY());
+                }
+            }
         }
     }
-    
-    // อัพเดทบอส
-    private void updateBoss() {
-        if (boss == null || !bossSpawned) return;
-        
-        try {
+
+    private void updateBosses() {
+        Iterator<Boss> it = bosses.iterator();
+        while (it.hasNext()) {
+            Boss boss = it.next();
             boss.update();
-            
-            // ตรวจสอบว่าบอสตายหรือยัง
+
             if (!boss.isAlive()) {
-                bossSpawned = false;
-                score += boss.getPoints();
-                currentLevel++;
-                monstersKilled = 0;
-                monstersRequired = 20 + (currentLevel - 1) * 5; // เพิ่มจำนวนมอนสเตอร์ที่ต้องฆ่า
-                spawnPowerup(boss.getX() + boss.getWidth() / 2, boss.getY() + boss.getHeight() / 2);
-                boss = null;
-                return;
+                it.remove();
+                levelManager.bossKilled();
+                
+                player.addScore(boss.getPoints());
+
+                spawnPowerup((int) (boss.getX() + boss.getWidth() / 2), (int) (boss.getY() + boss.getHeight() / 2));
+                continue;
             }
-            
-            // บอสยิงกระสุน
-            if (random.nextInt(100) < 5) { // 5% โอกาสต่อเฟรม
+
+            if (random.nextInt(100) < 5) {
                 EnemyBullet bullet = boss.attack();
                 if (bullet != null) {
                     enemyBullets.add(bullet);
                 }
             }
-            
-            // บอสยิงกระสุนพิเศษ
-            if (random.nextInt(200) < 1) { // 0.5% โอกาสต่อเฟรม
+
+            if (random.nextInt(100) < 1) {
                 List<EnemyBullet> bullets = boss.attackSpecial();
                 if (bullets != null) {
                     enemyBullets.addAll(bullets);
                 }
             }
-        } catch (Exception e) {
-            System.err.println("Error updating boss: " + e.getMessage());
-            e.printStackTrace();
         }
     }
 
-    // สร้างพาวเวอร์อัพ
-    private void spawnPowerup(float x, float y) {
-        try {
-            int type = random.nextInt(3); // สุ่มประเภทของพาวเวอร์อัพ
-            powerups.add(new Powerup((int) x, (int) y, type));
-            System.out.println("สร้างพาวเวอร์อัพประเภท " + type + " ที่ตำแหน่ง (" + x + ", " + y + ")");
-        } catch (Exception e) {
-            System.err.println("Error spawning powerup: " + e.getMessage());
-            e.printStackTrace();
-        }
-    }
-
-    // อัพเดทกระสุนของผู้เล่น
     private void updatePlayerBullets() {
-        if (player == null) return;
-        
-        try {
-            playerBullets = player.getBullets(); // ดึงรายการกระสุนจากผู้เล่น
-            
-            if (playerBullets == null) return;
-            
-            Iterator<PlayerBullet> it = playerBullets.iterator();
-            while (it.hasNext()) {
-                PlayerBullet bullet = it.next();
-                bullet.update();
-                
-                // ลบกระสุนที่ไม่ได้ใช้งานแล้ว
-                if (!bullet.isActive()) {
-                    it.remove();
-                }
+        Iterator<PlayerBullet> it = playerBullets.iterator();
+        while (it.hasNext()) {
+            PlayerBullet bullet = it.next();
+            bullet.update();
+
+            if (!bullet.isActive()) {
+                it.remove();
             }
-        } catch (Exception e) {
-            System.err.println("Error updating player bullets: " + e.getMessage());
-            e.printStackTrace();
         }
     }
 
-    // อัพเดทกระสุนของศัตรู
     private void updateEnemyBullets() {
-        if (enemyBullets == null) return;
-        
-        try {
-            Iterator<EnemyBullet> it = enemyBullets.iterator();
-            while (it.hasNext()) {
-                EnemyBullet bullet = it.next();
-                bullet.update();
-                
-                // ลบกระสุนที่ไม่ได้ใช้งานแล้ว
-                if (!bullet.isActive()) {
-                    it.remove();
-                }
+        Iterator<EnemyBullet> it = enemyBullets.iterator();
+        while (it.hasNext()) {
+            EnemyBullet bullet = it.next();
+            bullet.update();
+
+            if (!bullet.isActive()) {
+                it.remove();
             }
-        } catch (Exception e) {
-            System.err.println("Error updating enemy bullets: " + e.getMessage());
-            e.printStackTrace();
         }
     }
 
-    // อัพเดทพาวเวอร์อัพ
     private void updatePowerups() {
-        if (powerups == null) return;
-        
-        try {
-            Iterator<Powerup> it = powerups.iterator();
-            while (it.hasNext()) {
-                Powerup powerup = it.next();
-                powerup.update();
-                
-                // ลบพาวเวอร์อัพที่ไม่ได้ใช้งานแล้ว
-                if (!powerup.isActive()) {
-                    it.remove();
-                }
+        Iterator<Powerup> it = powerups.iterator();
+        while (it.hasNext()) {
+            Powerup powerup = it.next();
+            powerup.update();
+
+            if (!powerup.isActive()) {
+                it.remove();
             }
-        } catch (Exception e) {
-            System.err.println("Error updating powerups: " + e.getMessage());
-            e.printStackTrace();
         }
     }
 
-    // ตรวจสอบการชนกัน
     private void checkCollisions() {
-        if (player == null) return;
-        
-        try {
-            // ตรวจสอบการชนกันระหว่างกระสุนผู้เล่นกับศัตรู
-            checkPlayerBulletCollisions();
-            
-            // ตรวจสอบการชนกันระหว่างกระสุนศัตรูกับผู้เล่น
-            checkEnemyBulletCollisions();
-            
-            // ตรวจสอบการชนกันระหว่างผู้เล่นกับมอนสเตอร์
-            checkPlayerMonsterCollisions();
-            
-            // ตรวจสอบการชนกันระหว่างผู้เล่นกับบอส
-            checkPlayerBossCollisions();
-            
-            // ตรวจสอบการชนกันระหว่างผู้เล่นกับพาวเวอร์อัพ
-            checkPlayerPowerupCollisions();
-        } catch (Exception e) {
-            System.err.println("Error checking collisions: " + e.getMessage());
-            e.printStackTrace();
-        }
-    }
-
-    // ตรวจสอบการชนกันระหว่างกระสุนผู้เล่นกับศัตรู
-    private void checkPlayerBulletCollisions() {
-        if (playerBullets == null) return;
-        
-        // ตรวจสอบการชนกับมอนสเตอร์
-        if (monsters != null) {
-            for (PlayerBullet bullet : playerBullets) {
-                if (bullet != null && bullet.isActive()) {
-                    for (Monster monster : monsters) {
-                        if (monster != null && monster.isAlive() && bullet.collidesWith(monster)) {
-                            monster.takeDamage(bullet.getDamage());
-                            bullet.setActive(false);
-                            break;
-                        }
-                    }
+        for (PlayerBullet bullet : playerBullets) {
+            for (Monster monster : monsters) {
+                if (bullet.isActive() && monster.isAlive() && bullet.collidesWith(monster)) {
+                    monster.takeDamage(bullet.getDamage());
+                    bullet.setActive(false);
                 }
             }
-        }
 
-        // ตรวจสอบการชนกับบอส
-        if (boss != null && bossSpawned) {
-            for (PlayerBullet bullet : playerBullets) {
-                if (bullet != null && bullet.isActive() && boss.isAlive() && bullet.collidesWith(boss)) {
+            for (Boss boss : bosses) {
+                if (bullet.isActive() && boss.isAlive() && bullet.collidesWith(boss)) {
                     boss.takeDamage(bullet.getDamage());
                     bullet.setActive(false);
                 }
             }
         }
-    }
-    
-    // ตรวจสอบการชนกันระหว่างกระสุนศัตรูกับผู้เล่น
-    private void checkEnemyBulletCollisions() {
-        if (enemyBullets == null || player == null) return;
-        
+
         for (EnemyBullet bullet : enemyBullets) {
-            if (bullet != null && bullet.isActive() && player.isAlive() && bullet.collidesWith(player)) {
+            if (bullet.isActive() && player.isAlive() && bullet.collidesWith(player)) {
                 player.takeDamage(bullet.getDamage());
                 bullet.setActive(false);
             }
         }
-    }
 
-    // ตรวจสอบการชนกันระหว่างผู้เล่นกับมอนสเตอร์
-    private void checkPlayerMonsterCollisions() {
-        if (monsters == null || player == null) return;
-        
         for (Monster monster : monsters) {
-            if (monster != null && player.isAlive() && monster.isAlive() && player.collidesWith(monster)) {
-                // ผู้เล่นและมอนสเตอร์ต่างได้รับความเสียหาย
+            if (player.isAlive() && monster.isAlive() && player.collidesWith(monster)) {
                 player.takeDamage(monster.getDamage());
-                monster.takeDamage(20); // มอนสเตอร์ได้รับความเสียหายจากการชน
+                monster.takeDamage(50);
             }
         }
-    }
 
-    // ตรวจสอบการชนกันระหว่างผู้เล่นกับบอส
-    private void checkPlayerBossCollisions() {
-        if (boss == null || !bossSpawned || player == null) return;
-        
-        if (player.isAlive() && boss.isAlive() && player.collidesWith(boss)) {
-            // ผู้เล่นและบอสต่างได้รับความเสียหาย
-            player.takeDamage(boss.getDamage() * 2); // บอสทำความเสียหายมากกว่ามอนสเตอร์
-            boss.takeDamage(10); // บอสได้รับความเสียหายจากการชนน้อยกว่า
+        for (Boss boss : bosses) {
+            if (player.isAlive() && boss.isAlive() && player.collidesWith(boss)) {
+                player.takeDamage(boss.getDamage(), true);
+                boss.takeDamage(20);
+            }
         }
-    }
 
-    // ตรวจสอบการชนกันระหว่างผู้เล่นกับพาวเวอร์อัพ
-    private void checkPlayerPowerupCollisions() {
-        if (powerups == null || player == null) return;
-        
         Iterator<Powerup> it = powerups.iterator();
         while (it.hasNext()) {
             Powerup powerup = it.next();
-            if (powerup != null && powerup.isActive() && player.collidesWith(powerup)) {
-                // ใช้พาวเวอร์อัพ
+            if (powerup.isActive() && player.collidesWith(powerup)) {
                 applyPowerup(powerup);
                 it.remove();
             }
         }
     }
 
-    // ประยุกต์ใช้พาวเวอร์อัพกับผู้เล่น
+    private void spawnMonster() {
+        int[] pos = levelManager.getRandomMonsterPosition();
+        monsters.add(new Monster(pos[0], pos[1], player));
+    }
+    
+    private void spawnBoss() {
+        int[] pos = levelManager.getBossPosition();
+        bosses.add(new Boss(pos[0], pos[1], levelManager.getCurrentLevel()));
+    }
+
+    private void spawnPowerup(int x, int y) {
+        int type = random.nextInt(3);
+        powerups.add(new Powerup(x, y, type));
+    }
+
     private void applyPowerup(Powerup powerup) {
-        if (player == null) return;
-        
         switch (powerup.getType()) {
-            case 0: // เพิ่มพลังชีวิต
-                player.setHealth(player.getHealth() + powerup.getValue());
+            case 0:
+                int newHealth = player.getHealth() + powerup.getValue();
+                player.setHealth(Math.min(newHealth, 100));
                 break;
-            case 1: // เพิ่มความเร็ว
-                player.increaseSpeed(powerup.getValue());
+            case 1:
+                player.setSpeed(player.getSpeed() + powerup.getValue());
                 break;
-            case 2: // เพิ่มความแรงกระสุน
-                player.increaseBulletDamage(powerup.getValue());
+            case 2:
                 break;
         }
     }
-    
-    // หยุดเกม
-    public void stopGame() {
-        running = false;
-        try {
-            if (gameThread != null) {
-                gameThread.join();
+
+    @Override
+    protected void paintComponent(Graphics g) {
+        super.paintComponent(g);
+        render(g);
+    }
+
+    @Override
+    public void render(Graphics g) {
+        drawBackground(g);
+
+        if (!gameOver) {
+            for (Powerup powerup : powerups) {
+                powerup.render(g);
             }
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+
+            for (PlayerBullet bullet : playerBullets) {
+                bullet.render(g);
+            }
+
+            for (EnemyBullet bullet : enemyBullets) {
+                bullet.render(g);
+            }
+
+            for (Monster monster : monsters) {
+                monster.render(g);
+            }
+
+            for (Boss boss : bosses) {
+                boss.render(g);
+            }
+
+            player.render(g);
+        }
+
+        drawUI(g);
+
+        if (gameOver) {
+            drawGameOver(g);
+        }
+
+        if (gamePaused) {
+            drawPaused(g);
+        }
+    }
+
+    private void drawBackground(Graphics g) {
+        g.setColor(new Color(100, 100, 100));
+        for (int i = 0; i < 100; i++) {
+            int starX = random.nextInt(WIDTH);
+            int starY = random.nextInt(HEIGHT);
+            g.fillRect(starX, starY, 1, 1);
+        }
+
+        g.setColor(new Color(200, 200, 200));
+        for (int i = 0; i < 50; i++) {
+            int starX = random.nextInt(WIDTH);
+            int starY = random.nextInt(HEIGHT);
+            g.fillRect(starX, starY, 2, 2);
+        }
+    }
+
+    private void drawUI(Graphics g) {
+        g.setColor(Color.WHITE);
+        g.drawString("HP: " + player.getHealth() + "/100", 20, 30);
+
+        g.setColor(Color.RED);
+        g.fillRect(80, 20, player.getHealth() * 2, 15);
+
+        g.setColor(Color.WHITE);
+        g.drawRect(80, 20, 200, 15);
+
+        g.setColor(Color.WHITE);
+        g.drawString("Lives: " + player.getLives(), 20, 50);
+
+        g.setColor(Color.WHITE);
+        g.drawString("Level: " + levelManager.getCurrentLevel(), 20, 70);
+
+        g.setColor(Color.WHITE);
+        g.drawString("Monsters: " + levelManager.getMonstersKilled() + "/" + levelManager.getMonstersToKill(), 20, 90);
+
+        g.setColor(Color.WHITE);
+        g.drawString("Score: " + player.getScore(), WIDTH - 150, 30);
+    }
+
+
+    private void drawPaused(Graphics g) {
+        g.setColor(new Color(0, 0, 0, 150));
+        g.fillRect(0, 0, WIDTH, HEIGHT);
+
+        g.setColor(Color.WHITE);
+        g.setFont(new Font("Arial", Font.BOLD, 50));
+        g.drawString("PAUSED", WIDTH / 2 - 100, HEIGHT / 2);
+
+        g.setFont(new Font("Arial", Font.PLAIN, 16));
+        g.drawString("Press 'P' to continue", WIDTH / 2 - 80, HEIGHT / 2 + 40);
+    }
+
+    public void movePlayer(int dx, int dy) {
+        if (!gameOver && !gamePaused) {
+            player.move(dx, dy);
+        }
+    }
+
+    public void playerShoot(int targetX, int targetY) {
+        if (!gameOver && !gamePaused) {
+            int bulletX = (int) (player.getX() + player.getWidth() / 2 - 4);
+            int bulletY = (int) (player.getY() - 8);
+
+            double dx = targetX - bulletX;
+            double dy = targetY - bulletY;
+            double angle = Math.atan2(dy, dx);
+
+            playerBullets.add(new PlayerBullet(bulletX, bulletY, 8, 8, angle));
+        }
+    }
+
+    public void togglePause() {
+        gamePaused = !gamePaused;
+    }
+
+    public void restartGame() {
+        initGame();
+        gameOver = false;
+        gamePaused = false;
+    }
+    
+    public void returnToMenu() {
+        game.returnToMenu();
+    }
+    
+    // เพิ่มเมธอดสำหรับการจัดการกับปุ่มในหน้า Game Over
+    private void handleGameOverButtons(int x, int y) {
+        // สร้างพื้นที่ปุ่ม "กลับเมนูหลัก"
+        Rectangle menuButton = new Rectangle(WIDTH / 2 - 100, HEIGHT / 2 + 90, 200, 40);
+        
+        // สร้างพื้นที่ปุ่ม "เล่นใหม่"
+        Rectangle restartButton = new Rectangle(WIDTH / 2 - 100, HEIGHT / 2 + 40, 200, 40);
+        
+        if (menuButton.contains(x, y)) {
+            returnToMenu();
+        } else if (restartButton.contains(x, y)) {
+            restartGame();
         }
     }
     
-    // สำหรับเช็คการชนกันของ GameObject (เพิ่มเติม)
-    public Rectangle getBounds() {
-        return new Rectangle(0, 0, WIDTH, HEIGHT);
+    // ปรับปรุงเมธอด drawGameOver เพื่อแสดงปุ่ม
+    private void drawGameOver(Graphics g) {
+        g.setColor(new Color(0, 0, 0, 200));
+        g.fillRect(0, 0, WIDTH, HEIGHT);
+
+        g.setColor(Color.RED);
+        g.setFont(new Font("Arial", Font.BOLD, 50));
+        g.drawString("GAME OVER", WIDTH / 2 - 150, HEIGHT / 2 - 50);
+
+        g.setColor(Color.WHITE);
+        g.setFont(new Font("Arial", Font.BOLD, 20));
+        g.drawString("Score: " + player.getScore(), WIDTH / 2 - 50, HEIGHT / 2);
+        g.drawString("Level: " + levelManager.getCurrentLevel(), WIDTH / 2 - 50, HEIGHT / 2 + 30);
+
+        // วาดปุ่ม "เล่นใหม่"
+        g.setColor(new Color(50, 150, 50));
+        g.fillRect(WIDTH / 2 - 100, HEIGHT / 2 + 40, 200, 40);
+        g.setColor(Color.WHITE);
+        g.drawString("เล่นใหม่", WIDTH / 2 - 30, HEIGHT / 2 + 65);
+        
+        // วาดปุ่ม "กลับเมนูหลัก"
+        g.setColor(new Color(150, 50, 50));
+        g.fillRect(WIDTH / 2 - 100, HEIGHT / 2 + 90, 200, 40);
+        g.setColor(Color.WHITE);
+        g.drawString("กลับเมนูหลัก", WIDTH / 2 - 50, HEIGHT / 2 + 115);
+    }
+    
+    // ปรับปรุงเมธอด handleMouseClick ให้ตรวจสอบการคลิกปุ่มในหน้า Game Over
+    @Override
+    public void handleMouseClick(int x, int y) {
+        if (gameOver) {
+            handleGameOverButtons(x, y);
+        } else if (gamePaused) {
+            // ตรวจสอบการคลิกปุ่มในหน้า Pause (ถ้ามี)
+        } else {
+            // ตรวจสอบการคลิกในเกม (ถ้ามี)
+        }
+    }
+    
+    // เพิ่มเมธอดสำหรับแสดงคะแนนสูงสุด
+    private void saveHighScore() {
+        // ตรวจสอบคะแนนสูงสุดจากไฟล์หรือหน่วยความจำ
+        int highScore = loadHighScore();
+        if (player.getScore() > highScore) {
+            // บันทึกคะแนนใหม่
+            saveScoreToFile(player.getScore());
+        }
+    }
+    
+    private int loadHighScore() {
+        // โหลดคะแนนสูงสุดจากไฟล์
+        // นี่เป็นเพียงตัวอย่าง ควรมีการอ่านจากไฟล์จริงๆ
+        return 0;
+    }
+    
+    private void saveScoreToFile(int score) {
+        // บันทึกคะแนนลงไฟล์
+        // นี่เป็นเพียงตัวอย่าง ควรมีการบันทึกลงไฟล์จริงๆ
+    }
+    
+    // เพิ่มเมธอดสำหรับการตอบสนองต่อปุ่มคีย์บอร์ด
+    public void handleKeyPress(int keyCode) {
+        if (keyCode == KeyEvent.VK_P) {
+            togglePause();
+        } else if (keyCode == KeyEvent.VK_R && gameOver) {
+            restartGame();
+        } else if (keyCode == KeyEvent.VK_ESCAPE) {
+            returnToMenu();
+        }
     }
 }
