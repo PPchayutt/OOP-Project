@@ -1,8 +1,9 @@
+
 import java.awt.event.*;
 
 public class InputHandler implements KeyListener, MouseListener, MouseMotionListener {
 
-    private GamePanel gamePanel;
+    private final GamePanel gamePanel;
     private boolean up, down, left, right; // เพิ่มตัวแปรที่ขาดหายไป
     private int mouseX, mouseY;
 
@@ -26,7 +27,7 @@ public class InputHandler implements KeyListener, MouseListener, MouseMotionList
         if (key == KeyEvent.VK_D) {
             right = true;
         }
-        
+
         // กดปุ่ม Escape เพื่อกลับไปเมนู
         if (key == KeyEvent.VK_ESCAPE) {
             gamePanel.returnToMenu();

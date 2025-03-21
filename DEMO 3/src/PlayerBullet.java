@@ -1,7 +1,8 @@
+
 import java.awt.*;
 
 public class PlayerBullet extends Projectile {
-    
+
     private int damage = 25;
 
     public PlayerBullet(int x, int y, int width, int height, double angle) {
@@ -13,7 +14,7 @@ public class PlayerBullet extends Projectile {
         // เคลื่อนที่ตามทิศทางและความเร็ว
         x += Math.cos(angle) * speed;
         y += Math.sin(angle) * speed;
-        
+
         // ตรวจสอบว่าออกนอกหน้าจอหรือไม่
         if (x < -width || x > GamePanel.WIDTH || y < -height || y > GamePanel.HEIGHT) {
             active = false;
@@ -25,11 +26,11 @@ public class PlayerBullet extends Projectile {
         g.setColor(Color.YELLOW);
         g.fillOval((int) x, (int) y, width, height);
     }
-    
+
     public int getDamage() {
         return damage;
     }
-    
+
     public void setDamage(int damage) {
         this.damage = damage;
     }

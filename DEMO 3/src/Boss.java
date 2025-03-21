@@ -1,3 +1,4 @@
+
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -10,7 +11,7 @@ public class Boss extends Enemy {
     private int moveDirection = 1;
     private int attackPattern = 0;
     private static final Random random = new Random();
-    private int level;
+    private final int level;
 
     public Boss(int x, int y, int level) {
         super(x, y, 80, 80, 200 * level, 1, 20, 1000 * level);
@@ -29,24 +30,26 @@ public class Boss extends Enemy {
         }
 
         // รูปแบบการเคลื่อนที่ของบอส
-        if (phase == 0) {
-            // เคลื่อนที่จากซ้ายไปขวา
-            x += speed * moveDirection;
-
-            if (x <= 0 || x >= GamePanel.WIDTH - width) {
-                moveDirection *= -1;
+        switch (phase) {
+            case 0 -> {
+                // เคลื่อนที่จากซ้ายไปขวา
+                x += speed * moveDirection;
+                if (x <= 0 || x >= GamePanel.WIDTH - width) {
+                    moveDirection *= -1;
+                }
             }
-        } else if (phase == 1) {
-            // เคลื่อนที่เป็นรูปคลื่น
-            x += Math.cos(phaseCounter * 0.05) * speed;
-            y += Math.sin(phaseCounter * 0.05) * speed;
-
-            // จำกัดไม่ให้ออกนอกหน้าจอ
-            x = Math.max(0, Math.min(x, GamePanel.WIDTH - width));
-            y = Math.max(0, Math.min(y, 300)); // บอสอยู่แค่ด้านบนของหน้าจอ
-        } else {
-            // หยุดนิ่ง (เตรียมโจมตีพิเศษ)
+            case 1 -> {
+                // เคลื่อนที่เป็นรูปคลื่น
+                x += Math.cos(phaseCounter * 0.05) * speed;
+                y += Math.sin(phaseCounter * 0.05) * speed;
+                // จำกัดไม่ให้ออกนอกหน้าจอ
+                x = Math.max(0, Math.min(x, GamePanel.WIDTH - width));
+                y = Math.max(0, Math.min(y, 300)); // บอสอยู่แค่ด้านบนของหน้าจอ
+            }
+            default -> {
+            }
         }
+        // หยุดนิ่ง (เตรียมโจมตีพิเศษ)
     }
 
     @Override
@@ -94,28 +97,32 @@ public class Boss extends Enemy {
             return null;
         }
 
-        if (attackPattern == 0) {
-            // ยิงตรงลงมา
-            resetShootCooldown(30);
-            return new EnemyBullet((int) x + width / 2 - 4, (int) y + height, 8, 8, Math.PI / 2, 3, damage);
-        } else if (attackPattern == 1) {
-            // ยิงทแยงมุม
-            resetShootCooldown(60);
+        switch (attackPattern) {
+            case 0 -> {
+                // ยิงตรงลงมา
+                resetShootCooldown(30);
+                return new EnemyBullet((int) x + width / 2 - 4, (int) y + height, 8, 8, Math.PI / 2, 3, damage);
+            }
+            case 1 -> {
+                // ยิงทแยงมุม
+                resetShootCooldown(60);
 
-            double angle = Math.PI / 3 + random.nextDouble() * Math.PI / 3;
-            return new EnemyBullet((int) x + width / 2 - 4, (int) y + height, 8, 8, angle, 2, damage);
-        } else {
-            // ยิงตรงไปที่ผู้เล่น (ต้องปรับให้เหมาะสมหลังจากเพิ่ม Player)
-            resetShootCooldown(15);
+                double angle = Math.PI / 3 + random.nextDouble() * Math.PI / 3;
+                return new EnemyBullet((int) x + width / 2 - 4, (int) y + height, 8, 8, angle, 2, damage);
+            }
+            default -> {
+                // ยิงตรงไปที่ผู้เล่น (ต้องปรับให้เหมาะสมหลังจากเพิ่ม Player)
+                resetShootCooldown(15);
 
-            int targetX = GamePanel.WIDTH / 2;
-            int targetY = GamePanel.HEIGHT - 100;
+                int targetX = GamePanel.WIDTH / 2;
+                int targetY = GamePanel.HEIGHT - 100;
 
-            double dx = targetX - (x + width / 2);
-            double dy = targetY - (y + height / 2);
-            double angle = Math.atan2(dy, dx);
+                double dx = targetX - (x + width / 2);
+                double dy = targetY - (y + height / 2);
+                double angle = Math.atan2(dy, dx);
 
-            return new EnemyBullet((int) x + width / 2 - 4, (int) y + height / 2, 8, 8, angle, 3, damage);
+                return new EnemyBullet((int) x + width / 2 - 4, (int) y + height / 2, 8, 8, angle, 3, damage);
+            }
         }
     }
 

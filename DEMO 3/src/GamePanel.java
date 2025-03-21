@@ -1,3 +1,4 @@
+
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
@@ -6,17 +7,18 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
 
-public class GamePanel extends JPanel implements Runnable, GameState  {
+public class GamePanel extends JPanel implements Runnable, GameState {
 
     public static final int WIDTH = 800;
     public static final int HEIGHT = 600;
     private static final int FPS = 60;
 
     private Thread gameThread;
+    private GameMap gameMap;
     private boolean running = false;
-    
+
     private LevelManager levelManager;
-    private Random random = new Random();
+    private final Random random = new Random();
 
     private boolean gameOver = false;
     private boolean gamePaused = false;
@@ -28,8 +30,8 @@ public class GamePanel extends JPanel implements Runnable, GameState  {
     private List<PlayerBullet> playerBullets;
     private List<EnemyBullet> enemyBullets;
     private List<Powerup> powerups;
-    
-    private Game game;
+
+    private final Game game;
 
     public GamePanel(Game game) {
         this.game = game;
@@ -54,6 +56,7 @@ public class GamePanel extends JPanel implements Runnable, GameState  {
         powerups = new ArrayList<>();
 
         levelManager = new LevelManager();
+        gameMap = new GameMap("level1"); // สร้างแผนที่ด่าน 1
     }
 
     public void startGameLoop() {
@@ -63,7 +66,7 @@ public class GamePanel extends JPanel implements Runnable, GameState  {
             gameThread.start();
         }
     }
-    
+
     public void stopGameLoop() {
         running = false;
         try {
@@ -71,7 +74,6 @@ public class GamePanel extends JPanel implements Runnable, GameState  {
                 gameThread.join(1000); // รอสูงสุด 1 วินาที
             }
         } catch (InterruptedException e) {
-            e.printStackTrace();
         }
     }
 
@@ -99,7 +101,6 @@ public class GamePanel extends JPanel implements Runnable, GameState  {
             try {
                 Thread.sleep(1);
             } catch (InterruptedException e) {
-                e.printStackTrace();
             }
         }
     }
@@ -135,22 +136,22 @@ public class GamePanel extends JPanel implements Runnable, GameState  {
     private void updateMonsters() {
         for (Monster monster : monsters) {
             monster.update();
-            
+
             int oldX = (int) monster.getX();
             int oldY = (int) monster.getY();
-            
+
             for (Monster otherMonster : monsters) {
                 if (monster != otherMonster && monster.collidesWith(otherMonster)) {
                     monster.setX(oldX);
                     monster.setY(oldY);
-                    
+
                     monster.setX(oldX + random.nextInt(10) - 5);
                     monster.setY(oldY + random.nextInt(10) - 5);
                     break;
                 }
             }
         }
-        
+
         Iterator<Monster> it = monsters.iterator();
         while (it.hasNext()) {
             Monster monster = it.next();
@@ -159,7 +160,7 @@ public class GamePanel extends JPanel implements Runnable, GameState  {
             if (!monster.isAlive()) {
                 it.remove();
                 levelManager.monsterKilled();
-                
+
                 player.addScore(monster.getPoints());
 
                 if (monster.dropsPowerup()) {
@@ -178,7 +179,7 @@ public class GamePanel extends JPanel implements Runnable, GameState  {
             if (!boss.isAlive()) {
                 it.remove();
                 levelManager.bossKilled();
-                
+
                 player.addScore(boss.getPoints());
 
                 spawnPowerup((int) (boss.getX() + boss.getWidth() / 2), (int) (boss.getY() + boss.getHeight() / 2));
@@ -289,7 +290,7 @@ public class GamePanel extends JPanel implements Runnable, GameState  {
         int[] pos = levelManager.getRandomMonsterPosition();
         monsters.add(new Monster(pos[0], pos[1], player));
     }
-    
+
     private void spawnBoss() {
         int[] pos = levelManager.getBossPosition();
         bosses.add(new Boss(pos[0], pos[1], levelManager.getCurrentLevel()));
@@ -302,15 +303,14 @@ public class GamePanel extends JPanel implements Runnable, GameState  {
 
     private void applyPowerup(Powerup powerup) {
         switch (powerup.getType()) {
-            case 0:
+            case 0 -> {
                 int newHealth = player.getHealth() + powerup.getValue();
                 player.setHealth(Math.min(newHealth, 100));
-                break;
-            case 1:
+            }
+            case 1 ->
                 player.setSpeed(player.getSpeed() + powerup.getValue());
-                break;
-            case 2:
-                break;
+            case 2 -> {
+            }
         }
     }
 
@@ -323,7 +323,7 @@ public class GamePanel extends JPanel implements Runnable, GameState  {
     @Override
     public void render(Graphics g) {
         drawBackground(g);
-
+        gameMap.render(g);
         if (!gameOver) {
             for (Powerup powerup : powerups) {
                 powerup.render(g);
@@ -398,7 +398,6 @@ public class GamePanel extends JPanel implements Runnable, GameState  {
         g.drawString("Score: " + player.getScore(), WIDTH - 150, 30);
     }
 
-
     private void drawPaused(Graphics g) {
         g.setColor(new Color(0, 0, 0, 150));
         g.fillRect(0, 0, WIDTH, HEIGHT);
@@ -413,7 +412,19 @@ public class GamePanel extends JPanel implements Runnable, GameState  {
 
     public void movePlayer(int dx, int dy) {
         if (!gameOver && !gamePaused) {
+            // เก็บตำแหน่งเดิม
+            float oldX = player.getX();
+            float oldY = player.getY();
+
+            // ให้ Player เคลื่อนที่
             player.move(dx, dy);
+
+            // ตรวจสอบการชนกับบล็อค
+            if (gameMap.checkCollision(player)) {
+                // ถ้าชนให้กลับไปตำแหน่งเดิม
+                player.setX(oldX);
+                player.setY(oldY);
+            }
         }
     }
 
@@ -439,26 +450,26 @@ public class GamePanel extends JPanel implements Runnable, GameState  {
         gameOver = false;
         gamePaused = false;
     }
-    
+
     public void returnToMenu() {
         game.returnToMenu();
     }
-    
+
     // เพิ่มเมธอดสำหรับการจัดการกับปุ่มในหน้า Game Over
     private void handleGameOverButtons(int x, int y) {
         // สร้างพื้นที่ปุ่ม "กลับเมนูหลัก"
         Rectangle menuButton = new Rectangle(WIDTH / 2 - 100, HEIGHT / 2 + 90, 200, 40);
-        
+
         // สร้างพื้นที่ปุ่ม "เล่นใหม่"
         Rectangle restartButton = new Rectangle(WIDTH / 2 - 100, HEIGHT / 2 + 40, 200, 40);
-        
+
         if (menuButton.contains(x, y)) {
             returnToMenu();
         } else if (restartButton.contains(x, y)) {
             restartGame();
         }
     }
-    
+
     // ปรับปรุงเมธอด drawGameOver เพื่อแสดงปุ่ม
     private void drawGameOver(Graphics g) {
         g.setColor(new Color(0, 0, 0, 200));
@@ -478,14 +489,14 @@ public class GamePanel extends JPanel implements Runnable, GameState  {
         g.fillRect(WIDTH / 2 - 100, HEIGHT / 2 + 40, 200, 40);
         g.setColor(Color.WHITE);
         g.drawString("เล่นใหม่", WIDTH / 2 - 30, HEIGHT / 2 + 65);
-        
+
         // วาดปุ่ม "กลับเมนูหลัก"
         g.setColor(new Color(150, 50, 50));
         g.fillRect(WIDTH / 2 - 100, HEIGHT / 2 + 90, 200, 40);
         g.setColor(Color.WHITE);
         g.drawString("กลับเมนูหลัก", WIDTH / 2 - 50, HEIGHT / 2 + 115);
     }
-    
+
     // ปรับปรุงเมธอด handleMouseClick ให้ตรวจสอบการคลิกปุ่มในหน้า Game Over
     @Override
     public void handleMouseClick(int x, int y) {
@@ -497,28 +508,7 @@ public class GamePanel extends JPanel implements Runnable, GameState  {
             // ตรวจสอบการคลิกในเกม (ถ้ามี)
         }
     }
-    
-    // เพิ่มเมธอดสำหรับแสดงคะแนนสูงสุด
-    private void saveHighScore() {
-        // ตรวจสอบคะแนนสูงสุดจากไฟล์หรือหน่วยความจำ
-        int highScore = loadHighScore();
-        if (player.getScore() > highScore) {
-            // บันทึกคะแนนใหม่
-            saveScoreToFile(player.getScore());
-        }
-    }
-    
-    private int loadHighScore() {
-        // โหลดคะแนนสูงสุดจากไฟล์
-        // นี่เป็นเพียงตัวอย่าง ควรมีการอ่านจากไฟล์จริงๆ
-        return 0;
-    }
-    
-    private void saveScoreToFile(int score) {
-        // บันทึกคะแนนลงไฟล์
-        // นี่เป็นเพียงตัวอย่าง ควรมีการบันทึกลงไฟล์จริงๆ
-    }
-    
+
     // เพิ่มเมธอดสำหรับการตอบสนองต่อปุ่มคีย์บอร์ด
     public void handleKeyPress(int keyCode) {
         if (keyCode == KeyEvent.VK_P) {

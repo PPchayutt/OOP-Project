@@ -1,3 +1,4 @@
+
 import java.awt.*;
 
 public class Powerup implements GameObject {
@@ -19,15 +20,12 @@ public class Powerup implements GameObject {
 
         // กำหนดค่าพาวเวอร์อัพตามประเภท
         switch (type) {
-            case 0:
+            case 0 ->
                 value = 25; // เพิ่มพลังชีวิต 25 หน่วย
-                break;
-            case 1:
+            case 1 ->
                 value = 1;  // เพิ่มความเร็ว 1 หน่วย
-                break;
-            case 2:
+            case 2 ->
                 value = 10; // เพิ่มความแรงกระสุน 10 หน่วย
-                break;
         }
     }
 
@@ -45,12 +43,13 @@ public class Powerup implements GameObject {
     @Override
     public void render(Graphics g) {
         // สีตามประเภทของพาวเวอร์อัพ
-        if (type == 0) {
-            g.setColor(Color.GREEN); // เพิ่มพลังชีวิต
-        } else if (type == 1) {
-            g.setColor(Color.CYAN); // เพิ่มความเร็ว
-        } else {
-            g.setColor(Color.YELLOW); // เพิ่มความแรงกระสุน
+        switch (type) {
+            case 0 ->
+                g.setColor(Color.GREEN); // เพิ่มพลังชีวิต
+            case 1 ->
+                g.setColor(Color.CYAN); // เพิ่มความเร็ว
+            default ->
+                g.setColor(Color.YELLOW); // เพิ่มความแรงกระสุน
         }
 
         g.fillOval((int) x, (int) y, width, height);
