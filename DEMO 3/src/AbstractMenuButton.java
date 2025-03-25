@@ -15,7 +15,6 @@ public abstract class AbstractMenuButton implements MenuButton {
         this.width = buttonImage.getWidth(null);
         this.height = buttonImage.getHeight(null);
 
-        // ถ้า width หรือ height เป็น -1 ให้กำหนดค่าเริ่มต้น
         if (this.width <= 0) {
             this.width = 150;
         }
@@ -28,13 +27,10 @@ public abstract class AbstractMenuButton implements MenuButton {
     public void render(Graphics g) {
         g.drawImage(buttonImage, x, y, null);
 
-        // สำหรับดีบัก แสดงพื้นที่ hitbox (ถ้าต้องการ)
-        // g.drawRect(x, y, width, height);
     }
 
     @Override
     public boolean isClicked(int mouseX, int mouseY) {
-        // เพิ่มพื้นที่ hitbox ให้ใหญ่ขึ้น (ขยาย 20% ทั้งความกว้างและความสูง)
         int extraWidth = (int) (width * 0.2);
         int extraHeight = (int) (height * 0.2);
 

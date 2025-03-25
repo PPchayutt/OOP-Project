@@ -136,10 +136,18 @@ public class SoundManager {
         try {
             Clip clip = sounds.get(key);
             if (clip != null) {
-                // แทนที่จะใช้ clip เดิม เราจะสร้าง clip ใหม่ทุกครั้ง
+                // สร้าง clip ใหม่ทุกครั้งที่เล่น
                 AudioInputStream audioIn = AudioSystem.getAudioInputStream(new File("resources/sounds/" + key + ".wav"));
                 Clip newClip = AudioSystem.getClip();
                 newClip.open(audioIn);
+
+                // ปรับความดังของเสียงให้เบาลง (ค่าระหว่าง -80.0f ถึง 6.0f โดย 0.0f คือปกติ)
+                if (newClip.isControlSupported(FloatControl.Type.MASTER_GAIN)) {
+                    FloatControl gainControl = (FloatControl) newClip.getControl(FloatControl.Type.MASTER_GAIN);
+                    // ปรับลดเหลือ 30% ของความดังปกติ (ประมาณ -10.5 dB)
+                    gainControl.setValue(-10.5f);
+                }
+
                 newClip.start();
 
                 // ลบ clip เก่าเมื่อเล่นจบ

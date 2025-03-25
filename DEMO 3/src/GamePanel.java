@@ -399,25 +399,37 @@ public class GamePanel extends JPanel implements Runnable, GameState {
     }
 
     private void drawUI(Graphics g) {
+        // แสดงค่าพลังชีวิตปัจจุบัน
         g.setColor(Color.WHITE);
         g.drawString("HP: " + player.getHealth() + "/100", 20, 30);
 
+        // แสดงแถบพลังชีวิต
         g.setColor(Color.RED);
         g.fillRect(80, 20, player.getHealth() * 2, 15);
-
         g.setColor(Color.WHITE);
         g.drawRect(80, 20, 200, 15);
 
-        g.setColor(Color.WHITE);
-        g.drawString("Lives: " + player.getLives(), 20, 50);
+        // แสดงจำนวนชีวิตด้วยไอคอนหัวใจ
+        int totalLives = 3; // จำนวนชีวิตทั้งหมด
+        int remainingLives = player.getLives(); // จำนวนชีวิตที่เหลือ
 
-        g.setColor(Color.WHITE);
-        g.drawString("Level: " + levelManager.getCurrentLevel(), 20, 70);
+        Image heartImage = ImageManager.getImage("heart");
+        Image brokenHeartImage = ImageManager.getImage("broken_heart");
 
-        g.setColor(Color.WHITE);
-        g.drawString("Monsters: " + levelManager.getMonstersKilled() + "/" + levelManager.getMonstersToKill(), 20, 90);
+        // วาดหัวใจปกติสำหรับชีวิตที่เหลืออยู่
+        for (int i = 0; i < remainingLives; i++) {
+            g.drawImage(heartImage, 20 + (i * 25), 45, 20, 20, null);
+        }
 
+        // วาดหัวใจแตกสำหรับชีวิตที่เสียไปแล้ว
+        for (int i = remainingLives; i < totalLives; i++) {
+            g.drawImage(brokenHeartImage, 20 + (i * 25), 45, 20, 20, null);
+        }
+
+        // แสดงข้อมูลอื่นๆ ที่เหลือเหมือนเดิม
         g.setColor(Color.WHITE);
+        g.drawString("Level: " + levelManager.getCurrentLevel(), 20, 90);
+        g.drawString("Monsters: " + levelManager.getMonstersKilled() + "/" + levelManager.getMonstersToKill(), 20, 110);
         g.drawString("Score: " + player.getScore(), WIDTH - 150, 30);
     }
 

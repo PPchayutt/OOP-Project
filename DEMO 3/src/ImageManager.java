@@ -1,17 +1,26 @@
 
 import java.awt.Color;
+import java.awt.Graphics2D;
 import java.awt.Image;
+import java.awt.BasicStroke;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import javax.imageio.ImageIO;
 
+/**
+ * คลาสจัดการรูปภาพในเกมทั้งหมด
+ * รับผิดชอบการโหลดและการสร้างรูปภาพทั้งหมดที่ใช้ในเกม
+ */
 public class ImageManager {
 
     private static final HashMap<String, Image> images = new HashMap<>();
     private static boolean imagesLoaded = false;
 
+    /**
+     * โหลดรูปภาพทั้งหมดที่จำเป็นสำหรับเกม
+     */
     public static void loadImages() {
         try {
             // ตรวจสอบว่าโฟลเดอร์ resources/images/ มีหรือไม่
@@ -22,7 +31,7 @@ public class ImageManager {
             }
 
             try {
-                // โหลดรูปภาพผู้เล่น (คนผมฟ้า)
+                // โหลดรูปภาพผู้เล่น
                 File playerFile = new File("resources/images/player.png");
                 if (playerFile.exists()) {
                     images.put("player", ImageIO.read(playerFile));
@@ -32,7 +41,7 @@ public class ImageManager {
                     createDefaultPlayerImage();
                 }
 
-                // โหลดรูปภาพมอนสเตอร์ (ผีสีชมพู)
+                // โหลดรูปภาพมอนสเตอร์
                 File monsterFile = new File("resources/images/enemy.png");
                 if (monsterFile.exists()) {
                     images.put("monster", ImageIO.read(monsterFile));
@@ -42,7 +51,7 @@ public class ImageManager {
                     createDefaultMonsterImage();
                 }
 
-                // โหลดรูปภาพบอส (คนแว่นตาไฟ)
+                // โหลดรูปภาพบอส
                 File bossFile = new File("resources/images/boss.png");
                 if (bossFile.exists()) {
                     images.put("boss", ImageIO.read(bossFile));
@@ -80,6 +89,23 @@ public class ImageManager {
                     createDefaultMuzzleFlashImage();
                 }
 
+                // โหลดรูปหัวใจปกติและหัวใจแตก
+                File heartFile = new File("resources/images/heart.png");
+                if (heartFile.exists()) {
+                    images.put("heart", ImageIO.read(heartFile));
+                    System.out.println("โหลดรูปภาพหัวใจสำเร็จ");
+                } else {
+                    createDefaultHeartImage();
+                }
+
+                File brokenHeartFile = new File("resources/images/broken_heart.png");
+                if (brokenHeartFile.exists()) {
+                    images.put("broken_heart", ImageIO.read(brokenHeartFile));
+                    System.out.println("โหลดรูปภาพหัวใจแตกสำเร็จ");
+                } else {
+                    createDefaultBrokenHeartImage();
+                }
+
                 // โหลดหรือสร้างรูปภาพอื่นๆ ที่จำเป็น
                 createOtherDefaultImages();
 
@@ -95,50 +121,62 @@ public class ImageManager {
         }
     }
 
-    // สร้างภาพพื้นฐานทั้งหมด
+    /**
+     * สร้างภาพพื้นฐานทั้งหมดเมื่อเกิดข้อผิดพลาดในการโหลดรูปภาพ
+     */
     private static void createAllDefaultImages() {
         createDefaultPlayerImage();
         createDefaultMonsterImage();
         createDefaultBossImage();
         createDefaultGunImage();
         createDefaultMuzzleFlashImage();
+        createDefaultHeartImage();
+        createDefaultBrokenHeartImage();
         createOtherDefaultImages();
     }
 
-    // สร้างภาพผู้เล่นพื้นฐาน
+    /**
+     * สร้างภาพผู้เล่นพื้นฐาน
+     */
     private static void createDefaultPlayerImage() {
         BufferedImage playerImg = new BufferedImage(32, 32, BufferedImage.TYPE_INT_ARGB);
-        java.awt.Graphics2D g2d = playerImg.createGraphics();
+        Graphics2D g2d = playerImg.createGraphics();
         g2d.setColor(Color.BLUE);
         g2d.fillRect(0, 0, 32, 32);
         g2d.dispose();
         images.put("player", playerImg);
     }
 
-    // สร้างภาพมอนสเตอร์พื้นฐาน
+    /**
+     * สร้างภาพมอนสเตอร์พื้นฐาน
+     */
     private static void createDefaultMonsterImage() {
         BufferedImage monsterImg = new BufferedImage(30, 30, BufferedImage.TYPE_INT_ARGB);
-        java.awt.Graphics2D g2d = monsterImg.createGraphics();
+        Graphics2D g2d = monsterImg.createGraphics();
         g2d.setColor(Color.RED);
         g2d.fillRect(0, 0, 30, 30);
         g2d.dispose();
         images.put("monster", monsterImg);
     }
 
-    // สร้างภาพบอสพื้นฐาน
+    /**
+     * สร้างภาพบอสพื้นฐาน
+     */
     private static void createDefaultBossImage() {
         BufferedImage bossImg = new BufferedImage(80, 80, BufferedImage.TYPE_INT_ARGB);
-        java.awt.Graphics2D g2d = bossImg.createGraphics();
+        Graphics2D g2d = bossImg.createGraphics();
         g2d.setColor(new Color(180, 0, 0));
         g2d.fillRect(0, 0, 80, 80);
         g2d.dispose();
         images.put("boss", bossImg);
     }
 
-    // สร้างรูปปืนพื้นฐาน
+    /**
+     * สร้างรูปปืนพื้นฐาน
+     */
     private static void createDefaultGunImage() {
         BufferedImage gunImg = new BufferedImage(20, 10, BufferedImage.TYPE_INT_ARGB);
-        java.awt.Graphics2D g2d = gunImg.createGraphics();
+        Graphics2D g2d = gunImg.createGraphics();
         g2d.setColor(Color.DARK_GRAY);
         g2d.fillRect(0, 0, 15, 4);
         g2d.fillRect(10, 0, 5, 10);
@@ -146,10 +184,12 @@ public class ImageManager {
         images.put("gun", gunImg);
     }
 
-    // สร้างเอฟเฟคปืนพื้นฐาน
+    /**
+     * สร้างเอฟเฟคปืนพื้นฐาน
+     */
     private static void createDefaultMuzzleFlashImage() {
         BufferedImage flashImg = new BufferedImage(10, 10, BufferedImage.TYPE_INT_ARGB);
-        java.awt.Graphics2D g2d = flashImg.createGraphics();
+        Graphics2D g2d = flashImg.createGraphics();
         g2d.setColor(Color.YELLOW);
         g2d.fillOval(0, 0, 10, 10);
         g2d.setColor(Color.ORANGE);
@@ -158,11 +198,53 @@ public class ImageManager {
         images.put("muzzle_flash", flashImg);
     }
 
-    // สร้างภาพอื่นๆ ที่จำเป็น
+    /**
+     * สร้างรูปหัวใจปกติ
+     */
+    private static void createDefaultHeartImage() {
+        BufferedImage heartImg = new BufferedImage(20, 20, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g2d = heartImg.createGraphics();
+        g2d.setColor(Color.RED);
+
+        // วาดหัวใจอย่างง่าย (สร้างรูปหัวใจแบบพื้นฐาน)
+        int[] xPoints = {10, 15, 20, 15, 10, 5, 0, 5};
+        int[] yPoints = {5, 0, 5, 10, 20, 10, 5, 0};
+        g2d.fillPolygon(xPoints, yPoints, 8);
+
+        g2d.dispose();
+        images.put("heart", heartImg);
+    }
+
+    /**
+     * สร้างรูปหัวใจแตก
+     */
+    private static void createDefaultBrokenHeartImage() {
+        BufferedImage brokenHeartImg = new BufferedImage(20, 20, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g2d = brokenHeartImg.createGraphics();
+        g2d.setColor(new Color(128, 0, 0)); // สีแดงเข้ม
+
+        // วาดหัวใจแตกอย่างง่าย
+        int[] xPoints = {10, 15, 20, 15, 10, 5, 0, 5};
+        int[] yPoints = {5, 0, 5, 10, 20, 10, 5, 0};
+        g2d.fillPolygon(xPoints, yPoints, 8);
+
+        // วาดรอยแตก
+        g2d.setColor(Color.BLACK);
+        g2d.setStroke(new BasicStroke(1.5f));
+        g2d.drawLine(10, 5, 10, 20);
+        g2d.drawLine(7, 10, 13, 15);
+
+        g2d.dispose();
+        images.put("broken_heart", brokenHeartImg);
+    }
+
+    /**
+     * สร้างภาพอื่นๆ ที่จำเป็น
+     */
     private static void createOtherDefaultImages() {
         // กระสุนผู้เล่น
         BufferedImage playerBulletImg = new BufferedImage(8, 8, BufferedImage.TYPE_INT_ARGB);
-        java.awt.Graphics2D g2d = playerBulletImg.createGraphics();
+        Graphics2D g2d = playerBulletImg.createGraphics();
         g2d.setColor(Color.YELLOW);
         g2d.fillOval(0, 0, 8, 8);
         g2d.dispose();
@@ -218,6 +300,12 @@ public class ImageManager {
         images.put("background", bgImg);
     }
 
+    /**
+     * ดึงรูปภาพตามชื่อที่กำหนด
+     *
+     * @param key ชื่อรูปภาพที่ต้องการ
+     * @return รูปภาพที่ต้องการ หรือ null ถ้าไม่พบ
+     */
     public static Image getImage(String key) {
         if (!imagesLoaded) {
             loadImages();

@@ -16,12 +16,19 @@ public class Monster extends Enemy {
 
     /**
      * สร้างมอนสเตอร์ใหม่
+     *
+     * @param x
+     * @param y
+     * @param player
      */
     public Monster(int x, int y, Player player) {
-        super(x, y, 30, 30, 50, 1, 10, 100); // เปลี่ยนความเร็วจาก 2 เป็น 1
+        // ใช้ speed เป็น 1 (จำนวนเต็ม) แทน 0.7
+        super(x, y, 30, 30, 50, 1, 10, 100);
         this.target = player;
         this.movementPattern = random.nextInt(3);
         this.dropsPowerup = random.nextDouble() < 0.2;
+        // ปรับค่า speedMultiplier ให้น้อยลง
+        this.speedMultiplier = 0.2f; // จะทำให้มอนสเตอร์เคลื่อนที่ด้วยความเร็ว 20% ของค่าพื้นฐาน
     }
 
     @Override
@@ -31,11 +38,11 @@ public class Monster extends Enemy {
         // เพิ่มเวลาที่มอนสเตอร์อยู่ในเกม
         spawnTime++;
 
-        // ค่อยๆ เพิ่มความเร็วจนถึงความเร็วปกติ
-        if (spawnTime < 180) { // 3 วินาที (60 FPS × 3)
-            speedMultiplier = Math.min(0.3f + (spawnTime / 600f), 1.0f);
+        // ค่อยๆ เพิ่มความเร็วจนถึงความเร็วปกติ แต่ใช้เวลานานขึ้น
+        if (spawnTime < 300) { // เพิ่มจาก 180 เป็น 300 (5 วินาที)
+            speedMultiplier = Math.min(0.2f + (spawnTime / 1000f), 1.0f); // ปรับสูตรให้เพิ่มช้าลง
         } else {
-            speedMultiplier = 1.0f; // ความเร็วปกติหลังจาก 3 วินาที
+            speedMultiplier = 1.0f;
         }
 
         // คำนวณทิศทางไปหาผู้เล่น (โค้ดเดิม)
