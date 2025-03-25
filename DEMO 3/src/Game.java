@@ -14,6 +14,7 @@ public class Game {
     private boolean isAdjusting = false;
 
     public Game() {
+        // สร้างหน้าต่างหลักของเกม
         window = new JFrame("The IT Journey");
         window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         window.setResizable(true);
@@ -22,10 +23,15 @@ public class Game {
         cardLayout = new CardLayout();
         mainPanel = new JPanel(cardLayout);
 
+        // โหลดรูปภาพและเสียง
+        ImageManager.loadImages();
+        SoundManager.loadSounds();
+
         // สร้างเมนูหลัก
         menuPanel = new MenuPanel(this);
         mainPanel.add(menuPanel, "Menu");
 
+        // เพิ่มพาเนลหลักเข้าไปในหน้าต่าง
         window.add(mainPanel);
 
         // ตั้งขนาดเริ่มต้นเป็น 4:3
@@ -56,34 +62,47 @@ public class Game {
             }
         });
 
+        // แสดงหน้าต่าง
         window.setVisible(true);
     }
 
     public void startGame() {
+        // สร้างเกมใหม่และเริ่มเล่น
         if (gamePanel == null) {
             gamePanel = new GamePanel(this);
             mainPanel.add(gamePanel, "Game");
         } else {
-            gamePanel.restartGame();
+            gamePanel.restartGame(); // รีเซ็ตเกมหากมีอยู่แล้ว
         }
 
+        // หยุดเพลงและแอนิเมชั่นในเมนู
         menuPanel.cleanup();
+
+        // เปลี่ยนไปที่หน้าเกม
         cardLayout.show(mainPanel, "Game");
-        gamePanel.requestFocusInWindow();
+        gamePanel.requestFocusInWindow(); // สำหรับรับ input
         gamePanel.startGameLoop();
     }
 
     public void returnToMenu() {
+        // หยุดเกมและกลับไปที่เมนู
         if (gamePanel != null) {
             gamePanel.stopGameLoop();
         }
 
+        // เปลี่ยนกลับไปที่หน้าเมนู
         cardLayout.show(mainPanel, "Menu");
         menuPanel.requestFocusInWindow();
         menuPanel.playMusic();
     }
 
+    /**
+     * เมธอดหลักสำหรับเริ่มโปรแกรม
+     *
+     * @param args พารามิเตอร์บรรทัดคำสั่ง (ไม่ได้ใช้)
+     */
     public static void main(String[] args) {
+        // เริ่มต้นเกมใน Event Dispatch Thread เพื่อความปลอดภัย
         SwingUtilities.invokeLater(() -> {
             new Game();
         });

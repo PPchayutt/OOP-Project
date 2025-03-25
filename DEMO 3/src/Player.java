@@ -1,4 +1,3 @@
-
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -32,6 +31,12 @@ public class Player extends Entity {
     private int bulletDamage = 25;
 
     private int score = 0;
+    
+    // ข้อมูลเกี่ยวกับการยิงปืน
+    private boolean isShooting = false;
+    private int shootAnimationTime = 0;
+    private final int SHOOT_ANIMATION_DURATION = 10; // 10 เฟรม
+    private int gunDirection = 1; // 1 = ขวา, -1 = ซ้าย
 
     public Player(float x, float y, int width, int height, int health, int speed) {
         super(x, y, width, height, health, speed);
@@ -100,6 +105,14 @@ public class Player extends Entity {
 
         // อัพเดทกระสุน
         updateBullets();
+        
+        // อัพเดทแอนิเมชันการยิง
+        if (shootAnimationTime > 0) {
+            shootAnimationTime--;
+            if (shootAnimationTime <= 0) {
+                isShooting = false;
+            }
+        }
 
         // ลดเวลาอมตะ
         if (invincibleTime > 0) {
@@ -140,6 +153,40 @@ public class Player extends Entity {
             g.setColor(Color.GREEN);
             int healthBarWidth = (int) ((float) health / maxHealth * width);
             g.fillRect((int) x, (int) y - 10, healthBarWidth, 3);
+            
+            // วาดปืนถ้ากำลังยิง
+            if (isShooting) {
+                Image gunImage = ImageManager.getImage("gun");
+                Image flashImage = ImageManager.getImage("muzzle_flash");
+                
+                if (gunImage != null) {
+                    int gunWidth = gunImage.getWidth(null);
+                    int gunHeight = gunImage.getHeight(null);
+                    
+                    // คำนวณตำแหน่งปืน
+                    int gunX, gunY;
+                    if (gunDirection > 0) { // หันไปทางขวา
+                        gunX = (int) x + width;
+                        gunY = (int) y + height / 2 - gunHeight / 2;
+                        g.drawImage(gunImage, gunX, gunY, null);
+                        
+                        // วาดเอฟเฟคแฟลช
+                        if (shootAnimationTime > SHOOT_ANIMATION_DURATION / 2 && flashImage != null) {
+                            g.drawImage(flashImage, gunX + gunWidth, gunY - 2, null);
+                        }
+                    } else { // หันไปทางซ้าย
+                        gunX = (int) x - gunWidth;
+                        gunY = (int) y + height / 2 - gunHeight / 2;
+                        // วาดปืนแบบกลับด้าน
+                        g.drawImage(gunImage, gunX + gunWidth, gunY, -gunWidth, gunHeight, null);
+                        
+                        // วาดเอฟเฟคแฟลช
+                        if (shootAnimationTime > SHOOT_ANIMATION_DURATION / 2 && flashImage != null) {
+                            g.drawImage(flashImage, gunX - flashImage.getWidth(null), gunY - 2, null);
+                        }
+                    }
+                }
+            }
         }
 
         // วาดกระสุน
@@ -159,12 +206,26 @@ public class Player extends Entity {
         if (currentTime - lastShotTime >= shootCooldown) {
             // คำนวณทิศทางการยิง
             double angle = Math.atan2(targetY - (y + height / 2), targetX - (x + width / 2));
-
+            
+            // กำหนดทิศทางของปืน (ซ้ายหรือขวา)
+            if (targetX < x + width / 2) {
+                gunDirection = -1; // หันไปทางซ้าย
+            } else {
+                gunDirection = 1;  // หันไปทางขวา
+            }
+            
             // สร้างกระสุนใหม่
             PlayerBullet bullet = new PlayerBullet((int) (x + width / 2), (int) (y + height / 2), 8, 8, angle);
             bullet.setDamage(bulletDamage);
             bullets.add(bullet);
-
+            
+            // เริ่มแอนิเมชันการยิง
+            isShooting = true;
+            shootAnimationTime = SHOOT_ANIMATION_DURATION;
+            
+            // เล่นเสียงยิงปืน
+            SoundManager.playSound("gun_shot");
+            
             // บันทึกเวลาที่ยิง
             lastShotTime = currentTime;
         }

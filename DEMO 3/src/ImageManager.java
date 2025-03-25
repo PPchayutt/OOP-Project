@@ -52,6 +52,34 @@ public class ImageManager {
                     createDefaultBossImage();
                 }
 
+                // โหลดรูปภาพพื้นหลังด่าน 1
+                File level1BgFile = new File("resources/images/level1_bg.png");
+                if (level1BgFile.exists()) {
+                    images.put("level1_bg", ImageIO.read(level1BgFile));
+                    System.out.println("โหลดรูปภาพฉากด่าน 1 สำเร็จ");
+                } else {
+                    System.out.println("ไม่พบไฟล์ภาพฉากด่าน 1");
+                }
+
+                // โหลดรูปภาพปืนและเอฟเฟค
+                File gunFile = new File("resources/images/gun.png");
+                if (gunFile.exists()) {
+                    images.put("gun", ImageIO.read(gunFile));
+                    System.out.println("โหลดรูปภาพปืนสำเร็จ");
+                } else {
+                    // สร้างรูปปืนพื้นฐานถ้าไม่มีไฟล์
+                    createDefaultGunImage();
+                }
+
+                File muzzleFlashFile = new File("resources/images/muzzle_flash.png");
+                if (muzzleFlashFile.exists()) {
+                    images.put("muzzle_flash", ImageIO.read(muzzleFlashFile));
+                    System.out.println("โหลดรูปภาพเอฟเฟคปืนสำเร็จ");
+                } else {
+                    // สร้างรูปเอฟเฟคพื้นฐานถ้าไม่มีไฟล์
+                    createDefaultMuzzleFlashImage();
+                }
+
                 // โหลดหรือสร้างรูปภาพอื่นๆ ที่จำเป็น
                 createOtherDefaultImages();
 
@@ -72,6 +100,8 @@ public class ImageManager {
         createDefaultPlayerImage();
         createDefaultMonsterImage();
         createDefaultBossImage();
+        createDefaultGunImage();
+        createDefaultMuzzleFlashImage();
         createOtherDefaultImages();
     }
 
@@ -103,6 +133,29 @@ public class ImageManager {
         g2d.fillRect(0, 0, 80, 80);
         g2d.dispose();
         images.put("boss", bossImg);
+    }
+
+    // สร้างรูปปืนพื้นฐาน
+    private static void createDefaultGunImage() {
+        BufferedImage gunImg = new BufferedImage(20, 10, BufferedImage.TYPE_INT_ARGB);
+        java.awt.Graphics2D g2d = gunImg.createGraphics();
+        g2d.setColor(Color.DARK_GRAY);
+        g2d.fillRect(0, 0, 15, 4);
+        g2d.fillRect(10, 0, 5, 10);
+        g2d.dispose();
+        images.put("gun", gunImg);
+    }
+
+    // สร้างเอฟเฟคปืนพื้นฐาน
+    private static void createDefaultMuzzleFlashImage() {
+        BufferedImage flashImg = new BufferedImage(10, 10, BufferedImage.TYPE_INT_ARGB);
+        java.awt.Graphics2D g2d = flashImg.createGraphics();
+        g2d.setColor(Color.YELLOW);
+        g2d.fillOval(0, 0, 10, 10);
+        g2d.setColor(Color.ORANGE);
+        g2d.fillOval(2, 2, 6, 6);
+        g2d.dispose();
+        images.put("muzzle_flash", flashImg);
     }
 
     // สร้างภาพอื่นๆ ที่จำเป็น

@@ -11,26 +11,34 @@ public class Monster extends Enemy {
     private int patternCounter = 0;
     private final Player target;
     private static final Random random = new Random();
+    private float speedMultiplier = 0.3f; // เพิ่มตัวแปรใหม่เพื่อทำให้เคลื่อนที่ช้าลงตอนเริ่มต้น
+    private int spawnTime = 0; // นับเวลาตั้งแต่เกิด
 
     /**
      * สร้างมอนสเตอร์ใหม่
-     *
-     * @param x ตำแหน่ง x เริ่มต้น
-     * @param y ตำแหน่ง y เริ่มต้น
-     * @param player ผู้เล่นที่จะตามล่า
      */
     public Monster(int x, int y, Player player) {
-        super(x, y, 30, 30, 50, 2, 10, 100);
+        super(x, y, 30, 30, 50, 1, 10, 100); // เปลี่ยนความเร็วจาก 2 เป็น 1
         this.target = player;
-        this.movementPattern = random.nextInt(3); // 0=ตรงๆ, 1=ซิกแซก, 2=วงกลม
-        this.dropsPowerup = random.nextDouble() < 0.2; // 20% โอกาสที่จะดรอปพาวเวอร์อัพ
+        this.movementPattern = random.nextInt(3);
+        this.dropsPowerup = random.nextDouble() < 0.2;
     }
 
     @Override
     public void update() {
         updateCooldowns();
 
-        // คำนวณทิศทางไปหาผู้เล่น
+        // เพิ่มเวลาที่มอนสเตอร์อยู่ในเกม
+        spawnTime++;
+
+        // ค่อยๆ เพิ่มความเร็วจนถึงความเร็วปกติ
+        if (spawnTime < 180) { // 3 วินาที (60 FPS × 3)
+            speedMultiplier = Math.min(0.3f + (spawnTime / 600f), 1.0f);
+        } else {
+            speedMultiplier = 1.0f; // ความเร็วปกติหลังจาก 3 วินาที
+        }
+
+        // คำนวณทิศทางไปหาผู้เล่น (โค้ดเดิม)
         float targetX = target.getX() + target.getWidth() / 2;
         float targetY = target.getY() + target.getHeight() / 2;
 
@@ -38,33 +46,30 @@ public class Monster extends Enemy {
         float dy = targetY - (y + height / 2);
         float distance = (float) Math.sqrt(dx * dx + dy * dy);
 
-        // ปรับทิศทางให้เป็นเวกเตอร์หนึ่งหน่วย
         if (distance > 0) {
             dx = dx / distance;
             dy = dy / distance;
         }
 
-        // เคลื่อนที่ตามรูปแบบที่กำหนด
+        // เคลื่อนที่ตามรูปแบบที่กำหนด แต่คูณด้วย speedMultiplier ให้ช้าลง
         switch (movementPattern) {
             case 0 -> {
                 // ตรงไปหาผู้เล่น
-                x += dx * speed;
-                y += dy * speed;
+                x += dx * speed * speedMultiplier;
+                y += dy * speed * speedMultiplier;
             }
-
             case 1 -> {
                 // ซิกแซก
                 patternCounter++;
-                x += dx * speed + Math.sin(patternCounter * 0.1) * speed;
-                y += dy * speed;
+                x += dx * speed * speedMultiplier + Math.sin(patternCounter * 0.05) * speed * speedMultiplier;
+                y += dy * speed * speedMultiplier;
             }
-
             case 2 -> {
                 // วนเป็นวงกลม
                 patternCounter++;
-                float circleRadius = 2.0f;
-                x += dx * speed + Math.cos(patternCounter * 0.05) * circleRadius;
-                y += dy * speed + Math.sin(patternCounter * 0.05) * circleRadius;
+                float circleRadius = 1.5f; // ลดรัศมีการวนลงจาก 2.0f
+                x += dx * speed * speedMultiplier + Math.cos(patternCounter * 0.03) * circleRadius;
+                y += dy * speed * speedMultiplier + Math.sin(patternCounter * 0.03) * circleRadius;
             }
         }
     }

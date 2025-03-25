@@ -360,18 +360,27 @@ public class GamePanel extends JPanel implements Runnable, GameState {
     }
 
     private void drawBackground(Graphics g) {
-        g.setColor(new Color(100, 100, 100));
-        for (int i = 0; i < 100; i++) {
-            int starX = random.nextInt(WIDTH);
-            int starY = random.nextInt(HEIGHT);
-            g.fillRect(starX, starY, 1, 1);
-        }
+        // ดึงภาพพื้นหลังด่าน 1 มาใช้
+        Image bgImage = ImageManager.getImage("level1_bg");
 
-        g.setColor(new Color(200, 200, 200));
-        for (int i = 0; i < 50; i++) {
-            int starX = random.nextInt(WIDTH);
-            int starY = random.nextInt(HEIGHT);
-            g.fillRect(starX, starY, 2, 2);
+        if (bgImage != null) {
+            // วาดภาพพื้นหลัง
+            g.drawImage(bgImage, 0, 0, WIDTH, HEIGHT, null);
+        } else {
+            // ถ้าไม่มีภาพพื้นหลัง ใช้การวาดดาวแบบเดิม
+            g.setColor(new Color(100, 100, 100));
+            for (int i = 0; i < 100; i++) {
+                int starX = random.nextInt(WIDTH);
+                int starY = random.nextInt(HEIGHT);
+                g.fillRect(starX, starY, 1, 1);
+            }
+
+            g.setColor(new Color(200, 200, 200));
+            for (int i = 0; i < 50; i++) {
+                int starX = random.nextInt(WIDTH);
+                int starY = random.nextInt(HEIGHT);
+                g.fillRect(starX, starY, 2, 2);
+            }
         }
     }
 

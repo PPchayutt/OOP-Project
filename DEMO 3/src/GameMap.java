@@ -7,6 +7,7 @@ public class GameMap {
 
     private final List<Block> blocks;
     private final String mapName;
+    private static final boolean DEBUG_MODE = false;
 
     public GameMap(String mapName) {
         this.mapName = mapName;
@@ -34,12 +35,21 @@ public class GameMap {
         blocks.add(new Block(0, 0, 10, 600)); // ขอบซ้าย
         blocks.add(new Block(790, 0, 10, 600)); // ขอบขวา
 
-        // สร้างบล็อคน้ำตามรูปที่คุณส่งมา
-        blocks.add(new Block(220, 100, 560, 380)); // บริเวณน้ำ
+        // สร้างบล็อคน้ำตามที่เห็นในรูป
+        blocks.add(new Block(220, 100, 560, 380)); // บริเวณน้ำตรงกลาง
 
-        // เพิ่มบล็อคอื่นๆ ตามต้องการ
+        // เพิ่มสะพานและทางเดิน
         blocks.add(new Block(0, 300, 220, 10)); // สะพานซ้าย
         blocks.add(new Block(600, 480, 200, 10)); // สะพานล่าง
+
+        // เพิ่มกำแพงหรือขอบต่างๆ ตามที่เห็นในรูป
+        blocks.add(new Block(220, 100, 10, 200)); // กำแพงตรงกลางซ้าย
+        // (เพิ่มบล็อคอื่นๆ ตามที่เห็นในรูป)
+        if (DEBUG_MODE) {
+            for (Block block : blocks) {
+                block.setVisible(true);
+            }
+        }
     }
 
     private void createDefaultMap() {
