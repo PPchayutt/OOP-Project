@@ -64,14 +64,21 @@ public class GamePanel extends JPanel implements Runnable, GameState {
             gameThread = new Thread(this);
             running = true;
             gameThread.start();
+
+            // เริ่มเล่นเพลง Level 1
+            SoundManager.playBackgroundMusic("level1_music");
         }
     }
 
     public void stopGameLoop() {
         running = false;
+
+        // หยุดเพลงเมื่อออกจากเกม
+        SoundManager.stopBackgroundMusic();
+
         try {
             if (gameThread != null) {
-                gameThread.join(1000); // รอสูงสุด 1 วินาที
+                gameThread.join(1000);
             }
         } catch (InterruptedException e) {
         }
@@ -203,6 +210,13 @@ public class GamePanel extends JPanel implements Runnable, GameState {
     }
 
     private void updatePlayerBullets() {
+        // ล้างรายการกระสุนเก่าก่อน เพื่อป้องกันการซ้ำซ้อน
+        playerBullets.clear();
+
+        // เพิ่มกระสุนทั้งหมดจากผู้เล่น
+        playerBullets.addAll(player.getBullets());
+
+        // อัพเดตกระสุนตามปกติ
         Iterator<PlayerBullet> it = playerBullets.iterator();
         while (it.hasNext()) {
             PlayerBullet bullet = it.next();
@@ -439,14 +453,11 @@ public class GamePanel extends JPanel implements Runnable, GameState {
 
     public void playerShoot(int targetX, int targetY) {
         if (!gameOver && !gamePaused) {
-            int bulletX = (int) (player.getX() + player.getWidth() / 2 - 4);
-            int bulletY = (int) (player.getY() - 8);
+            // แก้จากการสร้าง PlayerBullet โดยตรง เป็นการเรียกใช้เมธอด shoot ของ Player แทน
+            player.shoot(targetX, targetY);
 
-            double dx = targetX - bulletX;
-            double dy = targetY - bulletY;
-            double angle = Math.atan2(dy, dx);
-
-            playerBullets.add(new PlayerBullet(bulletX, bulletY, 8, 8, angle));
+            // เพิ่มกระสุนจากผู้เล่นเข้าสู่รายการกระสุนของเกม
+            playerBullets.addAll(player.getBullets());
         }
     }
 
@@ -458,6 +469,9 @@ public class GamePanel extends JPanel implements Runnable, GameState {
         initGame();
         gameOver = false;
         gamePaused = false;
+
+        // เริ่มเล่นเพลงใหม่
+        SoundManager.playBackgroundMusic("level1_music");
     }
 
     public void returnToMenu() {

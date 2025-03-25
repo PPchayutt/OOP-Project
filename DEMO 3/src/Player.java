@@ -1,3 +1,4 @@
+
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -31,7 +32,7 @@ public class Player extends Entity {
     private int bulletDamage = 25;
 
     private int score = 0;
-    
+
     // ข้อมูลเกี่ยวกับการยิงปืน
     private boolean isShooting = false;
     private int shootAnimationTime = 0;
@@ -105,7 +106,7 @@ public class Player extends Entity {
 
         // อัพเดทกระสุน
         updateBullets();
-        
+
         // อัพเดทแอนิเมชันการยิง
         if (shootAnimationTime > 0) {
             shootAnimationTime--;
@@ -153,36 +154,55 @@ public class Player extends Entity {
             g.setColor(Color.GREEN);
             int healthBarWidth = (int) ((float) health / maxHealth * width);
             g.fillRect((int) x, (int) y - 10, healthBarWidth, 3);
-            
-            // วาดปืนถ้ากำลังยิง
+
+            // วาดปืนและเอฟเฟคการยิง
             if (isShooting) {
                 Image gunImage = ImageManager.getImage("gun");
                 Image flashImage = ImageManager.getImage("muzzle_flash");
-                
-                if (gunImage != null) {
-                    int gunWidth = gunImage.getWidth(null);
-                    int gunHeight = gunImage.getHeight(null);
-                    
-                    // คำนวณตำแหน่งปืน
-                    int gunX, gunY;
-                    if (gunDirection > 0) { // หันไปทางขวา
+
+                if (gunImage != null && flashImage != null) {
+                    // ลดขนาดปืนให้เล็กลงมากๆ (เหลือ 2% ของขนาดเดิม)
+                    int gunWidth = Math.max(3, (int) (gunImage.getWidth(null) * 0.02));
+                    int gunHeight = Math.max(2, (int) (gunImage.getHeight(null) * 0.02));
+
+                    // ลดขนาดเอฟเฟคให้เล็กลงมากๆ (เหลือ 2% ของขนาดเดิม)
+                    int flashWidth = Math.max(3, (int) (flashImage.getWidth(null) * 0.02));
+                    int flashHeight = Math.max(3, (int) (flashImage.getHeight(null) * 0.02));
+
+                    // คำนวณตำแหน่งปืนและเอฟเฟค
+                    int gunX, gunY, flashX, flashY;
+
+                    if (gunDirection > 0) { // ยิงไปทางขวา
+                        // ตำแหน่งปืน - ด้านขวาของตัวละคร
                         gunX = (int) x + width;
                         gunY = (int) y + height / 2 - gunHeight / 2;
-                        g.drawImage(gunImage, gunX, gunY, null);
-                        
-                        // วาดเอฟเฟคแฟลช
-                        if (shootAnimationTime > SHOOT_ANIMATION_DURATION / 2 && flashImage != null) {
-                            g.drawImage(flashImage, gunX + gunWidth, gunY - 2, null);
+
+                        // วาดปืน
+                        g.drawImage(gunImage, gunX, gunY, gunWidth, gunHeight, null);
+
+                        // ตำแหน่งเอฟเฟค - ตรงปากกระบอกปืนด้านขวา
+                        flashX = gunX + gunWidth - 1;
+                        flashY = gunY + gunHeight / 2 - flashHeight / 2;
+
+                        // วาดเอฟเฟค
+                        if (shootAnimationTime > SHOOT_ANIMATION_DURATION / 2) {
+                            g.drawImage(flashImage, flashX, flashY, flashWidth, flashHeight, null);
                         }
-                    } else { // หันไปทางซ้าย
+                    } else { // ยิงไปทางซ้าย
+                        // ตำแหน่งปืน - ด้านซ้ายของตัวละคร
                         gunX = (int) x - gunWidth;
                         gunY = (int) y + height / 2 - gunHeight / 2;
-                        // วาดปืนแบบกลับด้าน
+
+                        // วาดปืนหันไปทางซ้าย
                         g.drawImage(gunImage, gunX + gunWidth, gunY, -gunWidth, gunHeight, null);
-                        
-                        // วาดเอฟเฟคแฟลช
-                        if (shootAnimationTime > SHOOT_ANIMATION_DURATION / 2 && flashImage != null) {
-                            g.drawImage(flashImage, gunX - flashImage.getWidth(null), gunY - 2, null);
+
+                        // ตำแหน่งเอฟเฟค - ตรงปากกระบอกปืนด้านซ้าย
+                        flashX = gunX - flashWidth + 1;
+                        flashY = gunY + gunHeight / 2 - flashHeight / 2;
+
+                        // วาดเอฟเฟค
+                        if (shootAnimationTime > SHOOT_ANIMATION_DURATION / 2) {
+                            g.drawImage(flashImage, flashX + flashWidth, flashY, -flashWidth, flashHeight, null);
                         }
                     }
                 }
@@ -201,34 +221,34 @@ public class Player extends Entity {
      * @param targetX ตำแหน่ง x เป้าหมาย
      * @param targetY ตำแหน่ง y เป้าหมาย
      */
+// แก้ไขเมธอด shoot ในคลาส Player
     public void shoot(int targetX, int targetY) {
         long currentTime = System.currentTimeMillis();
-        if (currentTime - lastShotTime >= shootCooldown) {
-            // คำนวณทิศทางการยิง
-            double angle = Math.atan2(targetY - (y + height / 2), targetX - (x + width / 2));
-            
-            // กำหนดทิศทางของปืน (ซ้ายหรือขวา)
-            if (targetX < x + width / 2) {
-                gunDirection = -1; // หันไปทางซ้าย
-            } else {
-                gunDirection = 1;  // หันไปทางขวา
-            }
-            
-            // สร้างกระสุนใหม่
-            PlayerBullet bullet = new PlayerBullet((int) (x + width / 2), (int) (y + height / 2), 8, 8, angle);
-            bullet.setDamage(bulletDamage);
-            bullets.add(bullet);
-            
-            // เริ่มแอนิเมชันการยิง
-            isShooting = true;
-            shootAnimationTime = SHOOT_ANIMATION_DURATION;
-            
-            // เล่นเสียงยิงปืน
-            SoundManager.playSound("gun_shot");
-            
-            // บันทึกเวลาที่ยิง
-            lastShotTime = currentTime;
+
+        // ยิงได้โดยไม่ต้องรอคูลดาวน์หมด (แต่ยังเก็บเวลาคูลดาวน์ไว้เหมือนเดิม)
+        // คำนวณทิศทางการยิง
+        double angle = Math.atan2(targetY - (y + height / 2), targetX - (x + width / 2));
+
+        // กำหนดทิศทางของปืนให้ตรงกับเป้าหมาย
+        if (targetX < x + width / 2) {
+            gunDirection = -1; // เมื่อเป้าหมายอยู่ทางซ้าย ให้หันปืนไปทางซ้าย
+        } else {
+            gunDirection = 1;  // เมื่อเป้าหมายอยู่ทางขวา ให้หันปืนไปทางขวา
         }
+        // สร้างกระสุนใหม่
+        PlayerBullet bullet = new PlayerBullet((int) (x + width / 2), (int) (y + height / 2), 8, 8, angle);
+        bullet.setDamage(bulletDamage);
+        bullets.add(bullet);
+
+        // เริ่มแอนิเมชันการยิง
+        isShooting = true;
+        shootAnimationTime = SHOOT_ANIMATION_DURATION;
+
+        // เล่นเสียงยิงปืนทุกครั้ง
+        SoundManager.playSound("gun_shot");
+
+        // บันทึกเวลาที่ยิง
+        lastShotTime = currentTime;
     }
 
     /**
