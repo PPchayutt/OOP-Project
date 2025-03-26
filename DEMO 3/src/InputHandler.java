@@ -6,6 +6,8 @@ public class InputHandler implements KeyListener, MouseListener, MouseMotionList
     private final GamePanel gamePanel;
     private boolean up, down, left, right; // เพิ่มตัวแปรที่ขาดหายไป
     private int mouseX, mouseY;
+    private boolean isLeftHold = false;
+    private long lastShootTime = 0;
 
     public InputHandler(GamePanel gamePanel) {
         this.gamePanel = gamePanel;
@@ -63,12 +65,34 @@ public class InputHandler implements KeyListener, MouseListener, MouseMotionList
     @Override
     public void mousePressed(MouseEvent e) {
         if (e.getButton() == MouseEvent.BUTTON1) {
-            gamePanel.playerShoot(mouseX, mouseY);
+            isLeftHold = true;
+        }
+    }
+    
+    public void handleShooting(GamePanel gamePanel){
+        if (isLeftHold){
+            long currentTime = System.currentTimeMillis();
+            long playerCooldown = gamePanel.getPlayer().getShootCooldown();
         }
     }
 
     @Override
     public void mouseReleased(MouseEvent e) {
+        if (e.getButton() == MouseEvent.BUTTON1) {
+            isLeftHold = false;
+        }
+    }
+    
+    public boolean isLeftButisDown(){
+        return isLeftHold;
+    }
+    
+    public int getMouseX(){
+        return mouseX;
+    }
+    
+     public int getMouseY(){
+        return mouseY;
     }
 
     @Override

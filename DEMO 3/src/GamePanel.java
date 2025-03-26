@@ -23,6 +23,7 @@ public class GamePanel extends JPanel implements Runnable, GameState {
     private boolean gameOver = false;
     private boolean gamePaused = false;
     private int monsterSpawnTimer = 0;
+    private InputHandler inputHandler;
 
     private Player player;
     private List<Monster> monsters;
@@ -41,7 +42,7 @@ public class GamePanel extends JPanel implements Runnable, GameState {
 
         initGame();
 
-        InputHandler inputHandler = new InputHandler(this);
+        inputHandler = new InputHandler(this);
         addKeyListener(inputHandler);
         addMouseListener(inputHandler);
         addMouseMotionListener(inputHandler);
@@ -83,6 +84,10 @@ public class GamePanel extends JPanel implements Runnable, GameState {
         } catch (InterruptedException e) {
         }
     }
+    
+    public Player getPlayer(){
+        return player;
+    }
 
     @Override
     public void run() {
@@ -120,6 +125,10 @@ public class GamePanel extends JPanel implements Runnable, GameState {
             gameOver = true;
             return;
         }
+        
+        if (!gamePaused && !gameOver){
+            inputHandler.handleShooting(this);
+        }
 
         monsterSpawnTimer++;
         if (monsterSpawnTimer >= levelManager.getMonsterSpawnRate() && bosses.isEmpty()) {
@@ -130,6 +139,13 @@ public class GamePanel extends JPanel implements Runnable, GameState {
         if (levelManager.shouldSpawnBoss() && bosses.isEmpty()) {
             spawnBoss();
             levelManager.bossSpawned();
+        }
+        
+        if (inputHandler.isLeftButisDown()&& !gamePaused && !gameOver){
+            long currentTime = System.currentTimeMillis();
+            if (currentTime - player.getLastShotTime() >= player.getShootCooldown()){
+                playerShoot(inputHandler.getMouseX(),inputHandler.getMouseY());
+            }
         }
 
         updateMonsters();
@@ -465,10 +481,7 @@ public class GamePanel extends JPanel implements Runnable, GameState {
 
     public void playerShoot(int targetX, int targetY) {
         if (!gameOver && !gamePaused) {
-            // แก้จากการสร้าง PlayerBullet โดยตรง เป็นการเรียกใช้เมธอด shoot ของ Player แทน
             player.shoot(targetX, targetY);
-
-            // เพิ่มกระสุนจากผู้เล่นเข้าสู่รายการกระสุนของเกม
             playerBullets.addAll(player.getBullets());
         }
     }

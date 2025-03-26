@@ -51,6 +51,10 @@ public class Player extends Entity {
     public void addScore(int points) {
         this.score += points;
     }
+    
+    public long getLastShotTime(){
+        return lastShotTime;
+    }
 
     public void move(int dx, int dy) {
         float targetX = 0;

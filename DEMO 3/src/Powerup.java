@@ -8,15 +8,14 @@ public class Powerup implements GameObject {
     private int type;
     private int value;
     private boolean active = true;
-    private float fallSpeed = 1f;
 
     // ประเภทของพาวเวอร์อัพ: 0=เพิ่มพลังชีวิต, 1=เพิ่มความเร็ว, 2=เพิ่มความแรงกระสุน
     public Powerup(int x, int y, int type) {
         this.x = x;
         this.y = y;
-        this.width = 20;
-        this.height = 20;
-        this.type = type;
+        this.width = 30;
+        this.height = 30;
+
 
         // กำหนดค่าพาวเวอร์อัพตามประเภท
         switch (type) {
@@ -31,13 +30,7 @@ public class Powerup implements GameObject {
 
     @Override
     public void update() {
-        // ตกลงมาเรื่อยๆ
-        y += fallSpeed;
 
-        // หายไปเมื่อตกออกนอกจอ
-        if (y > GamePanel.HEIGHT) {
-            active = false;
-        }
     }
 
     @Override
