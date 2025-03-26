@@ -10,6 +10,7 @@ public class SoundManager {
     private static Clip backgroundMusic = null;
     private static boolean soundsLoaded = false;
     private static boolean musicMuted = false;
+    private static float effectVolume = 0.5f;
 
     /**
      * โหลดไฟล์เสียงทั้งหมดที่จำเป็นสำหรับเกม
@@ -122,6 +123,10 @@ public class SoundManager {
             stopBackgroundMusic();
         }
     }
+    
+    public static float getEffectVolume() {
+        return effectVolume;
+    }
 
     /**
      * เล่นเสียงเอฟเฟค
@@ -144,8 +149,14 @@ public class SoundManager {
                 // ปรับความดังของเสียงให้เบาลง (ค่าระหว่าง -80.0f ถึง 6.0f โดย 0.0f คือปกติ)
                 if (newClip.isControlSupported(FloatControl.Type.MASTER_GAIN)) {
                     FloatControl gainControl = (FloatControl) newClip.getControl(FloatControl.Type.MASTER_GAIN);
-                    // ปรับลดเหลือ 30% ของความดังปกติ (ประมาณ -10.5 dB)
-                    gainControl.setValue(-10.5f);
+                    // แปลงค่า 0.0-1.0 เป็นค่า dB (-80.0 ถึง 6.0)
+                    // สูตร: dB = 20 * log10(volume)
+                    // เมื่อ volume = 0 จะได้ -Infinity dB ซึ่งเป็นการปิดเสียง
+                    float dB;
+                    if (effectVolume > 0.0f){
+                        dB = (float) (20.0f * Math.log10(effectVolume));
+                        gainControl.setValue(Math.max(-80.0f, dB));
+                    }
                 }
 
                 newClip.start();
@@ -161,5 +172,15 @@ public class SoundManager {
             // จัดการข้อผิดพลาดแบบเงียบๆ เพื่อไม่ให้เกมค้าง
             System.err.println("ไม่สามารถเล่นเสียง " + key + ": " + e.getMessage());
         }
+    }
+    public static void setEffectVolume(float volume) {
+        effectVolume = Math.max(0.0f, Math.min(1.0f, volume));
+        System.out.println("ระดับเสียงปัจจุบัน: " + (effectVolume * 100) + "%");
+    }
+    public static void increaseEffectVolume(float amount) {
+        setEffectVolume(effectVolume + amount);
+    }
+    public static void decreaseEffectVolume(float amount) {
+        setEffectVolume(effectVolume - amount);
     }
 }

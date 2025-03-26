@@ -35,8 +35,15 @@ public class MenuPanel extends JPanel implements MouseListener, GameState {
 
         // ปุ่มเปิด/ปิดเสียง - มุมขวาล่าง
         int soundButtonX = WIDTH - 60;
-        int soundButtonY = HEIGHT - 60;
+        int soundButtonY = HEIGHT - 0;
         buttons.add(new SoundButton(soundButtonX, soundButtonY, this));
+        
+        buttons.add(new SoundControlButton(WIDTH - 160, HEIGHT - 60, false)); // ปุ่มลดเสียง
+        buttons.add(new SoundControlButton(WIDTH - 110, HEIGHT - 60, true));  // ปุ่มเพิ่มเสียง
+        
+        int volumeDownX = WIDTH - 160;
+        int volumeUpX = WIDTH - 110;
+        int volumeY = HEIGHT - 150;
 
         // ปุ่มคำอธิบายทักษะ - ตรงกลางล่าง
         int skillButtonX = WIDTH / 2 - 100;
@@ -75,6 +82,13 @@ public class MenuPanel extends JPanel implements MouseListener, GameState {
             } else if (button instanceof SoundButton) {
                 // ปุ่ม Sound มุมขวาล่าง
                 ((AbstractMenuButton) button).setPosition(panelWidth - 60, panelHeight - 60);
+            } else if (button instanceof VolumeButton){
+                boolean isIncrease = ((VolumeButton) button).isIncreaseButton();
+                if (isIncrease){
+                    ((AbstractMenuButton) button).setPosition(panelWidth - 110, panelHeight - 60);
+                } else {
+                    ((AbstractMenuButton) button).setPosition(panelWidth - 160, panelHeight - 60);
+                }
             }
         }
     }
@@ -123,6 +137,12 @@ public class MenuPanel extends JPanel implements MouseListener, GameState {
         for (MenuButton button : buttons) {
             button.render(g);
         }
+        
+        System.out.println("กำลังวาดปุ่มทั้งหมด: " + buttons.size() + " ปุ่ม");
+        for (MenuButton button : buttons) {
+            System.out.println("วาดปุ่ม: " + button.getClass().getSimpleName());
+            button.render(g);
+    }
     }
 
     @Override
