@@ -184,6 +184,7 @@ public class Player extends Entity {
 
     /**
      * เพิ่มบัฟให้กับผู้เล่น
+     *
      * @param buff
      */
     public void addBuff(Powerup buff) {
@@ -207,20 +208,6 @@ public class Player extends Entity {
      */
     private void applyBuff(Powerup buff) {
         switch (buff.getCategory()) {
-            case Powerup.CATEGORY_BASIC -> {
-                switch (buff.getType()) {
-                    case Powerup.TYPE_HEALTH -> {
-                        int newHealth = health + buff.getValue();
-                        setHealth(Math.min(newHealth, maxHealth));
-                    }
-                    case Powerup.TYPE_SPEED -> {
-                        speed += buff.getValue();
-                    }
-                    case Powerup.TYPE_DAMAGE -> {
-                        bulletDamage += buff.getValue();
-                    }
-                }
-            }
             case Powerup.CATEGORY_CRAZY -> {
                 switch (buff.getType()) {
                     case Powerup.TYPE_CRAZY_SHOOTING -> {

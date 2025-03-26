@@ -7,15 +7,9 @@ import java.util.Random;
 public class Powerup implements GameObject {
 
     // ค่าคงที่สำหรับประเภทของบัฟ
-    public static final int CATEGORY_BASIC = 0;      // บัฟพื้นฐาน (เดิม)
     public static final int CATEGORY_CRAZY = 1;      // บัฟสุดโหด
     public static final int CATEGORY_PERMANENT = 2;  // บัฟถาวร
     public static final int CATEGORY_TEMPORARY = 3;  // บัฟชั่วคราว
-
-    // ชนิดของบัฟพื้นฐาน (เดิม)
-    public static final int TYPE_HEALTH = 0;
-    public static final int TYPE_SPEED = 1;
-    public static final int TYPE_DAMAGE = 2;
 
     // ชนิดของบัฟสุดโหด
     public static final int TYPE_CRAZY_SHOOTING = 0;
@@ -30,20 +24,18 @@ public class Powerup implements GameObject {
     public static final int TYPE_MULTIPLE_BULLETS = 5;
     public static final int TYPE_HEALING = 6; // เฉพาะบัฟชั่วคราว
 
-    private float x, y;
-    private int width, height;
-    private int category;  // ประเภทใหญ่ของบัฟ
-    private int type;      // ประเภทย่อยของบัฟ
+    private final float x;
+
+    private final float y;
+    private final int width;
+    private final int height;
+    private final int category;  // ประเภทใหญ่ของบัฟ
+    private final int type;      // ประเภทย่อยของบัฟ
     private int value;     // ค่าของบัฟ
     private boolean active = true;
     private int duration = -1; // ระยะเวลาของบัฟ (-1 = ถาวร)
     private Image icon;
     private static final Random random = new Random();
-
-    // Constructor สำหรับบัฟพื้นฐาน (เดิม) เพื่อ backward compatibility
-    public Powerup(int x, int y, int type) {
-        this(x, y, CATEGORY_BASIC, type);
-    }
 
     // Constructor หลักที่รองรับบัฟทุกประเภท
     public Powerup(int x, int y, int category, int type) {
@@ -64,16 +56,6 @@ public class Powerup implements GameObject {
     // กำหนดค่าตามประเภทของบัฟ
     private void initializeValues() {
         switch (category) {
-            case CATEGORY_BASIC -> {
-                switch (type) {
-                    case TYPE_HEALTH ->
-                        value = 25;  // เพิ่มพลังชีวิต 25 หน่วย
-                    case TYPE_SPEED ->
-                        value = 1;    // เพิ่มความเร็ว 1 หน่วย
-                    case TYPE_DAMAGE ->
-                        value = 10;  // เพิ่มความเสียหาย 10 หน่วย
-                }
-            }
             case CATEGORY_CRAZY -> {
                 duration = 300; // 5 วินาที (60 FPS)
                 switch (type) {
@@ -127,16 +109,6 @@ public class Powerup implements GameObject {
         String imagePath = "resources/images/";
 
         switch (category) {
-            case CATEGORY_BASIC -> {
-                switch (type) {
-                    case TYPE_HEALTH ->
-                        imagePath += "powerup_health.png";
-                    case TYPE_SPEED ->
-                        imagePath += "powerup_speed.png";
-                    case TYPE_DAMAGE ->
-                        imagePath += "powerup_damage.png";
-                }
-            }
             case CATEGORY_CRAZY -> {
                 switch (type) {
                     case TYPE_CRAZY_SHOOTING ->
@@ -197,16 +169,6 @@ public class Powerup implements GameObject {
 
         // สีตามประเภทของบัฟ
         switch (category) {
-            case CATEGORY_BASIC -> {
-                switch (type) {
-                    case TYPE_HEALTH ->
-                        g2d.setColor(Color.GREEN);
-                    case TYPE_SPEED ->
-                        g2d.setColor(Color.CYAN);
-                    case TYPE_DAMAGE ->
-                        g2d.setColor(Color.YELLOW);
-                }
-            }
             case CATEGORY_CRAZY ->
                 g2d.setColor(Color.RED);
             case CATEGORY_PERMANENT ->
@@ -285,17 +247,6 @@ public class Powerup implements GameObject {
     // ชื่อของบัฟสำหรับแสดงในเกม
     public String getName() {
         return switch (category) {
-            case CATEGORY_BASIC ->
-                switch (type) {
-                    case TYPE_HEALTH ->
-                        "Health";
-                    case TYPE_SPEED ->
-                        "Speed";
-                    case TYPE_DAMAGE ->
-                        "Damage";
-                    default ->
-                        "Unknown";
-                };
             case CATEGORY_CRAZY ->
                 switch (type) {
                     case TYPE_CRAZY_SHOOTING ->
@@ -348,24 +299,20 @@ public class Powerup implements GameObject {
     public static Powerup createRandomPowerup(int x, int y) {
         double randomValue = random.nextDouble();
 
-        // โอกาส 2% สำหรับบัฟสุดโหด (Crazy)
-        if (randomValue < 0.02) {
+        // โอกาส 5% สำหรับบัฟสุดโหด (Crazy) - ดรอปน้อยสุด
+        if (randomValue < 0.05) {
             int type = random.nextBoolean() ? TYPE_CRAZY_SHOOTING : TYPE_STOP_TIME;
             return new Powerup(x, y, CATEGORY_CRAZY, type);
-        } // โอกาส 5% สำหรับบัฟถาวร (Permanent)
-        else if (randomValue < 0.07) {
+        } // โอกาส 15% สำหรับบัฟถาวร (Permanent) - ดรอปปานกลาง
+        else if (randomValue < 0.20) {
             int type = random.nextInt(6); // 0-5
             return new Powerup(x, y, CATEGORY_PERMANENT, type);
-        } // โอกาส 8% สำหรับบัฟชั่วคราว (Temporary)
-        else if (randomValue < 0.15) {
+        } // โอกาส 25% สำหรับบัฟชั่วคราว (Temporary) - ดรอปเยอะสุด
+        else if (randomValue < 0.45) {
             int type = random.nextInt(6); // 0-5 (รวมการฮีล)
             return new Powerup(x, y, CATEGORY_TEMPORARY, type);
-        } // โอกาส 10% สำหรับบัฟพื้นฐาน (Basic)
-        else if (randomValue < 0.25) {
-            int type = random.nextInt(3); // 0-2
-            return new Powerup(x, y, CATEGORY_BASIC, type);
         }
 
-        return null; // ไม่ดรอปอะไร
+        return null; // ไม่ดรอปอะไร (55%)
     }
 }
