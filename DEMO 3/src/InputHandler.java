@@ -68,11 +68,18 @@ public class InputHandler implements KeyListener, MouseListener, MouseMotionList
             isLeftHold = true;
         }
     }
-    
-    public void handleShooting(GamePanel gamePanel){
-        if (isLeftHold){
+
+    // แก้ไขเมธอด handleShooting ให้สมบูรณ์
+    public void handleShooting() {
+        if (isLeftHold) {
             long currentTime = System.currentTimeMillis();
             long playerCooldown = gamePanel.getPlayer().getShootCooldown();
+
+            // ตรวจสอบว่าถึงเวลายิงหรือยัง
+            if (currentTime - lastShootTime >= playerCooldown) {
+                gamePanel.playerShoot(mouseX, mouseY);
+                lastShootTime = currentTime;
+            }
         }
     }
 
@@ -82,16 +89,16 @@ public class InputHandler implements KeyListener, MouseListener, MouseMotionList
             isLeftHold = false;
         }
     }
-    
-    public boolean isLeftButisDown(){
+
+    public boolean isLeftButisDown() {
         return isLeftHold;
     }
-    
-    public int getMouseX(){
+
+    public int getMouseX() {
         return mouseX;
     }
-    
-     public int getMouseY(){
+
+    public int getMouseY() {
         return mouseY;
     }
 

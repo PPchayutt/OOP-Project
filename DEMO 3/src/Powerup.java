@@ -144,7 +144,7 @@ public class Powerup implements GameObject {
                     case TYPE_KNOCKBACK ->
                         imagePath += "knockback(temp).png";
                     case TYPE_MULTIPLE_BULLETS ->
-                        imagePath += "fires_multiple_bullet(temp).png";
+                        imagePath += "fires_multiple_bullets(temp).png";
                     case TYPE_HEALING ->
                         imagePath += "healing.png";
                 }
@@ -295,7 +295,7 @@ public class Powerup implements GameObject {
         };
     }
 
-    // สร้างบัฟแบบสุ่ม
+    // สร้างบัฟแบบสุ่ม - แก้ไขการสุ่มประเภทบัฟชั่วคราว
     public static Powerup createRandomPowerup(int x, int y) {
         double randomValue = random.nextDouble();
 
@@ -309,7 +309,8 @@ public class Powerup implements GameObject {
             return new Powerup(x, y, CATEGORY_PERMANENT, type);
         } // โอกาส 25% สำหรับบัฟชั่วคราว (Temporary) - ดรอปเยอะสุด
         else if (randomValue < 0.45) {
-            int type = random.nextInt(6); // 0-5 (รวมการฮีล)
+            // แก้ไขจาก nextInt(6) เป็น nextInt(7) เพื่อให้รวม TYPE_HEALING ด้วย
+            int type = random.nextInt(7); // 0-6 (รวมการฮีล)
             return new Powerup(x, y, CATEGORY_TEMPORARY, type);
         }
 

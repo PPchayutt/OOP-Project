@@ -119,6 +119,7 @@ public class GamePanel extends JPanel implements Runnable, GameState {
         }
     }
 
+    // เพิ่มโค้ดนี้ในเมธอด update() ของคลาส GamePanel
     @Override
     public void update() {
         // อัปเดตผู้เล่น (รวมถึงบัฟด้วย)
@@ -130,16 +131,11 @@ public class GamePanel extends JPanel implements Runnable, GameState {
             return;
         }
 
+        // เพิ่มการเรียกใช้งาน handleShooting แทนการเช็คใน InputHandler
+        inputHandler.handleShooting();
+
         // ตรวจสอบว่ามีบัฟ Stop Time ทำงานอยู่หรือไม่
         boolean stopTimeActive = player.hasStopTimeBuff();
-
-        // ตรวจสอบการยิงของผู้เล่น
-        if (inputHandler.isLeftButisDown() && !gamePaused && !gameOver) {
-            long currentTime = System.currentTimeMillis();
-            if (currentTime - player.getLastShotTime() >= player.getShootCooldown()) {
-                playerShoot(inputHandler.getMouseX(), inputHandler.getMouseY());
-            }
-        }
 
         // ถ้าไม่มีการหยุดเวลา ให้อัปเดตมอนสเตอร์และบอสตามปกติ
         if (!stopTimeActive) {
@@ -173,23 +169,65 @@ public class GamePanel extends JPanel implements Runnable, GameState {
         for (Monster monster : monsters) {
             monster.update();
 
-            int oldX = (int) monster.getX();
-            int oldY = (int) monster.getY();
+            // เก็บตำแหน่งเดิมไว้ก่อนเช็คการชน
+            float oldX = monster.getX();
+            float oldY = monster.getY();
+            boolean hasCollision;
+            int maxAttempts = 5; // จำกัดจำนวนครั้งในการพยายามหาตำแหน่งใหม่
+            int attempts = 0;
 
-            for (Monster otherMonster : monsters) {
-                if (monster != otherMonster && monster.collidesWith(otherMonster)) {
-                    monster.setX(oldX);
-                    monster.setY(oldY);
+            do {
+                hasCollision = false;
 
-                    // เลื่อนตำแหน่งเล็กน้อยเพื่อหลีกเลี่ยงการซ้อนทับ
-                    monster.setX(oldX + random.nextInt(10) - 5);
-                    monster.setY(oldY + random.nextInt(10) - 5);
-                    break;
+                // ตรวจสอบการชนกับมอนสเตอร์ตัวอื่น
+                for (Monster otherMonster : monsters) {
+                    if (monster != otherMonster && monster.collidesWith(otherMonster)) {
+                        hasCollision = true;
+
+                        // เลื่อนตำแหน่งเล็กน้อยเพื่อหลีกเลี่ยงการซ้อนทับ
+                        // ใช้ค่าแรงผลักที่แตกต่างกันตามพยายามครั้งที่
+                        float pushStrength = 2 + attempts * 2; // เพิ่มแรงผลักในแต่ละรอบ
+
+                        // คำนวณทิศทางที่จะผลักออก (ห่างจากมอนสเตอร์ตัวอื่น)
+                        float dirX = monster.getX() - otherMonster.getX();
+                        float dirY = monster.getY() - otherMonster.getY();
+
+                        // ถ้าอยู่ตำแหน่งเดียวกันพอดี ให้ผลักในทิศทางสุ่ม
+                        if (dirX == 0 && dirY == 0) {
+                            dirX = random.nextFloat() * 2 - 1;
+                            dirY = random.nextFloat() * 2 - 1;
+                        }
+
+                        // ทำให้เป็นเวกเตอร์หนึ่งหน่วย
+                        float length = (float) Math.sqrt(dirX * dirX + dirY * dirY);
+                        if (length > 0) {
+                            dirX /= length;
+                            dirY /= length;
+                        }
+
+                        // ผลักมอนสเตอร์ออกไป
+                        monster.setX(oldX + dirX * pushStrength);
+                        monster.setY(oldY + dirY * pushStrength);
+
+                        // ป้องกันไม่ให้ออกนอกจอ
+                        monster.setX(Math.max(0, Math.min(monster.getX(), WIDTH - monster.getWidth())));
+                        monster.setY(Math.max(0, Math.min(monster.getY(), HEIGHT - monster.getHeight())));
+
+                        break;
+                    }
                 }
+
+                attempts++;
+            } while (hasCollision && attempts < maxAttempts);
+
+            // ถ้าพยายามหลายครั้งแล้วยังชนอยู่ ก็ยอมให้ชนกัน
+            if (hasCollision) {
+                monster.setX(oldX);
+                monster.setY(oldY);
             }
         }
 
-        // ลบมอนสเตอร์ที่ตายแล้ว
+        // ลบมอนสเตอร์ที่ตายแล้ว และเมธอดอื่นๆ...
         Iterator<Monster> it = monsters.iterator();
         while (it.hasNext()) {
             Monster monster = it.next();
