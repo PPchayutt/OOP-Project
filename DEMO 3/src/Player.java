@@ -1,6 +1,7 @@
 
 import java.awt.*;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 public class Player extends Entity {
@@ -21,7 +22,7 @@ public class Player extends Entity {
 
     // ช่วงเวลาระหว่างการยิง
     private long lastShotTime = 0;
-    private final long shootCooldown = 200;  // มิลลิวินาที
+    private final long shootCooldown = 200;  // มิลลิวินาที (เปลี่ยนเป็น non-final เพื่อให้บัฟปรับได้)
     private long currentCooldown = 0;  // เวลาคูลดาวน์ปัจจุบัน
 
     // ช่วงเวลาที่ได้รับอมตะหลังโดนโจมตี
@@ -39,6 +40,14 @@ public class Player extends Entity {
     private final int SHOOT_ANIMATION_DURATION = 10; // 10 เฟรม
     private int gunDirection = 1; // 1 = ขวา, -1 = ซ้าย
 
+    // ข้อมูลเกี่ยวกับบัฟ
+    private final List<Powerup> activeBuffs = new ArrayList<>();
+    private boolean crazyShootingMode = false;
+    private boolean knockbackEnabled = false;
+    private int knockbackPower = 1;
+    private int extraBullets = 0;
+    private long shootCooldownReduction = 0; // ลดเวลาคูลดาวน์การยิง (ms)
+
     public Player(float x, float y, int width, int height, int health, int speed) {
         super(x, y, width, height, health, speed);
         this.maxHealth = 100;
@@ -51,8 +60,8 @@ public class Player extends Entity {
     public void addScore(int points) {
         this.score += points;
     }
-    
-    public long getLastShotTime(){
+
+    public long getLastShotTime() {
         return lastShotTime;
     }
 
@@ -61,7 +70,6 @@ public class Player extends Entity {
         float targetY = 0;
         float newX = x + velX;
         float newY = y + velY;
-        
 
         if (dx != 0 || dy != 0) {
             // แปลงค่า dx, dy เป็นความเร็วเป้าหมาย
@@ -74,8 +82,9 @@ public class Player extends Entity {
                 targetY *= 0.7071f;
             }
         }
+
         //ถ้าออกนอกขอบจอให้หยุดเคลื่อนที่
-        if(newX < 10 || newX > GamePanel.WIDTH - width - 20 || newY < 10 || newY > GamePanel.HEIGHT - height - 50){
+        if (newX < 10 || newX > GamePanel.WIDTH - width - 20 || newY < 10 || newY > GamePanel.HEIGHT - height - 50) {
             velX = 0;
             velY = 0;
         }
@@ -119,6 +128,9 @@ public class Player extends Entity {
         // อัพเดทกระสุน
         updateBullets();
 
+        // อัพเดทบัฟ
+        updateBuffs();
+
         // อัพเดทแอนิเมชันการยิง
         if (shootAnimationTime > 0) {
             shootAnimationTime--;
@@ -149,6 +161,179 @@ public class Player extends Entity {
             // ลบกระสุนที่ไม่ใช้งานแล้ว
             if (!bullet.isActive()) {
                 bullets.remove(i);
+            }
+        }
+    }
+
+    /**
+     * อัพเดทบัฟทั้งหมดที่ใช้งานอยู่
+     */
+    public void updateBuffs() {
+        Iterator<Powerup> iterator = activeBuffs.iterator();
+        while (iterator.hasNext()) {
+            Powerup buff = iterator.next();
+            buff.update();
+
+            // ถ้าบัฟหมดเวลา ให้เอาออกและยกเลิกเอฟเฟค
+            if (buff.getDuration() == 0) {
+                removeBuff(buff);
+                iterator.remove();
+            }
+        }
+    }
+
+    /**
+     * เพิ่มบัฟให้กับผู้เล่น
+     * @param buff
+     */
+    public void addBuff(Powerup buff) {
+        // เปลี่ยนสถานะของบัฟเป็นเก็บแล้ว
+        buff.setActive(false);
+
+        // ใช้บัฟตามประเภท
+        applyBuff(buff);
+
+        // เก็บบัฟไว้ในรายการถ้าไม่ใช่บัฟแบบใช้ครั้งเดียว
+        if (buff.getDuration() != 0) {
+            activeBuffs.add(buff);
+        }
+
+        // เล่นเสียงเก็บบัฟ
+        SoundManager.playSound("get_skill");
+    }
+
+    /**
+     * นำบัฟไปใช้กับผู้เล่น
+     */
+    private void applyBuff(Powerup buff) {
+        switch (buff.getCategory()) {
+            case Powerup.CATEGORY_BASIC -> {
+                switch (buff.getType()) {
+                    case Powerup.TYPE_HEALTH -> {
+                        int newHealth = health + buff.getValue();
+                        setHealth(Math.min(newHealth, maxHealth));
+                    }
+                    case Powerup.TYPE_SPEED -> {
+                        speed += buff.getValue();
+                    }
+                    case Powerup.TYPE_DAMAGE -> {
+                        bulletDamage += buff.getValue();
+                    }
+                }
+            }
+            case Powerup.CATEGORY_CRAZY -> {
+                switch (buff.getType()) {
+                    case Powerup.TYPE_CRAZY_SHOOTING -> {
+                        crazyShootingMode = true;
+                        SoundManager.playSound("crazy_shooting");
+                    }
+                    case Powerup.TYPE_STOP_TIME -> {
+                        // จัดการโดย GamePanel
+                        SoundManager.playSound("time_stop");
+                    }
+                }
+            }
+            case Powerup.CATEGORY_PERMANENT -> {
+                switch (buff.getType()) {
+                    case Powerup.TYPE_INCREASE_DAMAGE -> {
+                        bulletDamage += buff.getValue();
+                    }
+                    case Powerup.TYPE_INCREASE_SPEED -> {
+                        speed += buff.getValue();
+                    }
+                    case Powerup.TYPE_INCREASE_SHOOTING_SPEED -> {
+                        shootCooldownReduction += buff.getValue();
+                    }
+                    case Powerup.TYPE_KNOCKBACK -> {
+                        knockbackEnabled = true;
+                        knockbackPower = Math.max(knockbackPower, buff.getValue());
+                    }
+                    case Powerup.TYPE_MORE_HEART -> {
+                        lives++;
+                    }
+                    case Powerup.TYPE_MULTIPLE_BULLETS -> {
+                        extraBullets += buff.getValue();
+                    }
+                }
+            }
+            case Powerup.CATEGORY_TEMPORARY -> {
+                switch (buff.getType()) {
+                    case Powerup.TYPE_INCREASE_DAMAGE -> {
+                        bulletDamage += buff.getValue();
+                    }
+                    case Powerup.TYPE_INCREASE_SPEED -> {
+                        speed += buff.getValue();
+                    }
+                    case Powerup.TYPE_INCREASE_SHOOTING_SPEED -> {
+                        shootCooldownReduction += buff.getValue();
+                    }
+                    case Powerup.TYPE_KNOCKBACK -> {
+                        knockbackEnabled = true;
+                        knockbackPower = Math.max(knockbackPower, buff.getValue());
+                    }
+                    case Powerup.TYPE_MULTIPLE_BULLETS -> {
+                        extraBullets += buff.getValue();
+                    }
+                    case Powerup.TYPE_HEALING -> {
+                        int newHealth = health + buff.getValue();
+                        setHealth(Math.min(newHealth, maxHealth));
+                        buff.setDuration(0); // ใช้แล้วหมดทันที
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * ลบบัฟที่หมดเวลา
+     */
+    private void removeBuff(Powerup buff) {
+        switch (buff.getCategory()) {
+            case Powerup.CATEGORY_CRAZY -> {
+                switch (buff.getType()) {
+                    case Powerup.TYPE_CRAZY_SHOOTING -> {
+                        crazyShootingMode = false;
+                    }
+                }
+            }
+            case Powerup.CATEGORY_TEMPORARY -> {
+                switch (buff.getType()) {
+                    case Powerup.TYPE_INCREASE_DAMAGE -> {
+                        bulletDamage -= buff.getValue();
+                    }
+                    case Powerup.TYPE_INCREASE_SPEED -> {
+                        speed -= buff.getValue();
+                    }
+                    case Powerup.TYPE_INCREASE_SHOOTING_SPEED -> {
+                        shootCooldownReduction -= buff.getValue();
+                    }
+                    case Powerup.TYPE_KNOCKBACK -> {
+                        // ตรวจสอบว่ายังมีบัฟ knockback อื่นทำงานอยู่หรือไม่
+                        boolean hasOtherKnockback = false;
+                        int maxPower = 0;
+
+                        for (Powerup activeBuff : activeBuffs) {
+                            if (activeBuff != buff
+                                    && (activeBuff.getCategory() == Powerup.CATEGORY_PERMANENT
+                                    || activeBuff.getCategory() == Powerup.CATEGORY_TEMPORARY)
+                                    && activeBuff.getType() == Powerup.TYPE_KNOCKBACK) {
+
+                                hasOtherKnockback = true;
+                                maxPower = Math.max(maxPower, activeBuff.getValue());
+                            }
+                        }
+
+                        if (!hasOtherKnockback) {
+                            knockbackEnabled = false;
+                            knockbackPower = 1;
+                        } else {
+                            knockbackPower = maxPower;
+                        }
+                    }
+                    case Powerup.TYPE_MULTIPLE_BULLETS -> {
+                        extraBullets -= buff.getValue();
+                    }
+                }
             }
         }
     }
@@ -194,7 +379,7 @@ public class Player extends Entity {
 
                         // ตำแหน่งเอฟเฟค - ตรงปากกระบอกปืนด้านขวา
                         flashX = gunX + gunWidth - 1;
-                        flashY = gunY + gunHeight / 2 - flashHeight / 2 -9;
+                        flashY = gunY + gunHeight / 2 - flashHeight / 2 - 9;
 
                         // วาดเอฟเฟค
                         if (shootAnimationTime > SHOOT_ANIMATION_DURATION / 2) {
@@ -233,11 +418,9 @@ public class Player extends Entity {
      * @param targetX ตำแหน่ง x เป้าหมาย
      * @param targetY ตำแหน่ง y เป้าหมาย
      */
-// แก้ไขเมธอด shoot ในคลาส Player
     public void shoot(int targetX, int targetY) {
         long currentTime = System.currentTimeMillis();
 
-        // ยิงได้โดยไม่ต้องรอคูลดาวน์หมด (แต่ยังเก็บเวลาคูลดาวน์ไว้เหมือนเดิม)
         // คำนวณทิศทางการยิง
         double angle = Math.atan2(targetY - (y + height / 2), targetX - (x + width / 2));
 
@@ -247,10 +430,68 @@ public class Player extends Entity {
         } else {
             gunDirection = 1;  // เมื่อเป้าหมายอยู่ทางขวา ให้หันปืนไปทางขวา
         }
-        // สร้างกระสุนใหม่
-        PlayerBullet bullet = new PlayerBullet((int) (x + width / 2), (int) (y + height / 2), 8, 8, angle);
-        bullet.setDamage(bulletDamage);
-        bullets.add(bullet);
+
+        // บัฟยิงบ้าคลั่ง (Crazy Shooting)
+        if (crazyShootingMode) {
+            for (int i = 0; i < 5; i++) {
+                double spread = (Math.random() - 0.5) * 0.5; // ความกระจายของกระสุน
+                double shootAngle = angle + spread;
+
+                PlayerBullet bullet = new PlayerBullet((int) (x + width / 2), (int) (y + height / 2), 8, 8, shootAngle);
+                bullet.setDamage(bulletDamage * 2); // เพิ่มความเสียหายเป็น 2 เท่า
+                bullet.setSpeed(15); // เพิ่มความเร็วกระสุน
+
+                // เพิ่ม knockback ถ้ามีการเปิดใช้งาน
+                if (knockbackEnabled) {
+                    bullet.setKnockback(true);
+                    bullet.setKnockbackPower(knockbackPower);
+                }
+
+                bullets.add(bullet);
+            }
+        } // บัฟยิงหลายนัด (Multiple Bullets)
+        else if (extraBullets > 0) {
+            // ยิงกระสุนหลัก (ตรงกลาง)
+            PlayerBullet mainBullet = new PlayerBullet((int) (x + width / 2), (int) (y + height / 2), 8, 8, angle);
+            mainBullet.setDamage(bulletDamage);
+
+            // เพิ่ม knockback ถ้ามีการเปิดใช้งาน
+            if (knockbackEnabled) {
+                mainBullet.setKnockback(true);
+                mainBullet.setKnockbackPower(knockbackPower);
+            }
+
+            bullets.add(mainBullet);
+
+            // ยิงกระสุนเพิ่มเติม
+            for (int i = 0; i < extraBullets; i++) {
+                double spread = (i % 2 == 0 ? 1 : -1) * (i + 1) * 0.1; // กระจายสลับซ้ายขวา
+                double shootAngle = angle + spread;
+
+                PlayerBullet extraBullet = new PlayerBullet((int) (x + width / 2), (int) (y + height / 2), 8, 8, shootAngle);
+                extraBullet.setDamage(bulletDamage);
+
+                // เพิ่ม knockback ถ้ามีการเปิดใช้งาน
+                if (knockbackEnabled) {
+                    extraBullet.setKnockback(true);
+                    extraBullet.setKnockbackPower(knockbackPower);
+                }
+
+                bullets.add(extraBullet);
+            }
+        } // ยิงปกติ
+        else {
+            PlayerBullet bullet = new PlayerBullet((int) (x + width / 2), (int) (y + height / 2), 8, 8, angle);
+            bullet.setDamage(bulletDamage);
+
+            // เพิ่ม knockback ถ้ามีการเปิดใช้งาน
+            if (knockbackEnabled) {
+                bullet.setKnockback(true);
+                bullet.setKnockbackPower(knockbackPower);
+            }
+
+            bullets.add(bullet);
+        }
 
         // เริ่มแอนิเมชันการยิง
         isShooting = true;
@@ -293,29 +534,21 @@ public class Player extends Entity {
             } else {
                 // หมดชีวิต
                 alive = false;
+
+                // เคลียร์บัฟทั้งหมดเมื่อตาย
+                activeBuffs.clear();
+                crazyShootingMode = false;
+                knockbackEnabled = false;
+                knockbackPower = 1;
+                extraBullets = 0;
+                shootCooldownReduction = 0;
+                bulletDamage = 25; // รีเซ็ตค่าพื้นฐาน
+                speed = 5; // รีเซ็ตค่าพื้นฐาน
             }
         } else {
             // ได้รับความเสียหายแต่ยังไม่ตาย ให้อมตะชั่วคราว
             invincibleTime = maxInvincibleTime / 2;
         }
-    }
-
-    /**
-     * เพิ่มความเร็วให้กับผู้เล่น
-     *
-     * @param amount จำนวนที่เพิ่ม
-     */
-    public void increaseSpeed(int amount) {
-        this.speed += amount;
-    }
-
-    /**
-     * เพิ่มความเสียหายของกระสุน
-     *
-     * @param amount จำนวนที่เพิ่ม
-     */
-    public void increaseBulletDamage(int amount) {
-        this.bulletDamage += amount;
     }
 
     /**
@@ -325,6 +558,15 @@ public class Player extends Entity {
      */
     public List<PlayerBullet> getBullets() {
         return bullets;
+    }
+
+    /**
+     * ดึงค่ารายการบัฟที่ใช้งานอยู่
+     *
+     * @return รายการบัฟ
+     */
+    public List<Powerup> getActiveBuffs() {
+        return activeBuffs;
     }
 
     /**
@@ -346,12 +588,13 @@ public class Player extends Entity {
     }
 
     /**
-     * ดึงค่าเวลาคูลดาวน์การยิง
+     * ดึงค่าเวลาคูลดาวน์การยิงที่แท้จริง (หลังจากลดด้วยบัฟ)
      *
-     * @return เวลาคูลดาวน์ (มิลลิวินาที)
+     * @return เวลาคูลดาวน์การยิง (มิลลิวินาที)
      */
     public long getShootCooldown() {
-        return shootCooldown;
+        // คำนวณเวลาคูลดาวน์หลังหักลบด้วยบัฟต่างๆ (ต่ำสุด 50ms)
+        return Math.max(50, shootCooldown - shootCooldownReduction);
     }
 
     /**
@@ -361,5 +604,20 @@ public class Player extends Entity {
      */
     public long getCurrentCooldown() {
         return currentCooldown;
+    }
+
+    /**
+     * ตรวจสอบว่ามีบัฟ Stop Time ทำงานอยู่หรือไม่
+     *
+     * @return true ถ้ามีบัฟ Stop Time ทำงาน
+     */
+    public boolean hasStopTimeBuff() {
+        for (Powerup buff : activeBuffs) {
+            if (buff.getCategory() == Powerup.CATEGORY_CRAZY
+                    && buff.getType() == Powerup.TYPE_STOP_TIME) {
+                return true;
+            }
+        }
+        return false;
     }
 }

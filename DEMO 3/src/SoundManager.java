@@ -1,6 +1,7 @@
 
 import javax.sound.sampled.*;
 import java.io.File;
+import java.io.IOException;
 import java.util.HashMap;
 
 public class SoundManager {
@@ -26,6 +27,9 @@ public class SoundManager {
 
             // โหลดไฟล์เสียงยิงปืน
             loadSound("gun_shot", "resources/sounds/gun_shot.wav");
+
+            // โหลดไฟล์เสียงเก็บบัฟ
+            loadSound("get_skill", "resources/sounds/get_skill.wav");
 
             // เพิ่มการโหลดเพลงสำหรับ Level 1
             loadMusic("level1_music", "resources/sounds/level1_music.wav");
@@ -55,7 +59,7 @@ public class SoundManager {
             } else {
                 System.out.println("ไม่พบไฟล์เสียง: " + filePath);
             }
-        } catch (Exception e) {
+        } catch (IOException | LineUnavailableException | UnsupportedAudioFileException e) {
             System.err.println("ไม่สามารถโหลดไฟล์เสียงได้: " + e.getMessage());
         }
     }
@@ -78,7 +82,7 @@ public class SoundManager {
             } else {
                 System.out.println("ไม่พบไฟล์เพลง: " + filePath);
             }
-        } catch (Exception e) {
+        } catch (IOException | LineUnavailableException | UnsupportedAudioFileException e) {
             System.err.println("ไม่สามารถโหลดไฟล์เพลงได้: " + e.getMessage());
         }
     }
@@ -123,7 +127,7 @@ public class SoundManager {
             stopBackgroundMusic();
         }
     }
-    
+
     public static float getEffectVolume() {
         return effectVolume;
     }
@@ -153,7 +157,7 @@ public class SoundManager {
                     // สูตร: dB = 20 * log10(volume)
                     // เมื่อ volume = 0 จะได้ -Infinity dB ซึ่งเป็นการปิดเสียง
                     float dB;
-                    if (effectVolume > 0.0f){
+                    if (effectVolume > 0.0f) {
                         dB = (float) (20.0f * Math.log10(effectVolume));
                         gainControl.setValue(Math.max(-80.0f, dB));
                     }
@@ -168,18 +172,21 @@ public class SoundManager {
                     }
                 });
             }
-        } catch (Exception e) {
+        } catch (IOException | LineUnavailableException | UnsupportedAudioFileException e) {
             // จัดการข้อผิดพลาดแบบเงียบๆ เพื่อไม่ให้เกมค้าง
             System.err.println("ไม่สามารถเล่นเสียง " + key + ": " + e.getMessage());
         }
     }
+
     public static void setEffectVolume(float volume) {
         effectVolume = Math.max(0.0f, Math.min(1.0f, volume));
         System.out.println("ระดับเสียงปัจจุบัน: " + (effectVolume * 100) + "%");
     }
+
     public static void increaseEffectVolume(float amount) {
         setEffectVolume(effectVolume + amount);
     }
+
     public static void decreaseEffectVolume(float amount) {
         setEffectVolume(effectVolume - amount);
     }

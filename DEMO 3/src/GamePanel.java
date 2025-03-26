@@ -23,7 +23,7 @@ public class GamePanel extends JPanel implements Runnable, GameState {
     private boolean gameOver = false;
     private boolean gamePaused = false;
     private int monsterSpawnTimer = 0;
-    private InputHandler inputHandler;
+    private final InputHandler inputHandler;
 
     private Player player;
     private List<Monster> monsters;
@@ -82,10 +82,11 @@ public class GamePanel extends JPanel implements Runnable, GameState {
                 gameThread.join(1000);
             }
         } catch (InterruptedException e) {
+            System.err.println("เกิดข้อผิดพลาดขณะหยุด game thread: " + e.getMessage());
         }
     }
-    
-    public Player getPlayer(){
+
+    public Player getPlayer() {
         return player;
     }
 
@@ -113,50 +114,62 @@ public class GamePanel extends JPanel implements Runnable, GameState {
             try {
                 Thread.sleep(1);
             } catch (InterruptedException e) {
+                System.err.println("เกิดข้อผิดพลาดขณะ sleep thread: " + e.getMessage());
             }
         }
     }
 
     @Override
     public void update() {
+        // อัปเดตผู้เล่น (รวมถึงบัฟด้วย)
         player.update();
 
+        // ตรวจสอบว่าผู้เล่นยังมีชีวิตอยู่หรือไม่
         if (!player.isAlive()) {
             gameOver = true;
             return;
         }
-        
-        if (!gamePaused && !gameOver){
-            inputHandler.handleShooting(this);
-        }
 
-        monsterSpawnTimer++;
-        if (monsterSpawnTimer >= levelManager.getMonsterSpawnRate() && bosses.isEmpty()) {
-            spawnMonster();
-            monsterSpawnTimer = 0;
-        }
+        // ตรวจสอบว่ามีบัฟ Stop Time ทำงานอยู่หรือไม่
+        boolean stopTimeActive = player.hasStopTimeBuff();
 
-        if (levelManager.shouldSpawnBoss() && bosses.isEmpty()) {
-            spawnBoss();
-            levelManager.bossSpawned();
-        }
-        
-        if (inputHandler.isLeftButisDown()&& !gamePaused && !gameOver){
+        // ตรวจสอบการยิงของผู้เล่น
+        if (inputHandler.isLeftButisDown() && !gamePaused && !gameOver) {
             long currentTime = System.currentTimeMillis();
-            if (currentTime - player.getLastShotTime() >= player.getShootCooldown()){
-                playerShoot(inputHandler.getMouseX(),inputHandler.getMouseY());
+            if (currentTime - player.getLastShotTime() >= player.getShootCooldown()) {
+                playerShoot(inputHandler.getMouseX(), inputHandler.getMouseY());
             }
         }
 
-        updateMonsters();
-        updateBosses();
+        // ถ้าไม่มีการหยุดเวลา ให้อัปเดตมอนสเตอร์และบอสตามปกติ
+        if (!stopTimeActive) {
+            // สปอนมอนสเตอร์
+            monsterSpawnTimer++;
+            if (monsterSpawnTimer >= levelManager.getMonsterSpawnRate() && bosses.isEmpty()) {
+                spawnMonster();
+                monsterSpawnTimer = 0;
+            }
+
+            // สปอนบอสถ้าสังหารมอนสเตอร์ครบ
+            if (levelManager.shouldSpawnBoss() && bosses.isEmpty()) {
+                spawnBoss();
+                levelManager.bossSpawned();
+            }
+
+            // อัปเดตมอนสเตอร์และบอส
+            updateMonsters();
+            updateBosses();
+            updateEnemyBullets();
+        }
+
+        // อัปเดตอื่นๆ ที่ไม่เกี่ยวข้องกับเวลาที่หยุด
         updatePlayerBullets();
-        updateEnemyBullets();
         updatePowerups();
         checkCollisions();
     }
 
     private void updateMonsters() {
+        // จัดการการชนกันระหว่างมอนสเตอร์
         for (Monster monster : monsters) {
             monster.update();
 
@@ -168,6 +181,7 @@ public class GamePanel extends JPanel implements Runnable, GameState {
                     monster.setX(oldX);
                     monster.setY(oldY);
 
+                    // เลื่อนตำแหน่งเล็กน้อยเพื่อหลีกเลี่ยงการซ้อนทับ
                     monster.setX(oldX + random.nextInt(10) - 5);
                     monster.setY(oldY + random.nextInt(10) - 5);
                     break;
@@ -175,19 +189,30 @@ public class GamePanel extends JPanel implements Runnable, GameState {
             }
         }
 
+        // ลบมอนสเตอร์ที่ตายแล้ว
         Iterator<Monster> it = monsters.iterator();
         while (it.hasNext()) {
             Monster monster = it.next();
-            monster.update();
 
+            // ตรวจสอบว่ามอนสเตอร์มีชีวิตอยู่หรือไม่
             if (!monster.isAlive()) {
                 it.remove();
                 levelManager.monsterKilled();
 
+                // เพิ่มคะแนน
                 player.addScore(monster.getPoints());
 
+                // สุ่มดรอปบัฟหรือไอเทม
                 if (monster.dropsPowerup()) {
                     spawnPowerup((int) monster.getX(), (int) monster.getY());
+                }
+            }
+
+            // ให้มอนสเตอร์โจมตีตามโอกาส
+            if (random.nextInt(100) < 2) { // โอกาส 2%
+                EnemyBullet bullet = monster.attack();
+                if (bullet != null) {
+                    enemyBullets.add(bullet);
                 }
             }
         }
@@ -199,24 +224,29 @@ public class GamePanel extends JPanel implements Runnable, GameState {
             Boss boss = it.next();
             boss.update();
 
+            // ตรวจสอบว่าบอสมีชีวิตอยู่หรือไม่
             if (!boss.isAlive()) {
                 it.remove();
                 levelManager.bossKilled();
 
+                // เพิ่มคะแนน
                 player.addScore(boss.getPoints());
 
+                // บอสจะดรอปบัฟเสมอ
                 spawnPowerup((int) (boss.getX() + boss.getWidth() / 2), (int) (boss.getY() + boss.getHeight() / 2));
                 continue;
             }
 
-            if (random.nextInt(100) < 5) {
+            // บอสโจมตีปกติ
+            if (random.nextInt(100) < 5) { // โอกาส 5%
                 EnemyBullet bullet = boss.attack();
                 if (bullet != null) {
                     enemyBullets.add(bullet);
                 }
             }
 
-            if (random.nextInt(100) < 1) {
+            // บอสโจมตีพิเศษ
+            if (random.nextInt(100) < 1) { // โอกาส 1%
                 List<EnemyBullet> bullets = boss.attackSpecial();
                 if (bullets != null) {
                     enemyBullets.addAll(bullets);
@@ -226,13 +256,11 @@ public class GamePanel extends JPanel implements Runnable, GameState {
     }
 
     private void updatePlayerBullets() {
-        // ล้างรายการกระสุนเก่าก่อน เพื่อป้องกันการซ้ำซ้อน
+        // ล้างรายการกระสุนเก่าและเพิ่มกระสุนใหม่จากผู้เล่น
         playerBullets.clear();
-
-        // เพิ่มกระสุนทั้งหมดจากผู้เล่น
         playerBullets.addAll(player.getBullets());
 
-        // อัพเดตกระสุนตามปกติ
+        // อัปเดตกระสุนและลบกระสุนที่ไม่ใช้งานแล้ว
         Iterator<PlayerBullet> it = playerBullets.iterator();
         while (it.hasNext()) {
             PlayerBullet bullet = it.next();
@@ -269,48 +297,111 @@ public class GamePanel extends JPanel implements Runnable, GameState {
     }
 
     private void checkCollisions() {
+        // ตรวจสอบการชนระหว่างกระสุนผู้เล่นกับมอนสเตอร์
+        checkBulletMonsterCollisions();
+
+        // ตรวจสอบการชนระหว่างกระสุนผู้เล่นกับบอส
+        checkBulletBossCollisions();
+
+        // ตรวจสอบการชนระหว่างกระสุนศัตรูกับผู้เล่น
+        checkEnemyBulletPlayerCollisions();
+
+        // ตรวจสอบการชนระหว่างมอนสเตอร์กับผู้เล่น
+        checkMonsterPlayerCollisions();
+
+        // ตรวจสอบการชนระหว่างบอสกับผู้เล่น
+        checkBossPlayerCollisions();
+
+        // ตรวจสอบการชนระหว่างผู้เล่นกับพาวเวอร์อัพ
+        checkPowerupCollisions();
+    }
+
+    private void checkBulletMonsterCollisions() {
         for (PlayerBullet bullet : playerBullets) {
             for (Monster monster : monsters) {
                 if (bullet.isActive() && monster.isAlive() && bullet.collidesWith(monster)) {
                     monster.takeDamage(bullet.getDamage());
-                    bullet.setActive(false);
-                }
-            }
 
-            for (Boss boss : bosses) {
-                if (bullet.isActive() && boss.isAlive() && bullet.collidesWith(boss)) {
-                    boss.takeDamage(bullet.getDamage());
+                    // ถ้ากระสุนมี knockback ให้ผลักมอนสเตอร์
+                    if (bullet.hasKnockback()) {
+                        float knockbackStrength = bullet.getKnockbackPower() * 5.0f;
+                        float knockbackX = (float) Math.cos(bullet.getAngle()) * knockbackStrength;
+                        float knockbackY = (float) Math.sin(bullet.getAngle()) * knockbackStrength;
+
+                        // ผลักมอนสเตอร์ไปตามทิศทาง
+                        monster.setX(monster.getX() + knockbackX);
+                        monster.setY(monster.getY() + knockbackY);
+
+                        // ป้องกันไม่ให้ออกนอกจอ
+                        monster.setX(Math.max(0, Math.min(monster.getX(), WIDTH - monster.getWidth())));
+                        monster.setY(Math.max(0, Math.min(monster.getY(), HEIGHT - monster.getHeight())));
+                    }
+
                     bullet.setActive(false);
                 }
             }
         }
+    }
 
+    private void checkBulletBossCollisions() {
+        for (PlayerBullet bullet : playerBullets) {
+            for (Boss boss : bosses) {
+                if (bullet.isActive() && boss.isAlive() && bullet.collidesWith(boss)) {
+                    boss.takeDamage(bullet.getDamage());
+
+                    // บอสโดน knockback น้อยกว่าเนื่องจากขนาดใหญ่
+                    if (bullet.hasKnockback()) {
+                        float knockbackStrength = bullet.getKnockbackPower() * 2.0f; // บอสถูกผลักน้อยกว่ามอนสเตอร์
+                        float knockbackX = (float) Math.cos(bullet.getAngle()) * knockbackStrength;
+                        float knockbackY = (float) Math.sin(bullet.getAngle()) * knockbackStrength;
+
+                        boss.setX(boss.getX() + knockbackX);
+                        boss.setY(boss.getY() + knockbackY);
+
+                        // ป้องกันไม่ให้ออกนอกจอ
+                        boss.setX(Math.max(0, Math.min(boss.getX(), WIDTH - boss.getWidth())));
+                        boss.setY(Math.max(0, Math.min(boss.getY(), HEIGHT - boss.getHeight())));
+                    }
+
+                    bullet.setActive(false);
+                }
+            }
+        }
+    }
+
+    private void checkEnemyBulletPlayerCollisions() {
         for (EnemyBullet bullet : enemyBullets) {
             if (bullet.isActive() && player.isAlive() && bullet.collidesWith(player)) {
                 player.takeDamage(bullet.getDamage());
                 bullet.setActive(false);
             }
         }
+    }
 
+    private void checkMonsterPlayerCollisions() {
         for (Monster monster : monsters) {
             if (player.isAlive() && monster.isAlive() && player.collidesWith(monster)) {
                 player.takeDamage(monster.getDamage());
                 monster.takeDamage(50);
             }
         }
+    }
 
+    private void checkBossPlayerCollisions() {
         for (Boss boss : bosses) {
             if (player.isAlive() && boss.isAlive() && player.collidesWith(boss)) {
                 player.takeDamage(boss.getDamage(), true);
                 boss.takeDamage(20);
             }
         }
+    }
 
+    private void checkPowerupCollisions() {
         Iterator<Powerup> it = powerups.iterator();
         while (it.hasNext()) {
             Powerup powerup = it.next();
             if (powerup.isActive() && player.collidesWith(powerup)) {
-                applyPowerup(powerup);
+                player.addBuff(powerup);
                 it.remove();
             }
         }
@@ -327,20 +418,9 @@ public class GamePanel extends JPanel implements Runnable, GameState {
     }
 
     private void spawnPowerup(int x, int y) {
-        int type = random.nextInt(3);
-        powerups.add(new Powerup(x, y, type));
-    }
-
-    private void applyPowerup(Powerup powerup) {
-        switch (powerup.getType()) {
-            case 0 -> {
-                int newHealth = player.getHealth() + powerup.getValue();
-                player.setHealth(Math.min(newHealth, 100));
-            }
-            case 1 ->
-                player.setSpeed(player.getSpeed() + powerup.getValue());
-            case 2 -> {
-            }
+        Powerup powerup = Powerup.createRandomPowerup(x, y);
+        if (powerup != null) {
+            powerups.add(powerup);
         }
     }
 
@@ -352,34 +432,44 @@ public class GamePanel extends JPanel implements Runnable, GameState {
 
     @Override
     public void render(Graphics g) {
+        // วาดพื้นหลังและแผนที่
         drawBackground(g);
         gameMap.render(g);
+
         if (!gameOver) {
+            // วาดพาวเวอร์อัพที่ดรอปอยู่
             for (Powerup powerup : powerups) {
                 powerup.render(g);
             }
 
+            // วาดกระสุนของผู้เล่น
             for (PlayerBullet bullet : playerBullets) {
                 bullet.render(g);
             }
 
+            // วาดกระสุนของศัตรู
             for (EnemyBullet bullet : enemyBullets) {
                 bullet.render(g);
             }
 
+            // วาดมอนสเตอร์
             for (Monster monster : monsters) {
                 monster.render(g);
             }
 
+            // วาดบอส
             for (Boss boss : bosses) {
                 boss.render(g);
             }
 
+            // วาดผู้เล่น
             player.render(g);
         }
 
+        // วาด UI
         drawUI(g);
 
+        // วาดหน้าจอ Game Over หรือ Pause ถ้าจำเป็น
         if (gameOver) {
             drawGameOver(g);
         }
@@ -442,11 +532,46 @@ public class GamePanel extends JPanel implements Runnable, GameState {
             g.drawImage(brokenHeartImage, 20 + (i * 25), 45, 20, 20, null);
         }
 
-        // แสดงข้อมูลอื่นๆ ที่เหลือเหมือนเดิม
+        // แสดงข้อมูลเลเวลและคะแนน
         g.setColor(Color.WHITE);
         g.drawString("Level: " + levelManager.getCurrentLevel(), 20, 90);
         g.drawString("Monsters: " + levelManager.getMonstersKilled() + "/" + levelManager.getMonstersToKill(), 20, 110);
         g.drawString("Score: " + player.getScore(), WIDTH - 150, 30);
+
+        // แสดงบัฟที่กำลังใช้งาน
+        drawActiveBuffs(g);
+    }
+
+    // เพิ่มเมธอดวาดบัฟที่ใช้งานอยู่
+    private void drawActiveBuffs(Graphics g) {
+        List<Powerup> activeBuffs = player.getActiveBuffs();
+        int x = 300; // ตำแหน่งเริ่มต้น
+        int y = 20;  // ด้านบนของจอ
+        int spacing = 40; // ระยะห่างระหว่างไอคอน
+
+        // วาดพื้นหลังสำหรับพื้นที่แสดงบัฟ
+        if (!activeBuffs.isEmpty()) {
+            g.setColor(new Color(0, 0, 0, 150)); // สีดำโปร่งใส
+            int bgWidth = activeBuffs.size() * spacing + 10;
+            g.fillRect(x - 5, y - 5, bgWidth, 40);
+            g.setColor(Color.WHITE);
+            g.drawRect(x - 5, y - 5, bgWidth, 40);
+        }
+
+        for (Powerup buff : activeBuffs) {
+            // วาดไอคอน
+            g.drawImage(buff.getIcon(), x, y, 30, 30, null);
+
+            // ถ้าเป็นบัฟที่มีระยะเวลา ให้แสดงเวลาที่เหลือ
+            if (buff.getDuration() > 0) {
+                g.setColor(Color.WHITE);
+                g.setFont(new Font("Arial", Font.BOLD, 12));
+                int seconds = buff.getDuration() / 60 + 1; // แปลงเฟรมเป็นวินาที
+                g.drawString(seconds + "s", x + 10, y + 45);
+            }
+
+            x += spacing; // เลื่อนไปทางขวา
+        }
     }
 
     private void drawPaused(Graphics g) {
@@ -459,6 +584,7 @@ public class GamePanel extends JPanel implements Runnable, GameState {
 
         g.setFont(new Font("Arial", Font.PLAIN, 16));
         g.drawString("Press 'P' to continue", WIDTH / 2 - 80, HEIGHT / 2 + 40);
+        g.drawString("Press 'ESC' to return to menu", WIDTH / 2 - 110, HEIGHT / 2 + 70);
     }
 
     public void movePlayer(int dx, int dy) {
@@ -503,22 +629,7 @@ public class GamePanel extends JPanel implements Runnable, GameState {
         game.returnToMenu();
     }
 
-    // เพิ่มเมธอดสำหรับการจัดการกับปุ่มในหน้า Game Over
-    private void handleGameOverButtons(int x, int y) {
-        // สร้างพื้นที่ปุ่ม "กลับเมนูหลัก"
-        Rectangle menuButton = new Rectangle(WIDTH / 2 - 100, HEIGHT / 2 + 90, 200, 40);
-
-        // สร้างพื้นที่ปุ่ม "เล่นใหม่"
-        Rectangle restartButton = new Rectangle(WIDTH / 2 - 100, HEIGHT / 2 + 40, 200, 40);
-
-        if (menuButton.contains(x, y)) {
-            returnToMenu();
-        } else if (restartButton.contains(x, y)) {
-            restartGame();
-        }
-    }
-
-    // ปรับปรุงเมธอด drawGameOver เพื่อแสดงปุ่ม
+    // แสดงหน้าจอ Game Over และปุ่มต่างๆ
     private void drawGameOver(Graphics g) {
         g.setColor(new Color(0, 0, 0, 200));
         g.fillRect(0, 0, WIDTH, HEIGHT);
@@ -545,19 +656,34 @@ public class GamePanel extends JPanel implements Runnable, GameState {
         g.drawString("กลับเมนูหลัก", WIDTH / 2 - 50, HEIGHT / 2 + 115);
     }
 
-    // ปรับปรุงเมธอด handleMouseClick ให้ตรวจสอบการคลิกปุ่มในหน้า Game Over
+    // จัดการการคลิกปุ่มในหน้า Game Over
+    private void handleGameOverButtons(int x, int y) {
+        // สร้างพื้นที่ปุ่ม "กลับเมนูหลัก"
+        Rectangle menuButton = new Rectangle(WIDTH / 2 - 100, HEIGHT / 2 + 90, 200, 40);
+
+        // สร้างพื้นที่ปุ่ม "เล่นใหม่"
+        Rectangle restartButton = new Rectangle(WIDTH / 2 - 100, HEIGHT / 2 + 40, 200, 40);
+
+        if (menuButton.contains(x, y)) {
+            returnToMenu();
+        } else if (restartButton.contains(x, y)) {
+            restartGame();
+        }
+    }
+
+    // รับการคลิกเมาส์
     @Override
     public void handleMouseClick(int x, int y) {
         if (gameOver) {
             handleGameOverButtons(x, y);
         } else if (gamePaused) {
-            // ตรวจสอบการคลิกปุ่มในหน้า Pause (ถ้ามี)
+            // อาจเพิ่มปุ่มในหน้า Pause ในอนาคต
         } else {
-            // ตรวจสอบการคลิกในเกม (ถ้ามี)
+            // คลิกปกติในเกม
         }
     }
 
-    // เพิ่มเมธอดสำหรับการตอบสนองต่อปุ่มคีย์บอร์ด
+    // รับการกดคีย์บอร์ด
     public void handleKeyPress(int keyCode) {
         if (keyCode == KeyEvent.VK_P) {
             togglePause();
