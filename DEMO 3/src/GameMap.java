@@ -31,9 +31,9 @@ public class GameMap {
     private void createLevel1Map() {
         // สร้างขอบของแผนที่
         blocks.add(new Block(0, 0, 800, 10)); // ขอบบน
-        blocks.add(new Block(0, 590, 800, 10)); // ขอบล่าง
+        blocks.add(new Block(0, 550, 800, 50)); // ขอบล่าง
         blocks.add(new Block(0, 0, 10, 600)); // ขอบซ้าย
-        blocks.add(new Block(790, 0, 10, 600)); // ขอบขวา
+        blocks.add(new Block(770, 0, 30, 600)); // ขอบขวา
 
         // สร้างบล็อคน้ำตามที่เห็นในรูป
         blocks.add(new Block(220, 100, 560, 380)); // บริเวณน้ำตรงกลาง
@@ -55,9 +55,9 @@ public class GameMap {
     private void createDefaultMap() {
         // สร้างขอบของแผนที่เท่านั้น
         blocks.add(new Block(0, 0, 800, 10)); // ขอบบน
-        blocks.add(new Block(0, 590, 800, 10)); // ขอบล่าง
+        blocks.add(new Block(0, 550, 800, 50)); // ขอบล่าง
         blocks.add(new Block(0, 0, 10, 600)); // ขอบซ้าย
-        blocks.add(new Block(790, 0, 10, 600)); // ขอบขวา
+        blocks.add(new Block(770, 0, 30, 600)); // ขอบขวา
     }
 
     public List<Block> getBlocks() {

@@ -59,6 +59,9 @@ public class Player extends Entity {
     public void move(int dx, int dy) {
         float targetX = 0;
         float targetY = 0;
+        float newX = x + velX;
+        float newY = y + velY;
+        
 
         if (dx != 0 || dy != 0) {
             // แปลงค่า dx, dy เป็นความเร็วเป้าหมาย
@@ -70,6 +73,11 @@ public class Player extends Entity {
                 targetX *= 0.7071f; // ประมาณ 1/sqrt(2)
                 targetY *= 0.7071f;
             }
+        }
+        //ถ้าออกนอกขอบจอให้หยุดเคลื่อนที่
+        if(newX < 10 || newX > GamePanel.WIDTH - width - 20 || newY < 10 || newY > GamePanel.HEIGHT - height - 50){
+            velX = 0;
+            velY = 0;
         }
 
         setTargetVelocity(targetX, targetY);
@@ -105,8 +113,8 @@ public class Player extends Entity {
         y += velY;
 
         // จำกัดให้อยู่ในหน้าจอ
-        x = Math.max(0, Math.min(x, GamePanel.WIDTH - width));
-        y = Math.max(0, Math.min(y, GamePanel.HEIGHT - height));
+        x = Math.max(0, Math.min(x, GamePanel.WIDTH - width - 20));
+        y = Math.max(0, Math.min(y, GamePanel.HEIGHT - height - 50));
 
         // อัพเดทกระสุน
         updateBullets();
@@ -186,7 +194,7 @@ public class Player extends Entity {
 
                         // ตำแหน่งเอฟเฟค - ตรงปากกระบอกปืนด้านขวา
                         flashX = gunX + gunWidth - 1;
-                        flashY = gunY + gunHeight / 2 - flashHeight / 2;
+                        flashY = gunY + gunHeight / 2 - flashHeight / 2 -9;
 
                         // วาดเอฟเฟค
                         if (shootAnimationTime > SHOOT_ANIMATION_DURATION / 2) {
@@ -202,7 +210,7 @@ public class Player extends Entity {
 
                         // ตำแหน่งเอฟเฟค - ตรงปากกระบอกปืนด้านซ้าย
                         flashX = gunX - flashWidth + 1;
-                        flashY = gunY + gunHeight / 2 - flashHeight / 2;
+                        flashY = gunY + (gunHeight - flashHeight) / 2 - 9;
 
                         // วาดเอฟเฟค
                         if (shootAnimationTime > SHOOT_ANIMATION_DURATION / 2) {
