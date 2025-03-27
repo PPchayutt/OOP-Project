@@ -1,3 +1,4 @@
+
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
@@ -36,6 +37,10 @@ public class GamePanel extends JPanel implements Runnable, GameState {
     private float scaleY = 1.0f;
 
     private final Game game;
+
+    private int gameOverEffectTimer = 0;
+    private float gameOverPulseValue = 0.0f;
+    private boolean gameOverPulseDirection = true;
 
     public GamePanel(Game game) {
         this.game = game;
@@ -108,36 +113,123 @@ public class GamePanel extends JPanel implements Runnable, GameState {
         drawActiveBuffsWithScaling(g);
     }
 
-    // เพิ่มเมธอดสำหรับวาดหน้า Game Over แบบมี scaling
     private void drawGameOverWithScaling(Graphics g) {
-        g.setColor(new Color(0, 0, 0, 200));
-        g.fillRect(0, 0, (int) (WIDTH * scaleX), (int) (HEIGHT * scaleY));
+        // สร้าง Graphics2D เพื่อใช้เอฟเฟกต์ขั้นสูง
+        Graphics2D g2d = (Graphics2D) g;
 
-        g.setColor(Color.RED);
-        Font originalFont = g.getFont();
+        // เพิ่มเอฟเฟกต์การเบลอพื้นหลัง
+        g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.85f));
+        g2d.setColor(new Color(0, 0, 0));
+        g2d.fillRect(0, 0, (int) (WIDTH * scaleX), (int) (HEIGHT * scaleY));
+        g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1.0f));
+
+        // วาดกรอบหน้า Game Over พร้อมไล่เฉดสี
+        GradientPaint gradient = new GradientPaint(
+                (int) ((WIDTH / 2 - 200) * scaleX), (int) ((HEIGHT / 2 - 150) * scaleY), new Color(60, 20, 20),
+                (int) ((WIDTH / 2 + 200) * scaleX), (int) ((HEIGHT / 2 + 150) * scaleY), new Color(150, 20, 20)
+        );
+        g2d.setPaint(gradient);
+        g2d.fillRoundRect(
+                (int) ((WIDTH / 2 - 200) * scaleX),
+                (int) ((HEIGHT / 2 - 150) * scaleY),
+                (int) (400 * scaleX),
+                (int) (300 * scaleY),
+                (int) (20 * scaleX),
+                (int) (20 * scaleY)
+        );
+
+        // วาดขอบกรอบหนา
+        g2d.setStroke(new BasicStroke(3 * scaleX));
+        g2d.setColor(new Color(200, 100, 100));
+        g2d.drawRoundRect(
+                (int) ((WIDTH / 2 - 200) * scaleX),
+                (int) ((HEIGHT / 2 - 150) * scaleY),
+                (int) (400 * scaleX),
+                (int) (300 * scaleY),
+                (int) (20 * scaleX),
+                (int) (20 * scaleY)
+        );
+
+        // เพิ่มเงาให้ข้อความ GAME OVER
         Font gameOverFont = new Font("Arial", Font.BOLD, (int) (50 * scaleX));
-        g.setFont(gameOverFont);
-        g.drawString("GAME OVER", (int) ((WIDTH / 2 - 150) * scaleX), (int) ((HEIGHT / 2 - 50) * scaleY));
+        g2d.setFont(gameOverFont);
+        g2d.setColor(new Color(20, 0, 0));
+        g2d.drawString("GAME OVER", (int) ((WIDTH / 2 - 145) * scaleX), (int) ((HEIGHT / 2 - 70) * scaleY));
 
-        g.setColor(Color.WHITE);
-        Font statFont = new Font("Arial", Font.BOLD, (int) (20 * scaleX));
-        g.setFont(statFont);
-        g.drawString("Score: " + player.getScore(), (int) ((WIDTH / 2 - 50) * scaleX), (int) ((HEIGHT / 2) * scaleY));
-        g.drawString("Level: " + levelManager.getCurrentLevel(), (int) ((WIDTH / 2 - 50) * scaleX), (int) ((HEIGHT / 2 + 30) * scaleY));
+        // วาดข้อความ GAME OVER
+        g2d.setColor(new Color(255, 50, 50));
+        g2d.drawString("GAME OVER", (int) ((WIDTH / 2 - 148) * scaleX), (int) ((HEIGHT / 2 - 73) * scaleY));
 
-        // วาดปุ่ม "เล่นใหม่"
-        g.setColor(new Color(50, 150, 50));
-        g.fillRect((int) ((WIDTH / 2 - 100) * scaleX), (int) ((HEIGHT / 2 + 40) * scaleY),
-                (int) (200 * scaleX), (int) (40 * scaleY));
-        g.setColor(Color.WHITE);
-        g.drawString("เล่นใหม่", (int) ((WIDTH / 2 - 30) * scaleX), (int) ((HEIGHT / 2 + 65) * scaleY));
+        // วาดสถิติผู้เล่น
+        Font statsFont = new Font("Arial", Font.BOLD, (int) (24 * scaleX));
+        g2d.setFont(statsFont);
+        g2d.setColor(Color.WHITE);
+        g2d.drawString("Score: " + player.getScore(), (int) ((WIDTH / 2 - 60) * scaleX), (int) ((HEIGHT / 2 - 15) * scaleY));
+        g2d.drawString("Level: " + levelManager.getCurrentLevel(), (int) ((WIDTH / 2 - 60) * scaleX), (int) ((HEIGHT / 2 + 20) * scaleY));
+        g2d.drawString("Monsters killed: " + levelManager.getMonstersKilled(), (int) ((WIDTH / 2 - 120) * scaleX), (int) ((HEIGHT / 2 + 55) * scaleY));
 
-        // วาดปุ่ม "กลับเมนูหลัก"
-        g.setColor(new Color(150, 50, 50));
-        g.fillRect((int) ((WIDTH / 2 - 100) * scaleX), (int) ((HEIGHT / 2 + 90) * scaleY),
-                (int) (200 * scaleX), (int) (40 * scaleY));
-        g.setColor(Color.WHITE);
-        g.drawString("กลับเมนูหลัก", (int) ((WIDTH / 2 - 50) * scaleX), (int) ((HEIGHT / 2 + 115) * scaleY));
+        // วาดปุ่ม "เล่นใหม่" พร้อมไล่เฉดสี
+        GradientPaint restartGradient = new GradientPaint(
+                (int) ((WIDTH / 2 - 100) * scaleX), (int) ((HEIGHT / 2 + 90) * scaleY), new Color(20, 100, 20),
+                (int) ((WIDTH / 2 + 100) * scaleX), (int) ((HEIGHT / 2 + 130) * scaleY), new Color(50, 150, 50)
+        );
+        g2d.setPaint(restartGradient);
+        g2d.fillRoundRect(
+                (int) ((WIDTH / 2 - 100) * scaleX),
+                (int) ((HEIGHT / 2 + 90) * scaleY),
+                (int) (200 * scaleX),
+                (int) (40 * scaleY),
+                (int) (15 * scaleX),
+                (int) (15 * scaleY)
+        );
+
+        // วาดขอบปุ่ม "เล่นใหม่"
+        g2d.setStroke(new BasicStroke(2 * scaleX));
+        g2d.setColor(new Color(100, 200, 100));
+        g2d.drawRoundRect(
+                (int) ((WIDTH / 2 - 100) * scaleX),
+                (int) ((HEIGHT / 2 + 90) * scaleY),
+                (int) (200 * scaleX),
+                (int) (40 * scaleY),
+                (int) (15 * scaleX),
+                (int) (15 * scaleY)
+        );
+
+        // วาดไอคอนและข้อความสำหรับปุ่ม "เล่นใหม่"
+        Font buttonFont = new Font("Arial", Font.BOLD, (int) (20 * scaleX));
+        g2d.setFont(buttonFont);
+        g2d.setColor(Color.WHITE);
+        g2d.drawString("↺ Restart Game", (int) ((WIDTH / 2 - 90) * scaleX), (int) ((HEIGHT / 2 + 118) * scaleY));
+
+        // วาดปุ่ม "กลับเมนูหลัก" พร้อมไล่เฉดสี
+        GradientPaint menuGradient = new GradientPaint(
+                (int) ((WIDTH / 2 - 100) * scaleX), (int) ((HEIGHT / 2 + 140) * scaleY), new Color(100, 20, 20),
+                (int) ((WIDTH / 2 + 100) * scaleX), (int) ((HEIGHT / 2 + 180) * scaleY), new Color(150, 50, 50)
+        );
+        g2d.setPaint(menuGradient);
+        g2d.fillRoundRect(
+                (int) ((WIDTH / 2 - 100) * scaleX),
+                (int) ((HEIGHT / 2 + 140) * scaleY),
+                (int) (200 * scaleX),
+                (int) (40 * scaleY),
+                (int) (15 * scaleX),
+                (int) (15 * scaleY)
+        );
+
+        // วาดขอบปุ่ม "กลับเมนูหลัก"
+        g2d.setColor(new Color(200, 100, 100));
+        g2d.drawRoundRect(
+                (int) ((WIDTH / 2 - 100) * scaleX),
+                (int) ((HEIGHT / 2 + 140) * scaleY),
+                (int) (200 * scaleX),
+                (int) (40 * scaleY),
+                (int) (15 * scaleX),
+                (int) (15 * scaleY)
+        );
+
+        // วาดไอคอนและข้อความสำหรับปุ่ม "กลับเมนูหลัก"
+        g2d.setColor(Color.WHITE);
+        g2d.drawString("⌂ Main Menu", (int) ((WIDTH / 2 - 80) * scaleX), (int) ((HEIGHT / 2 + 168) * scaleY));
     }
 
     // เพิ่มเมธอดสำหรับวาดหน้า Pause แบบมี scaling
@@ -279,6 +371,33 @@ public class GamePanel extends JPanel implements Runnable, GameState {
         // ตรวจสอบว่าผู้เล่นยังมีชีวิตอยู่หรือไม่
         if (!player.isAlive()) {
             gameOver = true;
+            // ไม่ต้องทำอะไรต่อ เพราะเกมจบแล้ว
+        }
+
+        // ถ้าเกมจบแล้ว ให้อัพเดทเฉพาะเอฟเฟกต์หน้า Game Over
+        if (gameOver) {
+            // อัพเดทเอฟเฟกต์ของหน้า Game Over
+            gameOverEffectTimer++;
+
+            // เอฟเฟกต์กระพริบ (pulse effect)
+            if (gameOverPulseDirection) {
+                gameOverPulseValue += 0.03f;
+                if (gameOverPulseValue >= 1.0f) {
+                    gameOverPulseValue = 1.0f;
+                    gameOverPulseDirection = false;
+                }
+            } else {
+                gameOverPulseValue -= 0.03f;
+                if (gameOverPulseValue <= 0.0f) {
+                    gameOverPulseValue = 0.0f;
+                    gameOverPulseDirection = true;
+                }
+            }
+            return; // ออกจากเมธอดเพราะเกมจบแล้ว ไม่ต้องอัพเดทสิ่งอื่น
+        }
+
+        // ถ้าเกมหยุดชั่วคราว ให้ไม่ต้องอัพเดทสถานะเกม
+        if (gamePaused) {
             return;
         }
 
@@ -315,6 +434,7 @@ public class GamePanel extends JPanel implements Runnable, GameState {
         checkCollisions();
     }
 
+// เมธอดย่อยสำหรับอัพเดทมอนสเตอร์
     private void updateMonsters() {
         // จัดการการชนกันระหว่างมอนสเตอร์
         for (Monster monster : monsters) {
@@ -671,6 +791,7 @@ public class GamePanel extends JPanel implements Runnable, GameState {
         drawUIWithScaling(g);
 
         if (gameOver) {
+            // เรียกใช้เมธอดใหม่ที่รองรับ scaling
             drawGameOverWithScaling(g);
         }
 
@@ -808,9 +929,9 @@ public class GamePanel extends JPanel implements Runnable, GameState {
     public void playerShoot(int targetX, int targetY) {
         if (!gameOver && !gamePaused) {
             // แปลงพิกัดเมาส์ให้อยู่ในระบบพิกัดของเกม
-            int scaledX = (int)(targetX / scaleX);
-            int scaledY = (int)(targetY / scaleY);
-            
+            int scaledX = (int) (targetX / scaleX);
+            int scaledY = (int) (targetY / scaleY);
+
             // ส่งพิกัดที่แปลงแล้วไปให้ player
             player.shoot(scaledX, scaledY);
             playerBullets.addAll(player.getBullets());
@@ -834,47 +955,98 @@ public class GamePanel extends JPanel implements Runnable, GameState {
         game.returnToMenu();
     }
 
-    // แสดงหน้าจอ Game Over และปุ่มต่างๆ
     private void drawGameOver(Graphics g) {
-        g.setColor(new Color(0, 0, 0, 200));
-        g.fillRect(0, 0, WIDTH, HEIGHT);
+        // สร้าง Graphics2D เพื่อใช้เอฟเฟกต์ขั้นสูง
+        Graphics2D g2d = (Graphics2D) g;
 
-        g.setColor(Color.RED);
-        g.setFont(new Font("Arial", Font.BOLD, 50));
-        g.drawString("GAME OVER", WIDTH / 2 - 150, HEIGHT / 2 - 50);
+        // เพิ่มเอฟเฟกต์การเบลอพื้นหลัง
+        g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.85f));
+        g2d.setColor(new Color(0, 0, 0));
+        g2d.fillRect(0, 0, WIDTH, HEIGHT);
+        g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1.0f));
 
-        g.setColor(Color.WHITE);
-        g.setFont(new Font("Arial", Font.BOLD, 20));
-        g.drawString("Score: " + player.getScore(), WIDTH / 2 - 50, HEIGHT / 2);
-        g.drawString("Level: " + levelManager.getCurrentLevel(), WIDTH / 2 - 50, HEIGHT / 2 + 30);
+        // วาดกรอบหน้า Game Over พร้อมไล่เฉดสี
+        GradientPaint gradient = new GradientPaint(
+                WIDTH / 2 - 200, HEIGHT / 2 - 150, new Color(60, 20, 20),
+                WIDTH / 2 + 200, HEIGHT / 2 + 150, new Color(150, 20, 20)
+        );
+        g2d.setPaint(gradient);
+        g2d.fillRoundRect(WIDTH / 2 - 200, HEIGHT / 2 - 150, 400, 300, 20, 20);
 
-        // วาดปุ่ม "เล่นใหม่"
-        g.setColor(new Color(50, 150, 50));
-        g.fillRect(WIDTH / 2 - 100, HEIGHT / 2 + 40, 200, 40);
-        g.setColor(Color.WHITE);
-        g.drawString("เล่นใหม่", WIDTH / 2 - 30, HEIGHT / 2 + 65);
+        // วาดขอบกรอบหนา
+        g2d.setStroke(new BasicStroke(3));
+        g2d.setColor(new Color(200, 100, 100));
+        g2d.drawRoundRect(WIDTH / 2 - 200, HEIGHT / 2 - 150, 400, 300, 20, 20);
 
-        // วาดปุ่ม "กลับเมนูหลัก"
-        g.setColor(new Color(150, 50, 50));
-        g.fillRect(WIDTH / 2 - 100, HEIGHT / 2 + 90, 200, 40);
-        g.setColor(Color.WHITE);
-        g.drawString("กลับเมนูหลัก", WIDTH / 2 - 50, HEIGHT / 2 + 115);
+        // เพิ่มเงาให้ข้อความ GAME OVER
+        g2d.setFont(new Font("Arial", Font.BOLD, 50));
+        g2d.setColor(new Color(20, 0, 0));
+        g2d.drawString("GAME OVER", WIDTH / 2 - 145, HEIGHT / 2 - 70);
+
+        // วาดข้อความ GAME OVER
+        g2d.setColor(new Color(255, 50, 50));
+        g2d.drawString("GAME OVER", WIDTH / 2 - 148, HEIGHT / 2 - 73);
+
+        // วาดสถิติผู้เล่น
+        g2d.setFont(new Font("Arial", Font.BOLD, 24));
+        g2d.setColor(Color.WHITE);
+        g2d.drawString("Score: " + player.getScore(), WIDTH / 2 - 60, HEIGHT / 2 - 15);
+        g2d.drawString("Level: " + levelManager.getCurrentLevel(), WIDTH / 2 - 60, HEIGHT / 2 + 20);
+        g2d.drawString("Monsters killed: " + levelManager.getMonstersKilled(), WIDTH / 2 - 120, HEIGHT / 2 + 55);
+
+        // วาดปุ่ม "เล่นใหม่" พร้อมไล่เฉดสี
+        GradientPaint restartGradient = new GradientPaint(
+                WIDTH / 2 - 100, HEIGHT / 2 + 90, new Color(20, 100, 20),
+                WIDTH / 2 + 100, HEIGHT / 2 + 130, new Color(50, 150, 50)
+        );
+        g2d.setPaint(restartGradient);
+        g2d.fillRoundRect(WIDTH / 2 - 100, HEIGHT / 2 + 90, 200, 40, 15, 15);
+
+        // วาดขอบปุ่ม "เล่นใหม่"
+        g2d.setStroke(new BasicStroke(2));
+        g2d.setColor(new Color(100, 200, 100));
+        g2d.drawRoundRect(WIDTH / 2 - 100, HEIGHT / 2 + 90, 200, 40, 15, 15);
+
+        // วาดไอคอนและข้อความสำหรับปุ่ม "เล่นใหม่"
+        g2d.setFont(new Font("Arial", Font.BOLD, 20));
+        g2d.setColor(Color.WHITE);
+        g2d.drawString("↺ Restart Game", WIDTH / 2 - 90, HEIGHT / 2 + 118);
+
+        // วาดปุ่ม "กลับเมนูหลัก" พร้อมไล่เฉดสี
+        GradientPaint menuGradient = new GradientPaint(
+                WIDTH / 2 - 100, HEIGHT / 2 + 140, new Color(100, 20, 20),
+                WIDTH / 2 + 100, HEIGHT / 2 + 180, new Color(150, 50, 50)
+        );
+        g2d.setPaint(menuGradient);
+        g2d.fillRoundRect(WIDTH / 2 - 100, HEIGHT / 2 + 140, 200, 40, 15, 15);
+
+        // วาดขอบปุ่ม "กลับเมนูหลัก"
+        g2d.setColor(new Color(200, 100, 100));
+        g2d.drawRoundRect(WIDTH / 2 - 100, HEIGHT / 2 + 140, 200, 40, 15, 15);
+
+        // วาดไอคอนและข้อความสำหรับปุ่ม "กลับเมนูหลัก"
+        g2d.setColor(Color.WHITE);
+        g2d.drawString("⌂ Main Menu", WIDTH / 2 - 80, HEIGHT / 2 + 168);
     }
 
-    // จัดการการคลิกปุ่มในหน้า Game Over
     private void handleGameOverButtons(int x, int y) {
-        // ไม่ต้องแปลงพิกัดซ้ำ เพราะเราส่งค่าที่แปลงแล้วจาก handleMouseClick
-        
-        // สร้างพื้นที่ปุ่ม "กลับเมนูหลัก"
-        Rectangle menuButton = new Rectangle(WIDTH / 2 - 100, HEIGHT / 2 + 90, 200, 40);
+        // แปลงพิกัดเมาส์ให้เข้ากับ scaling
+        int scaledX = (int) (x / scaleX);
+        int scaledY = (int) (y / scaleY);
 
         // สร้างพื้นที่ปุ่ม "เล่นใหม่"
-        Rectangle restartButton = new Rectangle(WIDTH / 2 - 100, HEIGHT / 2 + 40, 200, 40);
+        Rectangle restartButton = new Rectangle(WIDTH / 2 - 100, HEIGHT / 2 + 90, 200, 40);
 
-        if (menuButton.contains(x, y)) {
-            returnToMenu();
-        } else if (restartButton.contains(x, y)) {
+        // สร้างพื้นที่ปุ่ม "กลับเมนูหลัก"
+        Rectangle menuButton = new Rectangle(WIDTH / 2 - 100, HEIGHT / 2 + 140, 200, 40);
+
+        // ตรวจสอบว่าคลิกที่ปุ่มไหน
+        if (restartButton.contains(scaledX, scaledY)) {
+            // เริ่มเกมใหม่
             restartGame();
+        } else if (menuButton.contains(scaledX, scaledY)) {
+            // กลับไปเมนูหลัก
+            returnToMenu();
         }
     }
 
@@ -883,13 +1055,13 @@ public class GamePanel extends JPanel implements Runnable, GameState {
     public void handleMouseClick(int x, int y) {
         if (gameOver) {
             // แปลงพิกัดเมาส์ตาม scaling
-            int scaledX = (int)(x / scaleX);
-            int scaledY = (int)(y / scaleY);
+            int scaledX = (int) (x / scaleX);
+            int scaledY = (int) (y / scaleY);
             handleGameOverButtons(scaledX, scaledY);
         } else if (gamePaused) {
             // อาจเพิ่มปุ่มในหน้า Pause ในอนาคต
-            int scaledX = (int)(x / scaleX);
-            int scaledY = (int)(y / scaleY);
+            int scaledX = (int) (x / scaleX);
+            int scaledY = (int) (y / scaleY);
             // จัดการกับปุ่มในหน้า Pause (ถ้ามี)
         } else {
             // คลิกปกติในเกม (ถ้ามี)
