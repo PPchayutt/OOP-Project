@@ -1,4 +1,3 @@
-// เพิ่ม imports ต่อไปนี้ที่ด้านบนของไฟล์
 
 import javax.swing.*;
 import java.awt.*;
@@ -17,7 +16,6 @@ public class Game {
     // เพิ่มตัวแปรใหม่สำหรับ fullscreen
     private boolean isFullscreen = false;
     private Rectangle previousWindowBounds;
-    private GraphicsDevice device;
 
     // เพิ่มตัวแปรสำหรับ scaling
     private float scaleX = 1.0f;
@@ -32,7 +30,7 @@ public class Game {
         window.setResizable(true);
 
         // เพิ่มการเข้าถึง GraphicsDevice
-        device = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
+        GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
 
         // สร้าง CardLayout เพื่อสลับระหว่างหน้าต่างๆ
         cardLayout = new CardLayout();
@@ -105,48 +103,48 @@ public class Game {
     // เมธอดสำหรับสลับโหมด fullscreen
     public void toggleFullscreen() {
         isFullscreen = !isFullscreen;
-    
+
         if (isFullscreen) {
-        // จัดเก็บขนาดหน้าต่างปัจจุบันไว้
+            // จัดเก็บขนาดหน้าต่างปัจจุบันไว้
             previousWindowBounds = window.getBounds();
-        
-        // วิธีแบบใหม่ - ไม่ใช้ dispose() เพื่อหลีกเลี่ยงจอค้าง
+
+            // วิธีแบบใหม่ - ไม่ใช้ dispose() เพื่อหลีกเลี่ยงจอค้าง
             window.setUndecorated(true);
             window.setExtendedState(JFrame.MAXIMIZED_BOTH);
-        
-        // อัพเดท scale factor
+
+            // อัพเดท scale factor
             updateScaleFactor();
-        
-        // ร้องขอโฟกัส
+
+            // ร้องขอโฟกัส
             if (gamePanel != null && gamePanel.isVisible()) {
                 gamePanel.requestFocus();
             } else {
                 menuPanel.requestFocus();
             }
         } else {
-        // กลับไปโหมดปกติ
+            // กลับไปโหมดปกติ
             window.setUndecorated(false);
-        
-        // คืนค่าขนาดเดิม
+
+            // คืนค่าขนาดเดิม
             if (previousWindowBounds != null) {
                 window.setBounds(previousWindowBounds);
             } else {
                 window.setSize(BASE_WIDTH, BASE_HEIGHT);
                 window.setLocationRelativeTo(null);
             }
-        
-        // อัพเดท scale factor
+
+            // อัพเดท scale factor
             updateScaleFactor();
-        
-        // ร้องขอโฟกัส
+
+            // ร้องขอโฟกัส
             if (gamePanel != null && gamePanel.isVisible()) {
                 gamePanel.requestFocus();
             } else {
                 menuPanel.requestFocus();
             }
         }
-    
-    // บังคับให้อัพเดทการแสดงผล
+
+        // บังคับให้อัพเดทการแสดงผล
         SwingUtilities.updateComponentTreeUI(window);
         window.validate();
         window.repaint();

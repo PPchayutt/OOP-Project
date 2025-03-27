@@ -111,7 +111,7 @@ public class ImageManager {
                 } else {
                     createDefaultVolumeButton(true);
                 }
-                
+
                 File volumeDownFile = new File("resources/images/volume_down.png");
                 if (volumeDownFile.exists()) {
                     images.put("volume_down", ImageIO.read(volumeDownFile));
@@ -312,35 +312,35 @@ public class ImageManager {
         g2d.dispose();
         images.put("background", bgImg);
     }
-    
+
     private static void createDefaultVolumeButton(boolean isIncrease) {
-    BufferedImage buttonImg = new BufferedImage(30, 30, BufferedImage.TYPE_INT_ARGB);
-    Graphics2D g2d = buttonImg.createGraphics();
-    
-    // วาดพื้นหลังปุ่ม
-    g2d.setColor(new Color(50, 50, 50));
-    g2d.fillRect(0, 0, 30, 30);
-    
-    // วาดขอบปุ่ม
-    g2d.setColor(Color.WHITE);
-    g2d.drawRect(0, 0, 29, 29);
-    
-    // วาดสัญลักษณ์ + หรือ -
-    g2d.setStroke(new BasicStroke(2));
-    g2d.setColor(Color.WHITE);
-    
-    if (isIncrease) {
-        // วาดเครื่องหมาย +
-        g2d.drawLine(10, 15, 20, 15);
-        g2d.drawLine(15, 10, 15, 20);
-    } else {
-        // วาดเครื่องหมาย -
-        g2d.drawLine(10, 15, 20, 15);
+        BufferedImage buttonImg = new BufferedImage(30, 30, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g2d = buttonImg.createGraphics();
+
+        // วาดพื้นหลังปุ่ม
+        g2d.setColor(new Color(50, 50, 50));
+        g2d.fillRect(0, 0, 30, 30);
+
+        // วาดขอบปุ่ม
+        g2d.setColor(Color.WHITE);
+        g2d.drawRect(0, 0, 29, 29);
+
+        // วาดสัญลักษณ์ + หรือ -
+        g2d.setStroke(new BasicStroke(2));
+        g2d.setColor(Color.WHITE);
+
+        if (isIncrease) {
+            // วาดเครื่องหมาย +
+            g2d.drawLine(10, 15, 20, 15);
+            g2d.drawLine(15, 10, 15, 20);
+        } else {
+            // วาดเครื่องหมาย -
+            g2d.drawLine(10, 15, 20, 15);
+        }
+
+        g2d.dispose();
+        images.put(isIncrease ? "volume_up" : "volume_down", buttonImg);
     }
-    
-    g2d.dispose();
-    images.put(isIncrease ? "volume_up" : "volume_down", buttonImg);
-}
 
     /**
      * ดึงรูปภาพตามชื่อที่กำหนด

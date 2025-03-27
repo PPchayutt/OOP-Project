@@ -1,3 +1,4 @@
+
 import javax.sound.sampled.*;
 import javax.swing.*;
 import java.awt.*;
@@ -7,7 +8,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-
 
 public class MenuPanel extends JPanel implements MouseListener, GameState {
 
@@ -69,7 +69,6 @@ public class MenuPanel extends JPanel implements MouseListener, GameState {
         this.scaleY = scaleY;
         repaint();
     }
-
 
     public void repositionButtons() {
         int panelWidth = this.getWidth();
@@ -136,16 +135,16 @@ public class MenuPanel extends JPanel implements MouseListener, GameState {
     public void render(Graphics g) {
         Graphics2D g2d = (Graphics2D) g;
         AffineTransform oldTransform = g2d.getTransform();
-        
+
         // ใช้ scaling
         g2d.scale(scaleX, scaleY);
-        
+
         // วาดพื้นหลัง
         g.drawImage(backgroundImage, 0, 0, WIDTH, HEIGHT, null);
-        
+
         // คืนค่าการแปลงเดิม
         g2d.setTransform(oldTransform);
-        
+
         // วาดปุ่มโดยใช้ scaling
         for (MenuButton button : buttons) {
             if (button instanceof AbstractMenuButton) {
@@ -159,9 +158,9 @@ public class MenuPanel extends JPanel implements MouseListener, GameState {
     @Override
     public void handleMouseClick(int x, int y) {
         // แปลงพิกัดเมาส์ให้ถูกต้องตาม scaling
-        int scaledX = (int)(x / scaleX);
-        int scaledY = (int)(y / scaleY);
-        
+        int scaledX = (int) (x / scaleX);
+        int scaledY = (int) (y / scaleY);
+
         for (MenuButton button : buttons) {
             if (button.isClicked(scaledX, scaledY)) {
                 button.onClick();

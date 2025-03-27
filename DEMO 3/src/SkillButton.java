@@ -15,6 +15,8 @@ public class SkillButton extends AbstractMenuButton {
     /**
      *
      * @param g
+     * @param scaleX
+     * @param scaleY
      */
     @Override
     public void render(Graphics g, float scaleX, float scaleY) {
@@ -29,10 +31,10 @@ public class SkillButton extends AbstractMenuButton {
 
     @Override
     public void onClick() {
-        JOptionPane.showMessageDialog(parent,
-                "This game is a 2D bullet hell pixel game.\n"
-                + "Control  with WASD and shoot with Left Click.\n"
-                + "Collect buffs to strengthen your character.",
+        JOptionPane.showMessageDialog(parent, """
+                                              This game is a 2D bullet hell pixel game.
+                                              Control  with WASD and shoot with Left Click.
+                                              Collect buffs to strengthen your character.""",
                 "Skill Description", JOptionPane.INFORMATION_MESSAGE);
     }
 }

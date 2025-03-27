@@ -13,6 +13,8 @@ public class PlayButton extends AbstractMenuButton {
     /**
      *
      * @param g
+     * @param scaleX
+     * @param scaleY
      */
     @Override
     public void render(Graphics g, float scaleX, float scaleY) {
