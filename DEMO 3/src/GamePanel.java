@@ -1,4 +1,3 @@
-
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
@@ -6,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
+import java.awt.geom.AffineTransform;
 
 public class GamePanel extends JPanel implements Runnable, GameState {
 
@@ -32,6 +32,9 @@ public class GamePanel extends JPanel implements Runnable, GameState {
     private List<EnemyBullet> enemyBullets;
     private List<Powerup> powerups;
 
+    private float scaleX = 1.0f;
+    private float scaleY = 1.0f;
+
     private final Game game;
 
     public GamePanel(Game game) {
@@ -46,6 +49,151 @@ public class GamePanel extends JPanel implements Runnable, GameState {
         addKeyListener(inputHandler);
         addMouseListener(inputHandler);
         addMouseMotionListener(inputHandler);
+    }
+
+    public void setScale(float scaleX, float scaleY) {
+        this.scaleX = scaleX;
+        this.scaleY = scaleY;
+        repaint();
+    }
+
+    private void drawUIWithScaling(Graphics g) {
+        // ปรับฟอนต์ตามสเกล
+        g.setColor(Color.WHITE);
+        Font originalFont = g.getFont();
+        Font scaledFont = originalFont.deriveFont(originalFont.getSize() * scaleX);
+        g.setFont(scaledFont);
+
+        // แสดงค่าพลังชีวิตปัจจุบัน
+        g.drawString("HP: " + player.getHealth() + "/100", (int) (20 * scaleX), (int) (30 * scaleY));
+
+        // แสดงแถบพลังชีวิต
+        g.setColor(Color.RED);
+        g.fillRect((int) (80 * scaleX), (int) (20 * scaleY),
+                (int) (player.getHealth() * 2 * scaleX), (int) (15 * scaleY));
+        g.setColor(Color.WHITE);
+        g.drawRect((int) (80 * scaleX), (int) (20 * scaleY),
+                (int) (200 * scaleX), (int) (15 * scaleY));
+
+        // แสดงจำนวนชีวิตด้วยไอคอนหัวใจ
+        int totalLives = 3;
+        int remainingLives = player.getLives();
+
+        Image heartImage = ImageManager.getImage("heart");
+        Image brokenHeartImage = ImageManager.getImage("broken_heart");
+
+        // ปรับขนาดและตำแหน่งของหัวใจตาม scaling
+        int heartSize = (int) (20 * scaleX);
+        int heartSpacing = (int) (25 * scaleX);
+        int heartY = (int) (45 * scaleY);
+
+        for (int i = 0; i < remainingLives; i++) {
+            g.drawImage(heartImage, (int) (20 * scaleX) + (i * heartSpacing),
+                    heartY, heartSize, heartSize, null);
+        }
+
+        for (int i = remainingLives; i < totalLives; i++) {
+            g.drawImage(brokenHeartImage, (int) (20 * scaleX) + (i * heartSpacing),
+                    heartY, heartSize, heartSize, null);
+        }
+
+        // แสดงข้อมูลเลเวลและคะแนน
+        g.setColor(Color.WHITE);
+        g.drawString("Level: " + levelManager.getCurrentLevel(), (int) (20 * scaleX), (int) (90 * scaleY));
+        g.drawString("Monsters: " + levelManager.getMonstersKilled() + "/" + levelManager.getMonstersToKill(),
+                (int) (20 * scaleX), (int) (110 * scaleY));
+        g.drawString("Score: " + player.getScore(), (int) ((WIDTH - 150) * scaleX), (int) (30 * scaleY));
+
+        // แสดงบัฟที่กำลังใช้งาน
+        drawActiveBuffsWithScaling(g);
+    }
+
+    // เพิ่มเมธอดสำหรับวาดหน้า Game Over แบบมี scaling
+    private void drawGameOverWithScaling(Graphics g) {
+        g.setColor(new Color(0, 0, 0, 200));
+        g.fillRect(0, 0, (int) (WIDTH * scaleX), (int) (HEIGHT * scaleY));
+
+        g.setColor(Color.RED);
+        Font originalFont = g.getFont();
+        Font gameOverFont = new Font("Arial", Font.BOLD, (int) (50 * scaleX));
+        g.setFont(gameOverFont);
+        g.drawString("GAME OVER", (int) ((WIDTH / 2 - 150) * scaleX), (int) ((HEIGHT / 2 - 50) * scaleY));
+
+        g.setColor(Color.WHITE);
+        Font statFont = new Font("Arial", Font.BOLD, (int) (20 * scaleX));
+        g.setFont(statFont);
+        g.drawString("Score: " + player.getScore(), (int) ((WIDTH / 2 - 50) * scaleX), (int) ((HEIGHT / 2) * scaleY));
+        g.drawString("Level: " + levelManager.getCurrentLevel(), (int) ((WIDTH / 2 - 50) * scaleX), (int) ((HEIGHT / 2 + 30) * scaleY));
+
+        // วาดปุ่ม "เล่นใหม่"
+        g.setColor(new Color(50, 150, 50));
+        g.fillRect((int) ((WIDTH / 2 - 100) * scaleX), (int) ((HEIGHT / 2 + 40) * scaleY),
+                (int) (200 * scaleX), (int) (40 * scaleY));
+        g.setColor(Color.WHITE);
+        g.drawString("เล่นใหม่", (int) ((WIDTH / 2 - 30) * scaleX), (int) ((HEIGHT / 2 + 65) * scaleY));
+
+        // วาดปุ่ม "กลับเมนูหลัก"
+        g.setColor(new Color(150, 50, 50));
+        g.fillRect((int) ((WIDTH / 2 - 100) * scaleX), (int) ((HEIGHT / 2 + 90) * scaleY),
+                (int) (200 * scaleX), (int) (40 * scaleY));
+        g.setColor(Color.WHITE);
+        g.drawString("กลับเมนูหลัก", (int) ((WIDTH / 2 - 50) * scaleX), (int) ((HEIGHT / 2 + 115) * scaleY));
+    }
+
+    // เพิ่มเมธอดสำหรับวาดหน้า Pause แบบมี scaling
+    private void drawPausedWithScaling(Graphics g) {
+        g.setColor(new Color(0, 0, 0, 150));
+        g.fillRect(0, 0, (int) (WIDTH * scaleX), (int) (HEIGHT * scaleY));
+
+        g.setColor(Color.WHITE);
+        Font originalFont = g.getFont();
+        Font pausedFont = new Font("Arial", Font.BOLD, (int) (50 * scaleX));
+        g.setFont(pausedFont);
+        g.drawString("PAUSED", (int) ((WIDTH / 2 - 100) * scaleX), (int) ((HEIGHT / 2) * scaleY));
+
+        Font instructionFont = new Font("Arial", Font.PLAIN, (int) (16 * scaleX));
+        g.setFont(instructionFont);
+        g.drawString("Press 'P' to continue", (int) ((WIDTH / 2 - 80) * scaleX), (int) ((HEIGHT / 2 + 40) * scaleY));
+        g.drawString("Press 'ESC' to return to menu", (int) ((WIDTH / 2 - 110) * scaleX), (int) ((HEIGHT / 2 + 70) * scaleY));
+    }
+
+    // เพิ่มเมธอดสำหรับวาดบัฟแบบมี scaling
+    private void drawActiveBuffsWithScaling(Graphics g) {
+        List<Powerup> activeBuffs = player.getActiveBuffs();
+
+        if (activeBuffs.isEmpty()) {
+            return;
+        }
+
+        int x = (int) (300 * scaleX);  // ตำแหน่งเริ่มต้น
+        int y = (int) (20 * scaleY);   // ด้านบนของจอ
+        int spacing = (int) (40 * scaleX); // ระยะห่างระหว่างไอคอน
+
+        // วาดพื้นหลังสำหรับพื้นที่แสดงบัฟ
+        g.setColor(new Color(0, 0, 0, 150)); // สีดำโปร่งใส
+        int bgWidth = (int) ((activeBuffs.size() * 40 + 10) * scaleX);
+        g.fillRect(x - (int) (5 * scaleX), y - (int) (5 * scaleY), bgWidth, (int) (40 * scaleY));
+        g.setColor(Color.WHITE);
+        g.drawRect(x - (int) (5 * scaleX), y - (int) (5 * scaleY), bgWidth, (int) (40 * scaleY));
+
+        for (Powerup buff : activeBuffs) {
+            // วาดไอคอน
+            int iconSize = (int) (30 * scaleX);
+            g.drawImage(buff.getIcon(), x, y, iconSize, iconSize, null);
+
+            // ถ้าเป็นบัฟที่มีระยะเวลา ให้แสดงเวลาที่เหลือ
+            if (buff.getDuration() > 0) {
+                g.setColor(Color.WHITE);
+                Font originalFont = g.getFont();
+                Font scaledFont = originalFont.deriveFont(originalFont.getSize() * 0.8f * scaleX);
+                g.setFont(scaledFont);
+
+                int seconds = buff.getDuration() / 60 + 1; // แปลงเฟรมเป็นวินาที
+                g.drawString(seconds + "s", x + (int) (10 * scaleX), y + (int) (45 * scaleY));
+            }
+
+            x += spacing; // เลื่อนไปทางขวา
+        }
     }
 
     private void initGame() {
@@ -90,6 +238,10 @@ public class GamePanel extends JPanel implements Runnable, GameState {
         return player;
     }
 
+    public Game getGame() {
+        return game;
+    }
+
     @Override
     public void run() {
         long lastTime = System.nanoTime();
@@ -119,7 +271,6 @@ public class GamePanel extends JPanel implements Runnable, GameState {
         }
     }
 
-    // เพิ่มโค้ดนี้ในเมธอด update() ของคลาส GamePanel
     @Override
     public void update() {
         // อัปเดตผู้เล่น (รวมถึงบัฟด้วย)
@@ -470,6 +621,15 @@ public class GamePanel extends JPanel implements Runnable, GameState {
 
     @Override
     public void render(Graphics g) {
+        // ใช้ Graphics2D เพื่อสามารถทำ scaling ได้
+        Graphics2D g2d = (Graphics2D) g;
+
+        // บันทึกการแปลงเดิม
+        AffineTransform oldTransform = g2d.getTransform();
+
+        // ทำ scaling
+        g2d.scale(scaleX, scaleY);
+
         // วาดพื้นหลังและแผนที่
         drawBackground(g);
         gameMap.render(g);
@@ -504,16 +664,18 @@ public class GamePanel extends JPanel implements Runnable, GameState {
             player.render(g);
         }
 
-        // วาด UI
-        drawUI(g);
+        // คืนค่าการแปลงเดิม
+        g2d.setTransform(oldTransform);
 
-        // วาดหน้าจอ Game Over หรือ Pause ถ้าจำเป็น
+        // วาด UI
+        drawUIWithScaling(g);
+
         if (gameOver) {
-            drawGameOver(g);
+            drawGameOverWithScaling(g);
         }
 
         if (gamePaused) {
-            drawPaused(g);
+            drawPausedWithScaling(g);
         }
     }
 
@@ -554,8 +716,8 @@ public class GamePanel extends JPanel implements Runnable, GameState {
         g.drawRect(80, 20, 200, 15);
 
         // แสดงจำนวนชีวิตด้วยไอคอนหัวใจ
-        int totalLives = 3; // จำนวนชีวิตทั้งหมด
-        int remainingLives = player.getLives(); // จำนวนชีวิตที่เหลือ
+        int totalLives = 3;
+        int remainingLives = player.getLives();
 
         Image heartImage = ImageManager.getImage("heart");
         Image brokenHeartImage = ImageManager.getImage("broken_heart");
@@ -645,7 +807,12 @@ public class GamePanel extends JPanel implements Runnable, GameState {
 
     public void playerShoot(int targetX, int targetY) {
         if (!gameOver && !gamePaused) {
-            player.shoot(targetX, targetY);
+            // แปลงพิกัดเมาส์ให้อยู่ในระบบพิกัดของเกม
+            int scaledX = (int)(targetX / scaleX);
+            int scaledY = (int)(targetY / scaleY);
+            
+            // ส่งพิกัดที่แปลงแล้วไปให้ player
+            player.shoot(scaledX, scaledY);
             playerBullets.addAll(player.getBullets());
         }
     }
@@ -696,6 +863,8 @@ public class GamePanel extends JPanel implements Runnable, GameState {
 
     // จัดการการคลิกปุ่มในหน้า Game Over
     private void handleGameOverButtons(int x, int y) {
+        // ไม่ต้องแปลงพิกัดซ้ำ เพราะเราส่งค่าที่แปลงแล้วจาก handleMouseClick
+        
         // สร้างพื้นที่ปุ่ม "กลับเมนูหลัก"
         Rectangle menuButton = new Rectangle(WIDTH / 2 - 100, HEIGHT / 2 + 90, 200, 40);
 
@@ -713,11 +882,17 @@ public class GamePanel extends JPanel implements Runnable, GameState {
     @Override
     public void handleMouseClick(int x, int y) {
         if (gameOver) {
-            handleGameOverButtons(x, y);
+            // แปลงพิกัดเมาส์ตาม scaling
+            int scaledX = (int)(x / scaleX);
+            int scaledY = (int)(y / scaleY);
+            handleGameOverButtons(scaledX, scaledY);
         } else if (gamePaused) {
             // อาจเพิ่มปุ่มในหน้า Pause ในอนาคต
+            int scaledX = (int)(x / scaleX);
+            int scaledY = (int)(y / scaleY);
+            // จัดการกับปุ่มในหน้า Pause (ถ้ามี)
         } else {
-            // คลิกปกติในเกม
+            // คลิกปกติในเกม (ถ้ามี)
         }
     }
 

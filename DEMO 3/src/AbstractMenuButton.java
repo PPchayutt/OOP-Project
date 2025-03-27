@@ -23,10 +23,23 @@ public abstract class AbstractMenuButton implements MenuButton {
         }
     }
 
+    public void setPosition(int x, int y) {
+        this.x = x;
+        this.y = y;
+    }
+
     @Override
     public void render(Graphics g) {
         g.drawImage(buttonImage, x, y, null);
+    }
 
+    public void render(Graphics g, float scaleX, float scaleY) {
+        int scaledX = (int) (x * scaleX);
+        int scaledY = (int) (y * scaleY);
+        int scaledWidth = (int) (width * scaleX);
+        int scaledHeight = (int) (height * scaleY);
+
+        g.drawImage(buttonImage, scaledX, scaledY, scaledWidth, scaledHeight, null);
     }
 
     @Override
@@ -36,10 +49,5 @@ public abstract class AbstractMenuButton implements MenuButton {
 
         return mouseX >= (x - extraWidth / 2) && mouseX <= (x + width + extraWidth / 2)
                 && mouseY >= (y - extraHeight / 2) && mouseY <= (y + height + extraHeight / 2);
-    }
-
-    public void setPosition(int x, int y) {
-        this.x = x;
-        this.y = y;
     }
 }

@@ -1,12 +1,13 @@
-
 import javax.sound.sampled.*;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.awt.geom.AffineTransform;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+
 
 public class MenuPanel extends JPanel implements MouseListener, GameState {
 
@@ -16,6 +17,9 @@ public class MenuPanel extends JPanel implements MouseListener, GameState {
     private final Image backgroundImage;
     private final List<MenuButton> buttons;
     private Clip menuMusic;
+
+    private float scaleX = 1.0f;
+    private float scaleY = 1.0f;
 
     public MenuPanel(Game game) {
         setPreferredSize(new Dimension(WIDTH, HEIGHT));
@@ -60,9 +64,13 @@ public class MenuPanel extends JPanel implements MouseListener, GameState {
         });
     }
 
-    /**
-     * ปรับตำแหน่งปุ่มตามขนาดของพาเนลปัจจุบัน
-     */
+    public void setScale(float scaleX, float scaleY) {
+        this.scaleX = scaleX;
+        this.scaleY = scaleY;
+        repaint();
+    }
+
+
     public void repositionButtons() {
         int panelWidth = this.getWidth();
         int panelHeight = this.getHeight();
@@ -126,19 +134,36 @@ public class MenuPanel extends JPanel implements MouseListener, GameState {
 
     @Override
     public void render(Graphics g) {
-        // วาดพื้นหลังให้เต็มขนาดพาเนลปัจจุบัน
-        g.drawImage(backgroundImage, 0, 0, this.getWidth(), this.getHeight(), null);
-
-        // วาดปุ่มทั้งหมด (แก้ไขตรงนี้โดยการลบโค้ดที่ซ้ำซ้อน)
+        Graphics2D g2d = (Graphics2D) g;
+        AffineTransform oldTransform = g2d.getTransform();
+        
+        // ใช้ scaling
+        g2d.scale(scaleX, scaleY);
+        
+        // วาดพื้นหลัง
+        g.drawImage(backgroundImage, 0, 0, WIDTH, HEIGHT, null);
+        
+        // คืนค่าการแปลงเดิม
+        g2d.setTransform(oldTransform);
+        
+        // วาดปุ่มโดยใช้ scaling
         for (MenuButton button : buttons) {
-            button.render(g);
+            if (button instanceof AbstractMenuButton) {
+                ((AbstractMenuButton) button).render(g, scaleX, scaleY);
+            } else {
+                button.render(g);
+            }
         }
     }
 
     @Override
     public void handleMouseClick(int x, int y) {
+        // แปลงพิกัดเมาส์ให้ถูกต้องตาม scaling
+        int scaledX = (int)(x / scaleX);
+        int scaledY = (int)(y / scaleY);
+        
         for (MenuButton button : buttons) {
-            if (button.isClicked(x, y)) {
+            if (button.isClicked(scaledX, scaledY)) {
                 button.onClick();
                 break;
             }

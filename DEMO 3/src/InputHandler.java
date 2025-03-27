@@ -1,4 +1,3 @@
-
 import java.awt.event.*;
 
 public class InputHandler implements KeyListener, MouseListener, MouseMotionListener {
@@ -17,6 +16,7 @@ public class InputHandler implements KeyListener, MouseListener, MouseMotionList
     public void keyPressed(KeyEvent e) {
         int key = e.getKeyCode();
 
+        // การตรวจจับปุ่มสำหรับเคลื่อนที่
         if (key == KeyEvent.VK_W) {
             up = true;
         }
@@ -34,10 +34,15 @@ public class InputHandler implements KeyListener, MouseListener, MouseMotionList
         if (key == KeyEvent.VK_ESCAPE) {
             gamePanel.returnToMenu();
         }
+        
+        // เพิ่มตรวจจับปุ่ม F11 สำหรับสลับโหมด fullscreen
+        if (key == KeyEvent.VK_F11) {
+            gamePanel.getGame().toggleFullscreen();
+        }
 
         updatePlayerMovement();
     }
-
+    
     @Override
     public void keyReleased(KeyEvent e) {
         int key = e.getKeyCode();
@@ -77,6 +82,7 @@ public class InputHandler implements KeyListener, MouseListener, MouseMotionList
 
             // ตรวจสอบว่าถึงเวลายิงหรือยัง
             if (currentTime - lastShootTime >= playerCooldown) {
+                // ส่งพิกัดเมาส์ที่แท้จริงไปให้ gamePanel (ไม่ต้องแปลงที่นี่)
                 gamePanel.playerShoot(mouseX, mouseY);
                 lastShootTime = currentTime;
             }
