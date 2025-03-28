@@ -16,6 +16,9 @@ public class InputHandler implements KeyListener, MouseListener, MouseMotionList
     @Override
     public void keyPressed(KeyEvent e) {
         int key = e.getKeyCode();
+        
+        // ตรวจสอบว่าเกมจบแล้วหรือยัง
+        boolean isGameOver = gamePanel.isGameOver();
 
         // การตรวจจับปุ่มสำหรับเคลื่อนที่
         if (key == KeyEvent.VK_W) {
@@ -31,11 +34,10 @@ public class InputHandler implements KeyListener, MouseListener, MouseMotionList
             right = true;
         }
 
-        // กดปุ่ม Escape เพื่อกลับไปเมนู
-        if (key == KeyEvent.VK_ESCAPE) {
-            gamePanel.returnToMenu();
+        // กดปุ่ม P หรือ ESC เพื่อพักเกม (ทำงานเมื่อเกมไม่จบเท่านั้น)
+        if ((key == KeyEvent.VK_P || key == KeyEvent.VK_ESCAPE) && !isGameOver) {
+        gamePanel.togglePause();
         }
-
         // เพิ่มตรวจจับปุ่ม F11 สำหรับสลับโหมด fullscreen
         if (key == KeyEvent.VK_F11) {
             gamePanel.getGame().toggleFullscreen();
