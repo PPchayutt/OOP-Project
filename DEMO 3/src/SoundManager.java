@@ -113,10 +113,22 @@ public class SoundManager {
      * หยุดเพลงประกอบที่กำลังเล่นอยู่
      */
     public static void stopBackgroundMusic() {
-        if (backgroundMusic != null && backgroundMusic.isRunning()) {
+    if (backgroundMusic != null) {
+        if (backgroundMusic.isRunning()) {
             backgroundMusic.stop();
         }
+        // เพิ่มบรรทัดนี้เพื่อรีเซ็ตตำแหน่งการเล่น
+        backgroundMusic.setFramePosition(0);
     }
+    
+    // เพิ่มการเช็คและทำความสะอาดทุก clip ที่อาจยังเล่นอยู่
+    for (Clip clip : sounds.values()) {
+        if (clip != null && clip.isRunning()) {
+            clip.stop();
+            clip.setFramePosition(0);
+        }
+    }
+}
 
     /**
      * สลับสถานะเปิด/ปิดเสียงดนตรี
@@ -190,4 +202,31 @@ public class SoundManager {
     public static void decreaseEffectVolume(float amount) {
         setEffectVolume(effectVolume - amount);
     }
+    public static void stopAllEffects() {
+    // วนลูปผ่านทุก clip และหยุดการเล่นถ้ากำลังเล่นอยู่
+    // ยกเว้น backgroundMusic ซึ่งจัดการแยกต่างหาก
+    for (String key : sounds.keySet()) {
+        Clip clip = sounds.get(key);
+        if (clip != null && clip != backgroundMusic && clip.isRunning()) {
+            clip.stop();
+            clip.setFramePosition(0);
+        }
+    }
 }
+    public static boolean isMusicMuted() {
+        return musicMuted;
+    }
+
+    // เพิ่มเมธอดสำหรับตั้งค่าสถานะการปิดเสียงเพลง
+    public static void setMusicMuted(boolean muted) {
+        musicMuted = muted;
+        if (musicMuted) {
+            stopBackgroundMusic();
+        } else if (backgroundMusic != null) {
+            // ลองเล่นเพลงปัจจุบันถ้ามี
+            backgroundMusic.setFramePosition(0);
+            backgroundMusic.loop(Clip.LOOP_CONTINUOUSLY);
+        }
+    }
+}
+

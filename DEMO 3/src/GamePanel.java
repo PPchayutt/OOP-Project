@@ -341,8 +341,10 @@ public class GamePanel extends JPanel implements Runnable, GameState {
             running = true;
             gameThread.start();
 
-            // เริ่มเล่นเพลง Level 1
-            SoundManager.playBackgroundMusic("level1_music");
+            // เริ่มเล่นเพลง Level 1 (ถ้าไม่ได้ปิดเสียง)
+            if (!SoundManager.isMusicMuted()) {
+                SoundManager.playBackgroundMusic("level1_music");
+            }
         }
     }
 
@@ -351,6 +353,9 @@ public class GamePanel extends JPanel implements Runnable, GameState {
 
         // หยุดเพลงเมื่อออกจากเกม
         SoundManager.stopBackgroundMusic();
+        
+         // หยุดเสียงเอฟเฟคทั้งหมดที่อาจกำลังเล่นอยู่
+        SoundManager.stopAllEffects();
 
         try {
             if (gameThread != null) {
@@ -405,9 +410,15 @@ public class GamePanel extends JPanel implements Runnable, GameState {
 
         // ตรวจสอบว่าผู้เล่นยังมีชีวิตอยู่หรือไม่
         if (!player.isAlive()) {
-            gameOver = true;
-            // ไม่ต้องทำอะไรต่อ เพราะเกมจบแล้ว
+            if (!gameOver) { // เพิ่มเงื่อนไขให้ทำงานเพียงครั้งเดียวเมื่อเพิ่งตาย
+                gameOver = true;
+            // หยุดเพลงพื้นหลังเมื่อเกมจบ
+                SoundManager.stopBackgroundMusic();
+            // อาจเล่นเสียง game over ถ้ามี
+            // SoundManager.playSound("game_over");
         }
+        return;
+    }
 
         // ถ้าเกมจบแล้ว ให้อัพเดทเฉพาะเอฟเฟกต์หน้า Game Over
         if (gameOver) {

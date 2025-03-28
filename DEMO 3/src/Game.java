@@ -168,7 +168,8 @@ public class Game {
             gamePanel.restartGame(); // รีเซ็ตเกมหากมีอยู่แล้ว
         }
 
-        // หยุดเพลงและแอนิเมชั่นในเมนู
+         // หยุดเพลงในเมนู (ใช้ SoundManager.stopBackgroundMusic แทน)
+        SoundManager.stopBackgroundMusic();
         menuPanel.cleanup();
 
         // เปลี่ยนไปที่หน้าเกม
@@ -178,21 +179,24 @@ public class Game {
     }
 
     public void returnToMenu() {
-        // หยุดเกมและกลับไปที่เมนู
-        if (gamePanel != null) {
-            gamePanel.stopGameLoop();
-        }
-
-        // เปลี่ยนกลับไปที่หน้าเมนู
-        cardLayout.show(mainPanel, "Menu");
-        menuPanel.requestFocusInWindow();
-        menuPanel.playMusic();
+    // หยุดเกมและกลับไปที่เมนู
+    if (gamePanel != null) {
+        gamePanel.stopGameLoop();
     }
 
-    public static void main(String[] args) {
-        // เริ่มต้นเกมใน Event Dispatch Thread เพื่อความปลอดภัย
-        SwingUtilities.invokeLater(() -> {
-            new Game();
-        });
+     // หยุดเสียงเกมทั้งหมดก่อนกลับไปที่เมนู
+    SoundManager.stopBackgroundMusic();
+    SoundManager.stopAllEffects();
+    
+    // เปลี่ยนกลับไปที่หน้าเมนู
+    cardLayout.show(mainPanel, "Menu");
+    menuPanel.requestFocusInWindow();
+    
+    // รอสักครู่แล้วค่อยเล่นเพลงเมนู (ใช้ SwingUtilities.invokeLater เพื่อให้ UI ได้อัพเดทก่อน)
+    SwingUtilities.invokeLater(() -> {
+        // ไม่ต้องชะลอเวลาด้วย Thread.sleep อีกต่อไป เนื่องจาก invokeLater จะทำงานหลังจาก UI อัพเดทแล้ว
+        // และตรวจสอบสถานะการปิดเสียงอยู่ใน playMusic() แล้ว
+        menuPanel.playMusic();
+    });
     }
 }

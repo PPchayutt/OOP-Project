@@ -98,6 +98,16 @@ public class MenuPanel extends JPanel implements MouseListener, GameState {
 
     private void loadAndPlayMusic() {
         try {
+            // ถ้าปิดเสียงอยู่ ไม่ต้องโหลดและเล่นเพลง
+            if (SoundManager.isMusicMuted()) {
+                return;
+            }
+            // ถ้ามี menuMusic อยู่แล้วและถูกเปิดอยู่ ให้หยุดและปิดก่อน
+            if (menuMusic != null && menuMusic.isOpen()) {
+            menuMusic.stop();
+            menuMusic.close();
+            }
+        
             AudioInputStream audioInput = AudioSystem.getAudioInputStream(new File("resources/sounds/Menu song update.wav"));
             menuMusic = AudioSystem.getClip();
             menuMusic.open(audioInput);
@@ -109,10 +119,26 @@ public class MenuPanel extends JPanel implements MouseListener, GameState {
     }
 
     public void playMusic() {
-        if (menuMusic != null && !menuMusic.isRunning()) {
-            menuMusic.start();
+        if (SoundManager.isMusicMuted()) {
+        return;
         }
-    }
+        try {
+            // ถ้า menuMusic เป็น null หรือถูกปิดไปแล้ว ให้โหลดและเล่นใหม่
+            if (menuMusic == null || !menuMusic.isOpen()) {
+                loadAndPlayMusic();
+            } 
+            // ถ้ามีอยู่แล้วแต่ไม่ได้เล่นอยู่ ให้เริ่มเล่น
+            else if (!menuMusic.isRunning()) {
+                menuMusic.setFramePosition(0); // รีเซ็ตตำแหน่งเพลงให้เริ่มจากต้น
+                menuMusic.start();
+                menuMusic.loop(Clip.LOOP_CONTINUOUSLY);
+            }
+        } catch (Exception e) {
+            System.err.println("ไม่สามารถเล่นเพลงเมนูได้: " + e.getMessage());
+            // ลองโหลดใหม่อีกครั้งเป็นทางเลือกสุดท้าย
+            loadAndPlayMusic();
+        }
+    }   
 
     public void stopMusic() {
         if (menuMusic != null && menuMusic.isRunning()) {
@@ -195,7 +221,6 @@ public class MenuPanel extends JPanel implements MouseListener, GameState {
     public void cleanup() {
         if (menuMusic != null) {
             menuMusic.stop();
-            menuMusic.close();
         }
     }
 }
