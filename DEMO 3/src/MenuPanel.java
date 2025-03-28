@@ -108,7 +108,7 @@ public class MenuPanel extends JPanel implements MouseListener, GameState {
             menuMusic.close();
             }
         
-            AudioInputStream audioInput = AudioSystem.getAudioInputStream(new File("resources/sounds/Menu song update.wav"));
+            AudioInputStream audioInput = AudioSystem.getAudioInputStream(new File("resources/sounds/menu_music.wav"));
             menuMusic = AudioSystem.getClip();
             menuMusic.open(audioInput);
             menuMusic.loop(Clip.LOOP_CONTINUOUSLY);
