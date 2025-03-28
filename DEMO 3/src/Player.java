@@ -325,11 +325,15 @@ public class Player extends Entity {
         }
     }
 
+    /**
+     *
+     * @param g
+     */
     @Override
     public void render(Graphics g) {
         // ถ้าอยู่ในช่วงอมตะให้กะพริบ
         if (invincibleTime <= 0 || invincibleTime % 10 < 5) {
-            // วาดรูปภาพผู้เล่น
+            // วาดรูปภาพผู้เล่น - ใช้ขนาดปกติ (ไม่ต้องคูณด้วย 2)
             g.drawImage(ImageManager.getImage("player"), (int) x, (int) y, width, height, null);
 
             // แสดงแถบพลังชีวิต

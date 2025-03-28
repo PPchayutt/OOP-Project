@@ -31,7 +31,6 @@ public class ImageManager {
             }
 
             try {
-                // โหลดรูปภาพผู้เล่น
                 File playerFile = new File("resources/images/player.png");
                 if (playerFile.exists()) {
                     images.put("player", ImageIO.read(playerFile));
@@ -41,8 +40,8 @@ public class ImageManager {
                     createDefaultPlayerImage();
                 }
 
-                // โหลดรูปภาพมอนสเตอร์
-                File monsterFile = new File("resources/images/enemy.png");
+                // โหลดรูปภาพมอนสเตอร์ - เปลี่ยนจาก enemy.png เป็น L1_Enemy.png
+                File monsterFile = new File("resources/images/L1_Enemy.png");
                 if (monsterFile.exists()) {
                     images.put("monster", ImageIO.read(monsterFile));
                     System.out.println("โหลดรูปภาพมอนสเตอร์สำเร็จ");
@@ -51,8 +50,8 @@ public class ImageManager {
                     createDefaultMonsterImage();
                 }
 
-                // โหลดรูปภาพบอส
-                File bossFile = new File("resources/images/boss.png");
+                // โหลดรูปภาพบอส - เปลี่ยนจาก boss.png เป็น L1_Boss.png
+                File bossFile = new File("resources/images/L1_Boss.png");
                 if (bossFile.exists()) {
                     images.put("boss", ImageIO.read(bossFile));
                     System.out.println("โหลดรูปภาพบอสสำเร็จ");
@@ -61,6 +60,7 @@ public class ImageManager {
                     createDefaultBossImage();
                 }
 
+                // [โค้ดส่วนที่เหลือ]
                 // โหลดรูปภาพพื้นหลังด่าน 1
                 File level1BgFile = new File("resources/images/level1_bg.png");
                 if (level1BgFile.exists()) {

@@ -270,75 +270,188 @@ public class GamePanel extends JPanel implements Runnable, GameState {
         g2d.drawString(menuText, textX, textY);
     }
 
-    // เพิ่มเมธอดสำหรับวาดหน้า Pause แบบมี scaling
     private void drawPausedWithScaling(Graphics g) {
-        // พื้นหลังสีดำโปร่งใส
-        g.setColor(new Color(0, 0, 0, 150));
-        g.fillRect(0, 0, (int) (WIDTH * scaleX), (int) (HEIGHT * scaleY));
-    
-        // กรอบสี่เหลี่ยมสีแดงเข้มตรงกลาง (เหมือนหน้า Game Over)
-        int boxWidth = (int) (400 * scaleX);
-        int boxHeight = (int) (300 * scaleY);
-        int boxX = (int) ((WIDTH - 400) / 2 * scaleX);
-        int boxY = (int) ((HEIGHT - 300) / 2 * scaleY);
-    
-        g.setColor(new Color(139, 0, 0, 220)); // สีแดงเข้ม (ใกล้เคียงกับในภาพ)
-        g.fillRect(boxX, boxY, boxWidth, boxHeight);
-    
-        // กรอบของกล่อง
-        g.setColor(new Color(255, 99, 71)); // สีแดงส้ม (coral) สำหรับขอบ
-        g.drawRect(boxX, boxY, boxWidth, boxHeight);
-    
-        // ข้อความ "PAUSED"
-        g.setColor(Color.WHITE);
-        Font pausedFont = new Font("Arial", Font.BOLD, (int) (60 * scaleX));
-        g.setFont(pausedFont);
-        FontMetrics fm = g.getFontMetrics();
+        // สร้าง Graphics2D เพื่อใช้เอฟเฟกต์ขั้นสูง
+        Graphics2D g2d = (Graphics2D) g;
+
+        // เพิ่มการรองรับ Anti-aliasing เพื่อทำให้ตัวอักษรสวยขึ้น
+        g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+
+        // เพิ่มเอฟเฟกต์การเบลอพื้นหลัง
+        g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.85f));
+        g2d.setColor(new Color(0, 0, 0));
+        g2d.fillRect(0, 0, (int) (WIDTH * scaleX), (int) (HEIGHT * scaleY));
+        g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1.0f));
+
+        // วาดกรอบหน้า Paused พร้อมไล่เฉดสี
+        GradientPaint gradient = new GradientPaint(
+                (int) ((WIDTH / 2 - 200) * scaleX), (int) ((HEIGHT / 2 - 150) * scaleY), new Color(60, 20, 20),
+                (int) ((WIDTH / 2 + 200) * scaleX), (int) ((HEIGHT / 2 + 150) * scaleY), new Color(150, 20, 20)
+        );
+        g2d.setPaint(gradient);
+        g2d.fillRoundRect(
+                (int) ((WIDTH / 2 - 200) * scaleX),
+                (int) ((HEIGHT / 2 - 150) * scaleY),
+                (int) (400 * scaleX),
+                (int) (300 * scaleY),
+                (int) (20 * scaleX),
+                (int) (20 * scaleY)
+        );
+
+        // วาดขอบกรอบหนา
+        g2d.setStroke(new BasicStroke(3 * scaleX));
+        g2d.setColor(new Color(200, 100, 100));
+        g2d.drawRoundRect(
+                (int) ((WIDTH / 2 - 200) * scaleX),
+                (int) ((HEIGHT / 2 - 150) * scaleY),
+                (int) (400 * scaleX),
+                (int) (300 * scaleY),
+                (int) (20 * scaleX),
+                (int) (20 * scaleY)
+        );
+
+        // เพิ่มเงาให้ข้อความ PAUSED
+        Font pausedFont = new Font("Arial", Font.BOLD, (int) (50 * scaleX));
+        g2d.setFont(pausedFont);
+        g2d.setColor(new Color(20, 0, 0));
+
+        // คำนวณตำแหน่งเพื่อให้ข้อความ PAUSED อยู่ตรงกลาง
         String pausedText = "PAUSED";
-        int textWidth = fm.stringWidth(pausedText);
-        g.drawString(pausedText, boxX + (boxWidth - textWidth) / 2, boxY + (int) (80 * scaleY));
-    
-        // จัดปุ่มใหม่ให้อยู่ในกล่อง
-        int buttonWidth = (int) (200 * scaleX);
-        int buttonHeight = (int) (40 * scaleY);
-        int buttonX = boxX + (boxWidth - buttonWidth) / 2;
-    
-        // ปุ่ม Resume (สีเขียว)
-        g.setColor(new Color(34, 139, 34)); // สีเขียวเข้ม
-        g.fillRect(buttonX, boxY + (int) (120 * scaleY), buttonWidth, buttonHeight);
-        g.setColor(Color.WHITE);
-        g.drawRect(buttonX, boxY + (int) (120 * scaleY), buttonWidth, buttonHeight);
-    
-        g.setFont(new Font("Arial", Font.BOLD, (int) (20 * scaleX)));
-        fm = g.getFontMetrics();
+        FontMetrics pausedMetrics = g2d.getFontMetrics(pausedFont);
+        int pausedWidth = pausedMetrics.stringWidth(pausedText);
+        int pausedX = (int) ((WIDTH / 2) * scaleX - pausedWidth / 2);
+
+        // วาดเงา PAUSED
+        g2d.drawString(pausedText, pausedX + (int) (3 * scaleX), (int) ((HEIGHT / 2 - 70) * scaleY) + (int) (3 * scaleX));
+
+        // วาดข้อความ PAUSED หลัก
+        g2d.setColor(new Color(255, 50, 50));
+        g2d.drawString(pausedText, pausedX, (int) ((HEIGHT / 2 - 73) * scaleY));
+
+        // วาดปุ่ม "Resume" พร้อมไล่เฉดสี
+        GradientPaint resumeGradient = new GradientPaint(
+                (int) ((WIDTH / 2 - 100) * scaleX), (int) ((HEIGHT / 2 + 20) * scaleY), new Color(20, 100, 20),
+                (int) ((WIDTH / 2 + 100) * scaleX), (int) ((HEIGHT / 2 + 60) * scaleY), new Color(50, 150, 50)
+        );
+        g2d.setPaint(resumeGradient);
+        g2d.fillRoundRect(
+                (int) ((WIDTH / 2 - 100) * scaleX),
+                (int) ((HEIGHT / 2 + 20) * scaleY),
+                (int) (200 * scaleX),
+                (int) (40 * scaleY),
+                (int) (15 * scaleX),
+                (int) (15 * scaleY)
+        );
+
+        // วาดขอบปุ่ม "Resume"
+        g2d.setStroke(new BasicStroke(2 * scaleX));
+        g2d.setColor(new Color(100, 200, 100));
+        g2d.drawRoundRect(
+                (int) ((WIDTH / 2 - 100) * scaleX),
+                (int) ((HEIGHT / 2 + 20) * scaleY),
+                (int) (200 * scaleX),
+                (int) (40 * scaleY),
+                (int) (15 * scaleX),
+                (int) (15 * scaleY)
+        );
+
+        // ข้อความสำหรับปุ่ม "Resume"
+        Font buttonFont = new Font("Arial", Font.BOLD, (int) (20 * scaleX));
+        g2d.setFont(buttonFont);
+        g2d.setColor(Color.WHITE);  // ตั้งค่าสีเป็นขาว
+
+// คำนวณตำแหน่งเพื่อให้ข้อความอยู่ตรงกลางปุ่ม
         String resumeText = "Resume";
-        textWidth = fm.stringWidth(resumeText);
-        g.drawString(resumeText, buttonX + (buttonWidth - textWidth) / 2, 
-                    boxY + (int) (120 * scaleY) + buttonHeight / 2 + (int) (7 * scaleY));
-    
-        // ปุ่ม Restart Game (สีฟ้า)
-        g.setColor(new Color(70, 130, 180)); // สีฟ้า steelblue
-        g.fillRect(buttonX, boxY + (int) (170 * scaleY), buttonWidth, buttonHeight);
-        g.setColor(Color.WHITE);
-        g.drawRect(buttonX, boxY + (int) (170 * scaleY), buttonWidth, buttonHeight);
-    
+        FontMetrics metrics = g2d.getFontMetrics(buttonFont);
+        int textWidth = metrics.stringWidth(resumeText);
+        int buttonCenterX = (int) ((WIDTH / 2) * scaleX);
+        int textX = buttonCenterX - textWidth / 2;
+
+// ปรับความสูงให้อยู่ตรงกลางปุ่มตามแนวดิ่ง
+        int buttonCenterY = (int) ((HEIGHT / 2 + 20 + 20) * scaleY); // กึ่งกลางความสูงของปุ่ม
+        int textHeight = metrics.getHeight();
+        int textY = buttonCenterY + (textHeight / 4); // ปรับให้อยู่กึ่งกลางตามแนวดิ่ง
+
+        g2d.drawString(resumeText, textX, textY);
+
+// วาดปุ่ม "Restart Game" พร้อมไล่เฉดสี
+        GradientPaint restartGradient = new GradientPaint(
+                (int) ((WIDTH / 2 - 100) * scaleX), (int) ((HEIGHT / 2 + 70) * scaleY), new Color(20, 90, 140),
+                (int) ((WIDTH / 2 + 100) * scaleX), (int) ((HEIGHT / 2 + 110) * scaleY), new Color(70, 130, 180)
+        );
+        g2d.setPaint(restartGradient);
+        g2d.fillRoundRect(
+                (int) ((WIDTH / 2 - 100) * scaleX),
+                (int) ((HEIGHT / 2 + 70) * scaleY),
+                (int) (200 * scaleX),
+                (int) (40 * scaleY),
+                (int) (15 * scaleX),
+                (int) (15 * scaleY)
+        );
+
+// วาดขอบปุ่ม "Restart Game"
+        g2d.setColor(new Color(100, 150, 200));
+        g2d.drawRoundRect(
+                (int) ((WIDTH / 2 - 100) * scaleX),
+                (int) ((HEIGHT / 2 + 70) * scaleY),
+                (int) (200 * scaleX),
+                (int) (40 * scaleY),
+                (int) (15 * scaleX),
+                (int) (15 * scaleY)
+        );
+
+// ข้อความสำหรับปุ่ม "Restart Game"
+        g2d.setColor(Color.WHITE);  // เพิ่มบรรทัดนี้! ตั้งค่าสีข้อความเป็นขาวอีกครั้ง
         String restartText = "Restart Game";
-        textWidth = fm.stringWidth(restartText);
-        g.drawString(restartText, buttonX + (buttonWidth - textWidth) / 2, 
-                    boxY + (int) (170 * scaleY) + buttonHeight / 2 + (int) (7 * scaleY));
-    
-        // ปุ่ม Main Menu (สีแดง)
-        g.setColor(new Color(178, 34, 34)); // สีแดงเข้ม firebrick
-        g.fillRect(buttonX, boxY + (int) (220 * scaleY), buttonWidth, buttonHeight);
-        g.setColor(Color.WHITE);
-        g.drawRect(buttonX, boxY + (int) (220 * scaleY), buttonWidth, buttonHeight);
-    
+        textWidth = metrics.stringWidth(restartText);
+        textX = buttonCenterX - textWidth / 2;
+
+// ปรับความสูงสำหรับปุ่ม Restart
+        buttonCenterY = (int) ((HEIGHT / 2 + 70 + 20) * scaleY);
+        textY = buttonCenterY + (textHeight / 4);
+
+        g2d.drawString(restartText, textX, textY);
+
+// วาดปุ่ม "Main Menu" พร้อมไล่เฉดสี
+        GradientPaint menuGradient = new GradientPaint(
+                (int) ((WIDTH / 2 - 100) * scaleX), (int) ((HEIGHT / 2 + 120) * scaleY), new Color(130, 30, 30),
+                (int) ((WIDTH / 2 + 100) * scaleX), (int) ((HEIGHT / 2 + 160) * scaleY), new Color(180, 50, 50)
+        );
+        g2d.setPaint(menuGradient);
+        g2d.fillRoundRect(
+                (int) ((WIDTH / 2 - 100) * scaleX),
+                (int) ((HEIGHT / 2 + 120) * scaleY),
+                (int) (200 * scaleX),
+                (int) (40 * scaleY),
+                (int) (15 * scaleX),
+                (int) (15 * scaleY)
+        );
+
+// วาดขอบปุ่ม "Main Menu"
+        g2d.setColor(new Color(200, 100, 100));
+        g2d.drawRoundRect(
+                (int) ((WIDTH / 2 - 100) * scaleX),
+                (int) ((HEIGHT / 2 + 120) * scaleY),
+                (int) (200 * scaleX),
+                (int) (40 * scaleY),
+                (int) (15 * scaleX),
+                (int) (15 * scaleY)
+        );
+
+// ข้อความสำหรับปุ่ม "Main Menu"
+        g2d.setColor(Color.WHITE);  // เพิ่มบรรทัดนี้! ตั้งค่าสีข้อความเป็นขาวอีกครั้ง
         String menuText = "Main Menu";
-        textWidth = fm.stringWidth(menuText);
-        g.drawString(menuText, buttonX + (buttonWidth - textWidth) / 2, 
-                    boxY + (int) (220 * scaleY) + buttonHeight / 2 + (int) (7 * scaleY));
+        textWidth = metrics.stringWidth(menuText);
+        textX = buttonCenterX - textWidth / 2;
+
+// ปรับความสูงสำหรับปุ่ม Main Menu
+        buttonCenterY = (int) ((HEIGHT / 2 + 120 + 20) * scaleY);
+        textY = buttonCenterY + (textHeight / 4);
+
+        g2d.drawString(menuText, textX, textY);
     }
-    
+
     // เพิ่มเมธอดสำหรับวาดบัฟแบบมี scaling
     private void drawActiveBuffsWithScaling(Graphics g) {
         List<Powerup> activeBuffs = player.getActiveBuffs();
@@ -408,8 +521,8 @@ public class GamePanel extends JPanel implements Runnable, GameState {
 
         // หยุดเพลงเมื่อออกจากเกม
         SoundManager.stopBackgroundMusic();
-        
-         // หยุดเสียงเอฟเฟคทั้งหมดที่อาจกำลังเล่นอยู่
+
+        // หยุดเสียงเอฟเฟคทั้งหมดที่อาจกำลังเล่นอยู่
         SoundManager.stopAllEffects();
 
         try {
@@ -420,6 +533,7 @@ public class GamePanel extends JPanel implements Runnable, GameState {
             System.err.println("เกิดข้อผิดพลาดขณะหยุด game thread: " + e.getMessage());
         }
     }
+
     // เพิ่มเมธอดนี้ในคลาส GamePanel (ถ้ายังไม่มี)
     public boolean isGameOver() {
         return gameOver;
@@ -471,13 +585,13 @@ public class GamePanel extends JPanel implements Runnable, GameState {
         if (!player.isAlive()) {
             if (!gameOver) { // เพิ่มเงื่อนไขให้ทำงานเพียงครั้งเดียวเมื่อเพิ่งตาย
                 gameOver = true;
-            // หยุดเพลงพื้นหลังเมื่อเกมจบ
+                // หยุดเพลงพื้นหลังเมื่อเกมจบ
                 SoundManager.stopBackgroundMusic();
-            // อาจเล่นเสียง game over ถ้ามี
-            // SoundManager.playSound("game_over");
+                // อาจเล่นเสียง game over ถ้ามี
+                // SoundManager.playSound("game_over");
+            }
+            return;
         }
-        return;
-    }
 
         // ถ้าเกมจบแล้ว ให้อัพเดทเฉพาะเอฟเฟกต์หน้า Game Over
         if (gameOver) {
@@ -964,9 +1078,9 @@ public class GamePanel extends JPanel implements Runnable, GameState {
         gamePaused = !gamePaused;
         // ถ้าต้องการหยุดเสียงเกมเมื่อพัก
         if (gamePaused) {
-        // บันทึกสถานะเสียงปัจจุบัน
+            // บันทึกสถานะเสียงปัจจุบัน
         } else {
-        // คืนค่าสถานะเสียงที่บันทึกไว้
+            // คืนค่าสถานะเสียงที่บันทึกไว้
         }
     }
 
@@ -1004,49 +1118,35 @@ public class GamePanel extends JPanel implements Runnable, GameState {
         }
     }
 
-    // แก้ไขเมธอด handleMouseClick เพื่อรองรับการคลิกปุ่มในหน้า Pause
-    // แก้ไขเมธอด handleMouseClick ในคลาส GamePanel
     @Override
     public void handleMouseClick(int x, int y) {
-        int scaledX = (int)(x / scaleX);
-        int scaledY = (int)(y / scaleY);
-    
+        int scaledX = (int) (x / scaleX);
+        int scaledY = (int) (y / scaleY);
+
         if (gameOver) {
             handleGameOverButtons(scaledX, scaledY);
         } else if (gamePaused) {
-            // จัดการกับปุ่มที่วาดโดยตรงในหน้า Pause
-            int boxWidth = 400;
-            int boxHeight = 230;
-            int boxX = (WIDTH - boxWidth) / 2;
-            int boxY = (HEIGHT - boxHeight) / 2;
-        
-            int buttonWidth = 200;
-            int buttonHeight = 40;
-            int buttonX = boxX + (boxWidth - buttonWidth) / 2;
-        
             // ปุ่ม Resume
-            Rectangle resumeButton = new Rectangle(buttonX, boxY + 100, buttonWidth, buttonHeight);
+            Rectangle resumeButton = new Rectangle(WIDTH / 2 - 100, HEIGHT / 2 + 20, 200, 40);
             if (resumeButton.contains(scaledX, scaledY)) {
                 togglePause();
                 return;
             }
-        
+
             // ปุ่ม Restart Game
-            Rectangle restartButton = new Rectangle(buttonX, boxY + 150, buttonWidth, buttonHeight);
+            Rectangle restartButton = new Rectangle(WIDTH / 2 - 100, HEIGHT / 2 + 70, 200, 40);
             if (restartButton.contains(scaledX, scaledY)) {
                 restartGame();
                 return;
             }
-        
+
             // ปุ่ม Main Menu
-            Rectangle menuButton = new Rectangle(buttonX, boxY + 200, buttonWidth, buttonHeight);
+            Rectangle menuButton = new Rectangle(WIDTH / 2 - 100, HEIGHT / 2 + 120, 200, 40);
             if (menuButton.contains(scaledX, scaledY)) {
                 returnToMenu();
-                return;
             }
         }
     }
-
 
     public void handleKeyPress(int keyCode) {
         if (keyCode == KeyEvent.VK_P) {
@@ -1057,22 +1157,23 @@ public class GamePanel extends JPanel implements Runnable, GameState {
             returnToMenu();
         }
     }
+
     // เพิ่มเมธอดนี้ใน constructor ของ GamePanel (หลังจาก initGame())
     private void initPauseMenu() {
         pauseButtons = new ArrayList<>();
-    
+
         // สร้างปุ่ม Resume
-        pauseButtons.add(new PauseButton(WIDTH / 2 - 100, HEIGHT / 2 - 30, 200, 40, "Resume", 
-                                   new Color(50, 150, 50), Color.WHITE, () -> togglePause()));
-    
+        pauseButtons.add(new PauseButton(WIDTH / 2 - 100, HEIGHT / 2 - 30, 200, 40, "Resume",
+                new Color(50, 150, 50), Color.WHITE, () -> togglePause()));
+
         // สร้างปุ่ม Restart Game
-        pauseButtons.add(new PauseButton(WIDTH / 2 - 100, HEIGHT / 2 + 20, 200, 40, "Restart Game", 
-                                   new Color(70, 130, 180), Color.WHITE, () -> restartGame()));
-    
+        pauseButtons.add(new PauseButton(WIDTH / 2 - 100, HEIGHT / 2 + 20, 200, 40, "Restart Game",
+                new Color(70, 130, 180), Color.WHITE, () -> restartGame()));
+
         // สร้างปุ่ม Main Menu
-        pauseButtons.add(new PauseButton(WIDTH / 2 - 100, HEIGHT / 2 + 70, 200, 40, "Main Menu", 
-                                   new Color(150, 50, 50), Color.WHITE, () -> returnToMenu()));
-    
+        pauseButtons.add(new PauseButton(WIDTH / 2 - 100, HEIGHT / 2 + 70, 200, 40, "Main Menu",
+                new Color(150, 50, 50), Color.WHITE, () -> returnToMenu()));
+
         // สร้างปุ่มปรับระดับเสียง
         pauseButtons.add(new SoundControlButton(120, HEIGHT - 60, false)); // ปุ่มลดเสียง
         pauseButtons.add(new SoundControlButton(170, HEIGHT - 60, true));  // ปุ่มเพิ่มเสียง
