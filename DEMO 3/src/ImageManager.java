@@ -285,7 +285,9 @@ public class ImageManager {
     private static void createLevel2BackgroundImage() {
         try {
             System.out.println("กำลังสร้างภาพพื้นหลังด่าน 2...");
-            BufferedImage level2Bg = new BufferedImage(800, 600, BufferedImage.TYPE_INT_RGB);
+
+            // แก้ไขตรงนี้: ใช้ขนาดที่แน่นอนตาม GamePanel
+            BufferedImage level2Bg = new BufferedImage(GamePanel.WIDTH, GamePanel.HEIGHT, BufferedImage.TYPE_INT_RGB);
             Graphics2D g2d = level2Bg.createGraphics();
 
             // เปิดใช้ anti-aliasing เพื่อให้ภาพสวยขึ้น
@@ -293,17 +295,13 @@ public class ImageManager {
 
             // สร้างพื้นหลังสีน้ำตาลอ่อน (พื้นไม้)
             g2d.setColor(new Color(150, 120, 90));
-            g2d.fillRect(0, 0, 800, 600);
+            g2d.fillRect(0, 0, GamePanel.WIDTH, GamePanel.HEIGHT);
 
-            // สร้างพื้นกระเบื้องมุมขวาล่าง
-            g2d.setColor(new Color(200, 200, 200));
-            g2d.fillRect(550, 400, 250, 150);
-
-            // วาดลายไม้แบบเรียบง่าย (ลดจำนวนเส้นลงเพื่อประสิทธิภาพ)
+            // วาดรายละเอียดน้อยลงเพื่อเพิ่มประสิทธิภาพ
             g2d.setColor(new Color(130, 100, 70));
-            for (int i = 0; i < 800; i += 80) {  // เพิ่มระยะห่างจาก 40 เป็น 80
-                for (int j = 0; j < 600; j += 60) {  // เพิ่มระยะห่างจาก 20 เป็น 60
-                    g2d.drawRect(i, j, 80, 60);
+            for (int i = 0; i < GamePanel.WIDTH; i += 100) {
+                for (int j = 0; j < GamePanel.HEIGHT; j += 100) {
+                    g2d.drawRect(i, j, 100, 100);
                 }
             }
 
@@ -313,10 +311,10 @@ public class ImageManager {
         } catch (Exception e) {
             System.err.println("เกิดข้อผิดพลาดในการสร้างภาพพื้นหลังด่าน 2: " + e.getMessage());
             // สร้างภาพพื้นหลังอย่างง่ายแทน
-            BufferedImage simpleBg = new BufferedImage(800, 600, BufferedImage.TYPE_INT_RGB);
+            BufferedImage simpleBg = new BufferedImage(GamePanel.WIDTH, GamePanel.HEIGHT, BufferedImage.TYPE_INT_RGB);
             Graphics2D g2d = simpleBg.createGraphics();
             g2d.setColor(new Color(150, 120, 90));
-            g2d.fillRect(0, 0, 800, 600);
+            g2d.fillRect(0, 0, GamePanel.WIDTH, GamePanel.HEIGHT);
             g2d.dispose();
             images.put("level2_bg", simpleBg);
         }

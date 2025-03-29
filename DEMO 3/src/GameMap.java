@@ -77,30 +77,26 @@ public class GameMap {
             block.render(g);
         }
     }
-    // เพิ่มเมธอดใหม่สำหรับสร้างแมพด่าน 2
 
     private void createLevel2Map() {
         System.out.println("กำลังสร้างแผนที่ด่าน 2...");
 
         try {
+            // ล้างบล็อกเก่าก่อนเพื่อป้องกันการซ้อนทับ
+            blocks.clear();
+
             // สร้างขอบของแผนที่ (ใช้ซ้ำกับทุกด่าน)
             blocks.add(new Block(0, 0, 800, 10));     // ขอบบน
             blocks.add(new Block(0, 550, 800, 50));   // ขอบล่าง
             blocks.add(new Block(0, 0, 10, 600));     // ขอบซ้าย
             blocks.add(new Block(770, 0, 30, 600));   // ขอบขวา
 
-            // สร้างสิ่งกีดขวางภายในฉาก
+            // สร้างสิ่งกีดขวางภายในฉาก (ปรับจำนวนลงเพื่อเพิ่มประสิทธิภาพ)
             blocks.add(new Block(150, 120, 150, 90)); // โต๊ะเอียงด้านซ้ายบน
             blocks.add(new Block(120, 430, 80, 40));  // โต๊ะด้านล่างซ้าย
             blocks.add(new Block(350, 200, 100, 50)); // โต๊ะตรงกลางด้านบน
             blocks.add(new Block(300, 400, 60, 30));  // โต๊ะตรงกลางด้านล่าง
             blocks.add(new Block(600, 250, 50, 100)); // โต๊ะด้านขวา
-
-            // จุดกลมด้านล่างซ้าย (อาจเป็นเก้าอี้)
-            blocks.add(new Block(50, 550, 30, 30));
-
-            // จุดกลมด้านขวาบน (อาจเป็นถังหรือของตกแต่ง)
-            blocks.add(new Block(650, 100, 30, 30));
 
             if (DEBUG_MODE) {
                 for (Block block : blocks) {

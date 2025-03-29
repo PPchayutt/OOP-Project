@@ -30,11 +30,11 @@ public class Monster2 extends Monster {
 
         spawnTime++;
 
-        // เพิ่มความเร็วเร็วกว่าด่าน 1
-        if (spawnTime < 200) { // ใช้เวลาปรับความเร็วน้อยกว่า
-            speedMultiplier = Math.min(0.3f + (spawnTime / 500f), 1.0f);
+        // ลดความซับซ้อนการคำนวณความเร็ว
+        if (spawnTime < 120) {
+            speedMultiplier = 0.3f + (spawnTime / 600f);
         } else {
-            speedMultiplier = 1.0f;
+            speedMultiplier = 0.8f; // ไม่ต้องให้เร็วเต็มที่เพื่อลดการกระตุก
         }
 
         float targetX = target.getX() + target.getWidth() / 2;
@@ -49,53 +49,23 @@ public class Monster2 extends Monster {
             dy = dy / distance;
         }
 
-        // รูปแบบการเคลื่อนที่ใหม่ของมอนสเตอร์ด่าน 2
-        int movementPattern = patternCounter / 60 % 4; // เปลี่ยนรูปแบบทุก 1 วินาที
+        // ลดความซับซ้อนการเคลื่อนไหว เหลือเพียง 2 รูปแบบ
+        patternCounter++;
+        boolean simpleMovement = (patternCounter % 120 < 60);
 
-        switch (movementPattern) {
-            case 0 -> {
-                // ตรงไปหาผู้เล่นเร็วกว่า
-                x += dx * speed * speedMultiplier * 1.2f;
-                y += dy * speed * speedMultiplier * 1.2f;
-            }
-            case 1 -> {
-                // ซิกแซกถี่มากขึ้น
-                patternCounter++;
-                x += dx * speed * speedMultiplier + Math.sin(patternCounter * 0.1) * speed * speedMultiplier;
-                y += dy * speed * speedMultiplier;
-            }
-            case 2 -> {
-                // วนเป็นวงกลมใหญ่ขึ้น
-                patternCounter++;
-                float circleRadius = 2.5f; // รัศมีการวนใหญ่ขึ้น
-                x += dx * speed * speedMultiplier + Math.cos(patternCounter * 0.04) * circleRadius;
-                y += dy * speed * speedMultiplier + Math.sin(patternCounter * 0.04) * circleRadius;
-            }
-            case 3 -> {
-                // รูปแบบใหม่: เคลื่อนที่สุ่ม
-                patternCounter++;
-                if (patternCounter % 30 == 0) { // เปลี่ยนทิศทางทุก 30 เฟรม
-                    dx = random.nextFloat() * 2 - 1;
-                    dy = random.nextFloat() * 2 - 1;
-                }
-                x += dx * speed * speedMultiplier;
-                y += dy * speed * speedMultiplier;
-
-                // หากออกนอกจอให้กลับเข้ามา
-                if (x < 0) {
-                    x = 0;
-                }
-                if (x > GamePanel.WIDTH - width) {
-                    x = GamePanel.WIDTH - width;
-                }
-                if (y < 0) {
-                    y = 0;
-                }
-                if (y > GamePanel.HEIGHT - height) {
-                    y = GamePanel.HEIGHT - height;
-                }
-            }
+        if (simpleMovement) {
+            // รูปแบบง่าย: ตรงไปหาผู้เล่น
+            x += dx * speed * speedMultiplier;
+            y += dy * speed * speedMultiplier;
+        } else {
+            // รูปแบบซับซ้อน: วนเป็นวงกลม
+            x += dx * speed * speedMultiplier + Math.cos(patternCounter * 0.02) * 1.5f;
+            y += dy * speed * speedMultiplier + Math.sin(patternCounter * 0.02) * 1.5f;
         }
+
+        // ดูแลไม่ให้ออกนอกจอ
+        x = Math.max(10, Math.min(x, GamePanel.WIDTH - width - 10));
+        y = Math.max(10, Math.min(y, GamePanel.HEIGHT - height - 10));
     }
 
     @Override

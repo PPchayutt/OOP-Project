@@ -24,9 +24,9 @@ public class LevelManager {
 
     public void bossKilled() {
         currentLevel++;
-        // จำกัดเฉพาะด่าน 1-2 ในตอนนี้
-        if (currentLevel > 2) {
-            currentLevel = 2; // จำกัดไว้แค่ด่าน 2 ก่อน (จะทำด่าน 3-5 ทีหลัง)
+        // เพิ่มการเช็คว่าต้องเป็นด่าน 1-5 เท่านั้น
+        if (currentLevel > 5) {
+            currentLevel = 5; // จำกัดเป็นด่าน 5 ด่านตามโจทย์
             // จัดการเมื่อจบเกม
             return;
         }
@@ -35,7 +35,7 @@ public class LevelManager {
         monstersKilled = 0;
         bossSpawned = false;
         isTransitioning = true;
-        transitionTimer = 120; // 2 วินาที
+        transitionTimer = 180; // เพิ่มเวลาเป็น 3 วินาที เพื่อให้มีเวลาโหลดทรัพยากรได้เพียงพอ
         levelJustChanged = true;
         needMapChange = true; // ตั้งค่าให้เปลี่ยนแผนที่
 

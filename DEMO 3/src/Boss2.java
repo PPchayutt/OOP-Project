@@ -23,50 +23,43 @@ public class Boss2 extends Boss {
         updateCooldowns();
 
         phaseCounter++;
-        if (phaseCounter >= 250) { // เปลี่ยนเฟสเร็วขึ้น
+        if (phaseCounter >= 250) {
             phaseCounter = 0;
-            phase = (phase + 1) % 4; // เพิ่มเฟสเป็น 4 เฟส
-            attackPattern = random.nextInt(4); // เพิ่มรูปแบบการโจมตีเป็น 4 รูปแบบ
+            phase = (phase + 1) % 3; // ลดเหลือ 3 เฟสเพื่อลดความซับซ้อน
+            attackPattern = random.nextInt(3);
         }
 
         // รูปแบบการเคลื่อนที่ของบอส
         switch (phase) {
             case 0 -> {
-                // เคลื่อนที่จากซ้ายไปขวาเร็วขึ้น
-                x += speed * moveDirection * 1.5f;
+                // เคลื่อนที่จากซ้ายไปขวา
+                x += speed * moveDirection;
                 if (x <= 0 || x >= GamePanel.WIDTH - width) {
                     moveDirection *= -1;
                 }
             }
             case 1 -> {
-                // เคลื่อนที่เป็นรูปคลื่นขนาดใหญ่ขึ้น
-                x += Math.cos(phaseCounter * 0.07) * speed * 1.5f;
-                y += Math.sin(phaseCounter * 0.07) * speed * 1.5f;
-                // จำกัดไม่ให้ออกนอกหน้าจอ
+                // เคลื่อนที่เป็นรูปคลื่น
+                x += Math.cos(phaseCounter * 0.05) * speed;
+                y += Math.sin(phaseCounter * 0.05) * speed;
                 x = Math.max(0, Math.min(x, GamePanel.WIDTH - width));
-                y = Math.max(0, Math.min(y, 400)); // บอสเคลื่อนที่ได้ลึกกว่าเดิม
+                y = Math.max(0, Math.min(y, 250)); // จำกัดให้อยู่ด้านบน
             }
             case 2 -> {
-                // รูปแบบใหม่: เคลื่อนที่ตามแนวทแยง
-                x += Math.cos(phaseCounter * 0.05) * speed;
-                y += Math.abs(Math.sin(phaseCounter * 0.05) * speed);
-                // จำกัดไม่ให้ออกนอกหน้าจอ
-                x = Math.max(0, Math.min(x, GamePanel.WIDTH - width));
-                y = Math.max(50, Math.min(y, 400));
-            }
-            case 3 -> {
-                // รูปแบบใหม่: เคลื่อนที่เร็วแบบกระโดด
-                if (phaseCounter % 30 < 15) {
-                    x += random.nextInt(10) - 5;
-                    y += random.nextInt(10) - 5;
-                }
-                // จำกัดไม่ให้ออกนอกหน้าจอ
-                x = Math.max(0, Math.min(x, GamePanel.WIDTH - width));
-                y = Math.max(50, Math.min(y, 350));
+                // หยุดนิ่ง (เตรียมโจมตีพิเศษ)
+                // ไม่มีการเคลื่อนที่
             }
         }
+
+        // จำกัดตำแหน่งไม่ให้ออกนอกจอ
+        x = Math.max(0, Math.min(x, GamePanel.WIDTH - width));
+        y = Math.max(50, Math.min(y, 300));
     }
 
+    /**
+     *
+     * @param g
+     */
     @Override
     public void render(Graphics g) {
         // ใช้รูปภาพจาก ImageManager
