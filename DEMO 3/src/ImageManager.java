@@ -3,7 +3,6 @@ import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.BasicStroke;
-import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -286,19 +285,17 @@ public class ImageManager {
         BufferedImage level2Bg = new BufferedImage(GamePanel.WIDTH, GamePanel.HEIGHT, BufferedImage.TYPE_INT_RGB);
         Graphics2D g2d = level2Bg.createGraphics();
 
-        // เปิดใช้ anti-aliasing
-        g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-
-        // วาดพื้นหลังสีน้ำตาล
+        // วาดพื้นหลังสีน้ำตาลเรียบๆ
         g2d.setColor(new Color(150, 120, 90));
         g2d.fillRect(0, 0, GamePanel.WIDTH, GamePanel.HEIGHT);
 
-        // ลดจำนวนเส้นตาราง ใช้เส้นห่างกว่าเดิม
+        // วาดเส้นตารางน้อยลง เช่น 4-5 เส้นพอ หรือไม่ต้องวาดเลย
         g2d.setColor(new Color(130, 100, 70));
-        for (int i = 0; i < 800; i += 100) { // เพิ่มระยะห่าง
-            for (int j = 0; j < 600; j += 100) { // เพิ่มระยะห่าง
-                g2d.drawRect(i, j, 100, 100);
-            }
+        for (int i = 0; i < 800; i += 200) { // เพิ่มระยะห่างเป็น 200
+            g2d.drawLine(i, 0, i, 600); // วาดเฉพาะเส้นแนวตั้ง
+        }
+        for (int j = 0; j < 600; j += 200) { // เพิ่มระยะห่างเป็น 200
+            g2d.drawLine(0, j, 800, j); // วาดเฉพาะเส้นแนวนอน
         }
 
         g2d.dispose();

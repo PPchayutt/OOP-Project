@@ -27,11 +27,15 @@ public class LevelManager {
         // เพิ่มการเช็คว่าต้องเป็นด่าน 1-5 เท่านั้น
         if (currentLevel > 5) {
             currentLevel = 5; // จำกัดเป็นด่าน 5 ด่านตามโจทย์
-            // จัดการเมื่อจบเกม
             return;
         }
 
-        monstersToKill = 20 + (currentLevel - 1) * 10;
+        // ถ้าเป็นด่าน 2 ให้ลดจำนวนมอนสเตอร์ลง
+        if (currentLevel == 2) {
+            monstersToKill = 15; // ลดจาก 30 (20+10) เป็น 15
+        } else {
+            monstersToKill = 20 + (currentLevel - 1) * 10;
+        }
         monstersKilled = 0;
         bossSpawned = false;
         isTransitioning = true;

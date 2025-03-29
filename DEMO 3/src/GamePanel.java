@@ -663,8 +663,8 @@ public class GamePanel extends JPanel implements Runnable, GameState {
             }
             return;
         }
-        // ตรวจสอบว่าเพิ่งขึ้นเลเวล 2 หรือไม่
-        if (levelManager.getCurrentLevel() == 2) {
+// ตรวจสอบว่าเพิ่งขึ้นเลเวล 2 และยังไม่ได้โหลดแผนที่ด่าน 2
+        if (levelManager.getCurrentLevel() == 2 && !gameMap.getName().equals("level2")) {
             // เปลี่ยนแผนที่เป็นด่าน 2
             gameMap = new GameMap("level2");
 
@@ -672,6 +672,8 @@ public class GamePanel extends JPanel implements Runnable, GameState {
             if (!SoundManager.isMusicMuted()) {
                 SoundManager.playBackgroundMusic("level2_music");
             }
+
+            System.out.println("โหลดแผนที่ด่าน 2 สำเร็จ");
         }
 
         // ถ้าเกมจบแล้ว ให้อัพเดทเฉพาะเอฟเฟกต์หน้า Game Over
@@ -781,48 +783,21 @@ public class GamePanel extends JPanel implements Runnable, GameState {
 
     // เมธอดย่อยสำหรับอัพเดทมอนสเตอร์
     private void updateMonsters() {
-        // จัดการการชนกันระหว่างมอนสเตอร์
+// จัดการมอนสเตอร์แบบง่ายกว่าเดิม - ลดการคำนวณซับซ้อน
         for (Enemy enemy : monsters) {
             enemy.update();
 
-            // เก็บตำแหน่งเดิมไว้ก่อนเช็คการชน
-            float oldX = enemy.getX();
-            float oldY = enemy.getY();
-            boolean hasCollision;
-            int maxAttempts = 5; // จำกัดจำนวนครั้งในการพยายามหาตำแหน่งใหม่
-            int attempts = 0;
+            // ตรวจสอบการชนเฉพาะมอนสเตอร์ที่อยู่ใกล้กันในระยะ 50 พิกเซล
+            for (Enemy otherEnemy : monsters) {
+                if (enemy != otherEnemy) {
+                    float dx = enemy.getX() - otherEnemy.getX();
+                    float dy = enemy.getY() - otherEnemy.getY();
+                    float distanceSquared = dx * dx + dy * dy; // ไม่ต้องใช้ sqrt ให้เทียบค่ากำลังสองแทน
 
-            do {
-                hasCollision = false;
-
-                // ตรวจสอบการชนกับมอนสเตอร์ตัวอื่น
-                for (Enemy otherEnemy : monsters) {
-                    if (enemy != otherEnemy && enemy.collidesWith(otherEnemy)) {
-                        hasCollision = true;
-
-                        // เลื่อนตำแหน่งเล็กน้อยเพื่อหลีกเลี่ยงการซ้อนทับ
-                        float pushStrength = 2 + attempts * 2; // เพิ่มแรงผลักในแต่ละรอบ
-
-                        // คำนวณทิศทางที่จะผลักออก
-                        float dirX = enemy.getX() - otherEnemy.getX();
-                        float dirY = enemy.getY() - otherEnemy.getY();
-
-                        // ถ้าอยู่ตำแหน่งเดียวกันพอดี ให้ผลักในทิศทางสุ่ม
-                        if (dirX == 0 && dirY == 0) {
-                            dirX = random.nextFloat() * 2 - 1;
-                            dirY = random.nextFloat() * 2 - 1;
-                        }
-
-                        // ทำให้เป็นเวกเตอร์หนึ่งหน่วย
-                        float length = (float) Math.sqrt(dirX * dirX + dirY * dirY);
-                        if (length > 0) {
-                            dirX /= length;
-                            dirY /= length;
-                        }
-
-                        // ผลักมอนสเตอร์ออกไป
-                        enemy.setX(oldX + dirX * pushStrength);
-                        enemy.setY(oldY + dirY * pushStrength);
+                    if (distanceSquared < 2500 && enemy.collidesWith(otherEnemy)) { // 50*50 = 2500
+                        // แยกออกห่างกันแบบง่ายๆ
+                        enemy.setX(enemy.getX() + (dx > 0 ? 5 : -5));
+                        enemy.setY(enemy.getY() + (dy > 0 ? 5 : -5));
 
                         // ป้องกันไม่ให้ออกนอกจอ
                         enemy.setX(Math.max(0, Math.min(enemy.getX(), WIDTH - enemy.getWidth())));
@@ -830,14 +805,6 @@ public class GamePanel extends JPanel implements Runnable, GameState {
                         break;
                     }
                 }
-
-                attempts++;
-            } while (hasCollision && attempts < maxAttempts);
-
-            // ถ้าพยายามหลายครั้งแล้วยังชนอยู่ ก็ยอมให้ชนกัน
-            if (hasCollision) {
-                enemy.setX(oldX);
-                enemy.setY(oldY);
             }
         }
 
