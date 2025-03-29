@@ -1,9 +1,11 @@
+
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
 public class Boss2 extends Boss {
+
     private static final Random random = new Random();
 
     public Boss2(int x, int y, int level) {
@@ -67,18 +69,24 @@ public class Boss2 extends Boss {
 
     @Override
     public void render(Graphics g) {
-        // บอสด่าน 2 เป็นสีเขียว/ม่วง แทนสีแดง
-        g.setColor(new Color(75, 0, 130)); // สีม่วงเข้ม
-        g.fillOval((int) x, (int) y, width, height);
-        
-        // ตาของบอส
-        g.setColor(Color.GREEN);
-        g.fillOval((int) x + width / 4, (int) y + height / 4, width / 5, height / 5);
-        g.fillOval((int) x + width * 3 / 5, (int) y + height / 4, width / 5, height / 5);
+        // ใช้รูปภาพจาก ImageManager
+        Image boss2Image = ImageManager.getImage("boss2");
+        if (boss2Image != null) {
+            g.drawImage(boss2Image, (int) x, (int) y, width, height, null);
+        } else {
+            // บอสด่าน 2 เป็นสีม่วงเข้ม
+            g.setColor(new Color(75, 0, 130));
+            g.fillOval((int) x, (int) y, width, height);
 
-        // ปากของบอส
-        g.setColor(Color.WHITE);
-        g.fillRect((int) x + width / 4, (int) y + height * 2 / 3, width / 2, height / 8);
+            // ตาของบอส
+            g.setColor(Color.GREEN);
+            g.fillOval((int) x + width / 4, (int) y + height / 4, width / 5, height / 5);
+            g.fillOval((int) x + width * 3 / 5, (int) y + height / 4, width / 5, height / 5);
+
+            // ปากของบอส
+            g.setColor(Color.WHITE);
+            g.fillRect((int) x + width / 4, (int) y + height * 2 / 3, width / 2, height / 8);
+        }
 
         // แถบพลังชีวิต
         g.setColor(Color.GREEN);

@@ -33,7 +33,7 @@ public class SoundManager {
 
             // เพิ่มการโหลดเพลงสำหรับ Level 1
             loadMusic("level1_music", "resources/sounds/level1_music.wav");
-            
+
             // เพิ่มการโหลดเพลงสำหรับ Level 2
             loadMusic("level2_music", "resources/sounds/level2_music.wav");
 
@@ -84,6 +84,12 @@ public class SoundManager {
                 System.out.println("โหลดไฟล์เพลง " + key + " สำเร็จ");
             } else {
                 System.out.println("ไม่พบไฟล์เพลง: " + filePath);
+                // สร้าง clip ว่าง ๆ เพื่อป้องกัน NullPointerException
+                if (key.equals("level2_music")) {
+                    // ใช้เพลงด่าน 1 แทนหากไม่พบเพลงด่าน 2
+                    sounds.put(key, sounds.get("level1_music"));
+                    System.out.println("ใช้เพลงด่าน 1 แทนเพลงด่าน 2");
+                }
             }
         } catch (IOException | LineUnavailableException | UnsupportedAudioFileException e) {
             System.err.println("ไม่สามารถโหลดไฟล์เพลงได้: " + e.getMessage());
@@ -124,22 +130,22 @@ public class SoundManager {
      * หยุดเพลงประกอบที่กำลังเล่นอยู่
      */
     public static void stopBackgroundMusic() {
-    if (backgroundMusic != null) {
-        if (backgroundMusic.isRunning()) {
-            backgroundMusic.stop();
+        if (backgroundMusic != null) {
+            if (backgroundMusic.isRunning()) {
+                backgroundMusic.stop();
+            }
+            // เพิ่มบรรทัดนี้เพื่อรีเซ็ตตำแหน่งการเล่น
+            backgroundMusic.setFramePosition(0);
         }
-        // เพิ่มบรรทัดนี้เพื่อรีเซ็ตตำแหน่งการเล่น
-        backgroundMusic.setFramePosition(0);
-    }
-    
-    // เพิ่มการเช็คและทำความสะอาดทุก clip ที่อาจยังเล่นอยู่
-    for (Clip clip : sounds.values()) {
-        if (clip != null && clip.isRunning()) {
-            clip.stop();
-            clip.setFramePosition(0);
+
+        // เพิ่มการเช็คและทำความสะอาดทุก clip ที่อาจยังเล่นอยู่
+        for (Clip clip : sounds.values()) {
+            if (clip != null && clip.isRunning()) {
+                clip.stop();
+                clip.setFramePosition(0);
+            }
         }
     }
-}
 
     /**
      * สลับสถานะเปิด/ปิดเสียงดนตรี
@@ -213,17 +219,19 @@ public class SoundManager {
     public static void decreaseEffectVolume(float amount) {
         setEffectVolume(effectVolume - amount);
     }
+
     public static void stopAllEffects() {
-    // วนลูปผ่านทุก clip และหยุดการเล่นถ้ากำลังเล่นอยู่
-    // ยกเว้น backgroundMusic ซึ่งจัดการแยกต่างหาก
-    for (String key : sounds.keySet()) {
-        Clip clip = sounds.get(key);
-        if (clip != null && clip != backgroundMusic && clip.isRunning()) {
-            clip.stop();
-            clip.setFramePosition(0);
+        // วนลูปผ่านทุก clip และหยุดการเล่นถ้ากำลังเล่นอยู่
+        // ยกเว้น backgroundMusic ซึ่งจัดการแยกต่างหาก
+        for (String key : sounds.keySet()) {
+            Clip clip = sounds.get(key);
+            if (clip != null && clip != backgroundMusic && clip.isRunning()) {
+                clip.stop();
+                clip.setFramePosition(0);
+            }
         }
     }
-}
+
     public static boolean isMusicMuted() {
         return musicMuted;
     }
@@ -240,4 +248,3 @@ public class SoundManager {
         }
     }
 }
-

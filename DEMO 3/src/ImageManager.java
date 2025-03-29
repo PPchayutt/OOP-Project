@@ -3,6 +3,7 @@ import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.BasicStroke;
+import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -71,7 +72,7 @@ public class ImageManager {
                 } else {
                     System.out.println("ไม่พบไฟล์ภาพฉากด่าน 1");
                 }
-                
+
                 File level2BgFile = new File("resources/images/level2_bg.png");
                 if (level2BgFile.exists()) {
                     images.put("level2_bg", ImageIO.read(level2BgFile));
@@ -80,7 +81,26 @@ public class ImageManager {
                     System.out.println("ไม่พบไฟล์ภาพฉากด่าน 2 จะสร้างภาพเองอัตโนมัติ");
                     createLevel2BackgroundImage();
                 }
-                
+
+                File monster2File = new File("resources/images/L2_Enemy.png");
+                if (monster2File.exists()) {
+                    images.put("monster2", ImageIO.read(monster2File));
+                    System.out.println("โหลดรูปภาพมอนสเตอร์ด่าน 2 สำเร็จ");
+                } else {
+                    System.out.println("ไม่พบไฟล์ภาพมอนสเตอร์ด่าน 2 จะใช้ภาพพื้นฐานแทน");
+                    createDefaultMonster2Image();
+                }
+
+// โหลดรูปภาพบอสด่าน 2
+                File boss2File = new File("resources/images/L2_Boss.png");
+                if (boss2File.exists()) {
+                    images.put("boss2", ImageIO.read(boss2File));
+                    System.out.println("โหลดรูปภาพบอสด่าน 2 สำเร็จ");
+                } else {
+                    System.out.println("ไม่พบไฟล์ภาพบอสด่าน 2 จะใช้ภาพพื้นฐานแทน");
+                    createDefaultBoss2Image();
+                }
+
                 // โหลดรูปภาพปืนและเอฟเฟค
                 File gunFile = new File("resources/images/gun.png");
                 if (gunFile.exists()) {
@@ -261,29 +281,77 @@ public class ImageManager {
         g2d.dispose();
         images.put("broken_heart", brokenHeartImg);
     }
+
     private static void createLevel2BackgroundImage() {
-        BufferedImage level2Bg = new BufferedImage(800, 600, BufferedImage.TYPE_INT_ARGB);
-        Graphics2D g2d = level2Bg.createGraphics();
-    
-        // สร้างพื้นหลังสีน้ำตาลอ่อน (พื้นไม้)
-        g2d.setColor(new Color(150, 120, 90));
-        g2d.fillRect(0, 0, 800, 600);
-    
-        // สร้างพื้นกระเบื้องมุมขวาล่าง
-        g2d.setColor(new Color(200, 200, 200));
-        g2d.fillRect(550, 400, 250, 150);
-    
-        // วาดรายละเอียดเพิ่มเติม
-        g2d.setColor(new Color(130, 100, 70));
-        for (int i = 0; i < 800; i += 40) {
-            for (int j = 0; j < 600; j += 20) {
-                g2d.drawRect(i, j, 40, 20);
+        try {
+            System.out.println("กำลังสร้างภาพพื้นหลังด่าน 2...");
+            BufferedImage level2Bg = new BufferedImage(800, 600, BufferedImage.TYPE_INT_RGB);
+            Graphics2D g2d = level2Bg.createGraphics();
+
+            // เปิดใช้ anti-aliasing เพื่อให้ภาพสวยขึ้น
+            g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+            // สร้างพื้นหลังสีน้ำตาลอ่อน (พื้นไม้)
+            g2d.setColor(new Color(150, 120, 90));
+            g2d.fillRect(0, 0, 800, 600);
+
+            // สร้างพื้นกระเบื้องมุมขวาล่าง
+            g2d.setColor(new Color(200, 200, 200));
+            g2d.fillRect(550, 400, 250, 150);
+
+            // วาดลายไม้แบบเรียบง่าย (ลดจำนวนเส้นลงเพื่อประสิทธิภาพ)
+            g2d.setColor(new Color(130, 100, 70));
+            for (int i = 0; i < 800; i += 80) {  // เพิ่มระยะห่างจาก 40 เป็น 80
+                for (int j = 0; j < 600; j += 60) {  // เพิ่มระยะห่างจาก 20 เป็น 60
+                    g2d.drawRect(i, j, 80, 60);
+                }
             }
+
+            g2d.dispose();
+            images.put("level2_bg", level2Bg);
+            System.out.println("สร้างภาพพื้นหลังด่าน 2 สำเร็จ");
+        } catch (Exception e) {
+            System.err.println("เกิดข้อผิดพลาดในการสร้างภาพพื้นหลังด่าน 2: " + e.getMessage());
+            // สร้างภาพพื้นหลังอย่างง่ายแทน
+            BufferedImage simpleBg = new BufferedImage(800, 600, BufferedImage.TYPE_INT_RGB);
+            Graphics2D g2d = simpleBg.createGraphics();
+            g2d.setColor(new Color(150, 120, 90));
+            g2d.fillRect(0, 0, 800, 600);
+            g2d.dispose();
+            images.put("level2_bg", simpleBg);
         }
-    
-        g2d.dispose();
-        images.put("level2_bg", level2Bg);
     }
+
+    private static void createDefaultMonster2Image() {
+        BufferedImage monster2Img = new BufferedImage(35, 35, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g2d = monster2Img.createGraphics();
+        g2d.setColor(new Color(50, 150, 50)); // สีเขียว
+        g2d.fillRect(0, 0, 35, 35);
+
+        // ตาของมอนสเตอร์
+        g2d.setColor(Color.RED);
+        g2d.fillOval(5, 5, 10, 10);
+        g2d.fillOval(20, 5, 10, 10);
+
+        g2d.dispose();
+        images.put("monster2", monster2Img);
+    }
+
+    private static void createDefaultBoss2Image() {
+        BufferedImage boss2Img = new BufferedImage(100, 100, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g2d = boss2Img.createGraphics();
+        g2d.setColor(new Color(75, 0, 130)); // สีม่วงเข้ม
+        g2d.fillOval(0, 0, 100, 100);
+
+        // ตาของบอส
+        g2d.setColor(Color.GREEN);
+        g2d.fillOval(20, 25, 20, 20);
+        g2d.fillOval(60, 25, 20, 20);
+
+        g2d.dispose();
+        images.put("boss2", boss2Img);
+    }
+
 
     /*
      * สร้างภาพอื่นๆ ที่จำเป็น

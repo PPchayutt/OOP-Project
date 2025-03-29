@@ -24,10 +24,13 @@ public class LevelManager {
 
     public void bossKilled() {
         currentLevel++;
-        if (currentLevel > 5) {
-            // เล่นจบเกม (จัดการเมื่อชนะเกม)
+        // จำกัดเฉพาะด่าน 1-2 ในตอนนี้
+        if (currentLevel > 2) {
+            currentLevel = 2; // จำกัดไว้แค่ด่าน 2 ก่อน (จะทำด่าน 3-5 ทีหลัง)
+            // จัดการเมื่อจบเกม
             return;
         }
+
         monstersToKill = 20 + (currentLevel - 1) * 10;
         monstersKilled = 0;
         bossSpawned = false;
@@ -35,9 +38,10 @@ public class LevelManager {
         transitionTimer = 120; // 2 วินาที
         levelJustChanged = true;
         needMapChange = true; // ตั้งค่าให้เปลี่ยนแผนที่
-    
+
         System.out.println("กำลังเริ่มการเปลี่ยนด่านเป็นด่าน " + currentLevel);
     }
+
     public boolean needsMapChange() {
         if (needMapChange) {
             needMapChange = false; // รีเซ็ตค่าหลังจากอ่านแล้ว
@@ -45,12 +49,12 @@ public class LevelManager {
         }
         return false;
     }
-    
+
     // เพิ่มเมธอดตรวจสอบว่ากำลัง transition หรือไม่
     public boolean isTransitioning() {
         return isTransitioning;
     }
-    
+
     // เพิ่มเมธอดอัพเดท transition timer
     public void updateTransition() {
         if (isTransitioning && transitionTimer > 0) {
@@ -62,14 +66,15 @@ public class LevelManager {
             }
         }
     }
-        public boolean isLevelReadyToPlay() {
+
+    public boolean isLevelReadyToPlay() {
         if (levelReadyToPlay) {
             levelReadyToPlay = false; // รีเซ็ตค่าหลังอ่านแล้ว
             return true;
         }
         return false;
     }
-    
+
     // เพิ่มเมธอดสำหรับสปอนมอนสเตอร์ตามด่าน
     public Monster spawnMonsterForLevel(int[] pos, Player player) {
         if (currentLevel == 1) {
@@ -78,8 +83,7 @@ public class LevelManager {
             return new Monster2(pos[0], pos[1], player);
         }
     }
-  
-    
+
     // เพิ่มเมธอดสำหรับสปอนบอสตามด่าน
     public Enemy spawnBossForLevel(int[] pos) {
         if (currentLevel == 1) {
@@ -131,6 +135,7 @@ public class LevelManager {
 
         return new int[]{x, y};
     }
+
     public boolean isLevelJustChanged() {
         boolean result = levelJustChanged;
         levelJustChanged = false; // รีเซ็ตสถานะหลังจากอ่านค่าแล้ว
@@ -162,6 +167,7 @@ public class LevelManager {
     public int getTransitionTimer() {
         return transitionTimer;
     }
+
     public LevelManager getLevelManager() {
         return this; // แก้จาก return levelManager; เป็น return this;
     }

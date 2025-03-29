@@ -490,35 +490,35 @@ public class GamePanel extends JPanel implements Runnable, GameState {
             x += spacing; // เลื่อนไปทางขวา
         }
     }
+
     private void drawLevelTransition(Graphics g) {
         if (!levelManager.isTransitioning()) {
             return;
         }
-    
+
         // สร้างพื้นหลังทึบ
         g.setColor(new Color(0, 0, 0, 200));
         g.fillRect(0, 0, WIDTH, HEIGHT);
-    
+
         // แสดงข้อความเปลี่ยนด่าน
         g.setColor(Color.WHITE);
         g.setFont(new Font("Arial", Font.BOLD, 40));
         String message = "Level " + levelManager.getCurrentLevel();
         int textWidth = g.getFontMetrics().stringWidth(message);
         g.drawString(message, (WIDTH - textWidth) / 2, HEIGHT / 2);
-    
+
         // แสดงข้อความเตรียมตัว
         g.setFont(new Font("Arial", Font.PLAIN, 20));
         String readyMessage = "Get Ready!";
         int readyWidth = g.getFontMetrics().stringWidth(readyMessage);
         g.drawString(readyMessage, (WIDTH - readyWidth) / 2, HEIGHT / 2 + 40);
-        
+
         int seconds = levelManager.getTransitionTimer() / 60 + 1;
         g.setFont(new Font("Arial", Font.BOLD, 30));
         String countdownMessage = seconds + "";
         int countdownWidth = g.getFontMetrics().stringWidth(countdownMessage);
         g.drawString(countdownMessage, (WIDTH - countdownWidth) / 2, HEIGHT / 2 + 90);
     }
-    
 
     private void initGame() {
         player = new Player(WIDTH / 2 - 16, HEIGHT - 100, 32, 32, 100, 5);
@@ -609,19 +609,22 @@ public class GamePanel extends JPanel implements Runnable, GameState {
     public void update() {
         // เพิ่มการตรวจสอบการเปลี่ยนแผนที่
         if (levelManager.needsMapChange()) {
-            System.out.println("กำลังเปลี่ยนแผนที่เป็นด่าน " + levelManager.getCurrentLevel());
-            // เคลียร์ทุกอย่าง
-            monsters.clear();
-            bosses.clear();
-            enemyBullets.clear();
-            powerups.clear();
-        
-            // สร้างแผนที่ใหม่
             try {
+                System.out.println("กำลังเปลี่ยนแผนที่เป็นด่าน " + levelManager.getCurrentLevel());
+                // เคลียร์ทุกอย่าง
+                monsters.clear();
+                bosses.clear();
+                enemyBullets.clear();
+                powerups.clear();
+
+                // เรียกเพื่อช่วย GC ทำงาน
+                System.gc();
+
+                // สร้างแผนที่ใหม่
                 String newMapName = "level" + levelManager.getCurrentLevel();
                 gameMap = new GameMap(newMapName);
                 System.out.println("สร้างแผนที่ " + newMapName + " สำเร็จ");
-            
+
                 // เปลี่ยนเพลง
                 if (!SoundManager.isMusicMuted()) {
                     SoundManager.playBackgroundMusic("level" + levelManager.getCurrentLevel() + "_music");
@@ -633,10 +636,10 @@ public class GamePanel extends JPanel implements Runnable, GameState {
         }
         // อัปเดตผู้เล่น (รวมถึงบัฟด้วย)
         player.update();
-        
-         // อัพเดท transition ระหว่างด่าน
+
+        // อัพเดท transition ระหว่างด่าน
         levelManager.updateTransition();
-        
+
         // ตรวจสอบว่ากำลังอยู่ใน transition หรือไม่
         if (levelManager.isTransitioning()) {
             // ถ้าอยู่ใน transition ให้ล้างมอนเตอร์และกระสุนทั้งหมด
@@ -645,8 +648,7 @@ public class GamePanel extends JPanel implements Runnable, GameState {
             return; // ข้ามการอัพเดทอื่นๆ
         }
 
-
-         // ตรวจสอบว่าเพิ่งเปลี่ยนเลเวลหรือไม่
+        // ตรวจสอบว่าเพิ่งเปลี่ยนเลเวลหรือไม่
         if (levelManager.isLevelJustChanged()) {
             prepareNextLevel();
             return; // ออกจากการอัพเดทรอบนี้เลย
@@ -667,12 +669,12 @@ public class GamePanel extends JPanel implements Runnable, GameState {
         if (levelManager.getCurrentLevel() == 2) {
             // เปลี่ยนแผนที่เป็นด่าน 2
             gameMap = new GameMap("level2");
-    
+
             // เปลี่ยนเพลงประกอบ (ถ้ามี)
             if (!SoundManager.isMusicMuted()) {
                 SoundManager.playBackgroundMusic("level2_music");
             }
-        }           
+        }
 
         // ถ้าเกมจบแล้ว ให้อัพเดทเฉพาะเอฟเฟกต์หน้า Game Over
         if (gameOver) {
@@ -702,20 +704,20 @@ public class GamePanel extends JPanel implements Runnable, GameState {
         }
 
         // เพิ่มการเรียกใช้งาน handleShooting แทนการเช็คใน InputHandler
-       // บังคับใช้ handleShooting
+        // บังคับใช้ handleShooting
         if (levelManager.isLevelReadyToPlay()) {
             System.out.println("เริ่มเล่นด่าน " + levelManager.getCurrentLevel() + " แล้ว!");
             // รีเซ็ตสถานะควบคุมตัวละคร
-                if (inputHandler != null) {
-            // รีเซ็ตสถานะการกดปุ่มที่อาจค้างอยู่
-                    inputHandler.resetAllInputs();
-                }
-                player.setVelX(0);
-                player.setVelY(0);
-    
+            if (inputHandler != null) {
+                // รีเซ็ตสถานะการกดปุ่มที่อาจค้างอยู่
+                inputHandler.resetAllInputs();
+            }
+            player.setVelX(0);
+            player.setVelY(0);
+
             // บังคับให้เริ่มสปอนมอนสเตอร์ทันที
             monsterSpawnTimer = levelManager.getMonsterSpawnRate();
-    
+
             // บังคับให้โฟกัสกลับมาที่ GamePanel
             requestFocusInWindow();
             return; // ออกจาก update รอบนี้เพื่อให้รอบถัดไปเริ่มเกมจริงๆ
@@ -733,17 +735,17 @@ public class GamePanel extends JPanel implements Runnable, GameState {
         if (!stopTimeActive) {
             // สปอนมอนสเตอร์ - แก้ไขเงื่อนไขให้เข้มงวดน้อยลง
             monsterSpawnTimer++;
-    if (monsterSpawnTimer >= levelManager.getMonsterSpawnRate() && monsters.size() < 10) {
-        try {
-            // บังคับให้มีการพิมพ์ค่าเพื่อตรวจสอบ
-            System.out.println("กำลังพยายามสปอนมอนสเตอร์ในด่าน " + levelManager.getCurrentLevel());
-            spawnMonster();
-            monsterSpawnTimer = 0;
-        } catch (Exception e) {
-            System.err.println("เกิดข้อผิดพลาดในการสปอนมอนสเตอร์: " + e.getMessage());
-            e.printStackTrace();
-        }
-    }
+            if (monsterSpawnTimer >= levelManager.getMonsterSpawnRate() && monsters.size() < 10) {
+                try {
+                    // บังคับให้มีการพิมพ์ค่าเพื่อตรวจสอบ
+                    System.out.println("กำลังพยายามสปอนมอนสเตอร์ในด่าน " + levelManager.getCurrentLevel());
+                    spawnMonster();
+                    monsterSpawnTimer = 0;
+                } catch (Exception e) {
+                    System.err.println("เกิดข้อผิดพลาดในการสปอนมอนสเตอร์: " + e.getMessage());
+                    e.printStackTrace();
+                }
+            }
             // สปอนบอสถ้าสังหารมอนสเตอร์ครบ
             if (levelManager.shouldSpawnBoss() && bosses.isEmpty()) {
                 try {
@@ -800,7 +802,7 @@ public class GamePanel extends JPanel implements Runnable, GameState {
                             dirX = random.nextFloat() * 2 - 1;
                             dirY = random.nextFloat() * 2 - 1;
                         }
-                    
+
                         // ทำให้เป็นเวกเตอร์หนึ่งหน่วย
                         float length = (float) Math.sqrt(dirX * dirX + dirY * dirY);
                         if (length > 0) {
@@ -955,51 +957,89 @@ public class GamePanel extends JPanel implements Runnable, GameState {
         // ตรวจสอบการชนระหว่างผู้เล่นกับพาวเวอร์อัพ
         checkPowerupCollisions();
     }
-    
-    // แก้ไขในส่วนที่ตรวจสอบการเปลี่ยนเลเวล ใน GamePanel.java
-    // ในเมธอด updateBosses() หรือในเมธอดที่ถูกเรียกหลังจากฆ่าบอส
+
     private void prepareNextLevel() {
         // เคลียร์ศัตรูและกระสุนทั้งหมด
-        monsters.clear(); 
-        bosses.clear();  // เพิ่มการล้างบอสด้วย
+        monsters.clear();
+        bosses.clear();
         enemyBullets.clear();
-        playerBullets.clear(); // เคลียร์กระสุนผู้เล่
-    
+        playerBullets.clear();
+        powerups.clear(); // เพิ่มเคลียร์พาวเวอร์อัพด้วย
+
         // รีเซ็ตตำแหน่งผู้เล่นไปตรงกลางจอ
         player.setX(WIDTH / 2 - player.getWidth() / 2);
         player.setY(HEIGHT - 100);
-    
+
         // รีเซ็ตความเร็วผู้เล่น
         player.setVelX(0);
         player.setVelY(0);
-        
+
         // รีเซ็ตตัวนับเวลาการเกิดมอนสเตอร์
         monsterSpawnTimer = 0;
-    
-        // เปลี่ยนแผนที่โดยสร้าง GameMap ใหม่
-        if (levelManager.getCurrentLevel() == 2) {
-            // สร้าง gameMap ใหม่แทนการเปลี่ยนค่า mapName
-            gameMap = new GameMap("level2");
-        
-            // เปลี่ยนเพลงประกอบ (ถ้ามี)
-            if (!SoundManager.isMusicMuted()) {
-                SoundManager.playBackgroundMusic("level2_music");
-            }
-        } else if (levelManager.getCurrentLevel() > 2) {
-            // ถ้าเลเวลสูงกว่า 2 ให้ใช้แผนที่เริ่มต้น
-            gameMap = new GameMap("default");
-        }
-        System.out.println("เปลี่ยนไปด่าน " + levelManager.getCurrentLevel());
-        
-        // เพิ่มการบังคับอัพเดทการแสดงผล
-        repaint();
-        
-        // พักเกมสักครู่เพื่อให้ผู้เล่นตั้งตัว (0.5 วินาที)
+
+        // ล้างข้อมูลเก่าในหน่วยความจำ
+        System.gc(); // ช่วยเรียก garbage collector
+
         try {
-            Thread.sleep(1000);
-        } catch (InterruptedException e) {
+            // สร้าง gameMap ใหม่
+            if (levelManager.getCurrentLevel() == 2) {
+                gameMap = new GameMap("level2");
+
+                // เปลี่ยนเพลงประกอบ
+                if (!SoundManager.isMusicMuted()) {
+                    SoundManager.stopBackgroundMusic(); // หยุดเพลงปัจจุบันก่อน
+                    Thread.sleep(100); // รอสักครู่
+                    SoundManager.playBackgroundMusic("level2_music");
+                }
+            } else if (levelManager.getCurrentLevel() > 2) {
+                gameMap = new GameMap("default");
+            }
+
+            System.out.println("เปลี่ยนไปด่าน " + levelManager.getCurrentLevel() + " สำเร็จ");
+        } catch (Exception e) {
+            System.err.println("เกิดข้อผิดพลาดในการเปลี่ยนด่าน: " + e.getMessage());
             e.printStackTrace();
         }
+
+        // บังคับให้อัพเดทการแสดงผล
+        repaint();
+    }
+
+// เพิ่มเมธอดใหม่
+    private void clearCurrentLevelResources() {
+        monsters.clear();
+        bosses.clear();
+        enemyBullets.clear();
+        playerBullets.clear();
+        powerups.clear();
+
+        // ช่วย GC ทำงาน
+        System.gc();
+        monsterSpawnTimer = 0;
+    }
+
+// เพิ่มเมธอดใหม่
+    private void loadNextLevelResourcesAsync() {
+        new Thread(() -> {
+            try {
+                // สร้างแผนที่ใหม่ตามด่าน
+                if (levelManager.getCurrentLevel() >= 2 && levelManager.getCurrentLevel() <= 5) {
+                    final String mapName = "level" + levelManager.getCurrentLevel();
+
+                    // ทำใน Thread หลักเพื่อป้องกัน Thread conflicts
+                    SwingUtilities.invokeLater(() -> {
+                        gameMap = new GameMap(mapName);
+
+                        // เปลี่ยนเพลง
+                        if (!SoundManager.isMusicMuted()) {
+                            SoundManager.playBackgroundMusic("level" + levelManager.getCurrentLevel() + "_music");
+                        }
+                    });
+                }
+            } catch (Exception e) {
+                System.err.println("เกิดข้อผิดพลาดในการโหลดด่านใหม่: " + e.getMessage());
+            }
+        }).start();
     }
 
     private void checkBulletMonsterCollisions() {
@@ -1186,7 +1226,7 @@ public class GamePanel extends JPanel implements Runnable, GameState {
             drawPausedWithScaling(g);
         }
         if (levelManager.isTransitioning()) {
-        // แสดงผลภาพหน้าจอเปลี่ยนด่าน
+            // แสดงผลภาพหน้าจอเปลี่ยนด่าน
             drawLevelTransition(g);
             return; // หยุดการวาดองค์ประกอบอื่นๆ
         }
@@ -1199,35 +1239,20 @@ public class GamePanel extends JPanel implements Runnable, GameState {
             Image bgImage = ImageManager.getImage(bgKey);
 
             if (bgImage != null) {
-                // วาดภาพพื้นหลัง
-                g.drawImage(bgImage, 0, 0, WIDTH, HEIGHT, null);
+                // วาดภาพพื้นหลัง แบบไม่ยืดภาพ (ใช้ drawImage ที่ไม่มีการปรับขนาด)
+                g.drawImage(bgImage, 0, 0, null);
             } else {
                 // ถ้าไม่มีภาพพื้นหลัง ใช้การวาดแบบเดิม
                 g.setColor(Color.BLACK);
                 g.fillRect(0, 0, WIDTH, HEIGHT);
-            
-                // ถ้าไม่มีภาพพื้นหลัง ใช้การวาดดาวแบบเดิม
-                g.setColor(new Color(100, 100, 100));
-                for (int i = 0; i < 100; i++) {
-                    int starX = random.nextInt(WIDTH);
-                    int starY = random.nextInt(HEIGHT);
-                    g.fillRect(starX, starY, 1, 1);
-                }
-
-                g.setColor(new Color(200, 200, 200));
-                for (int i = 0; i < 50; i++) {
-                    int starX = random.nextInt(WIDTH);
-                    int starY = random.nextInt(HEIGHT);
-                    g.fillRect(starX, starY, 2, 2);
-                }
             }
         } catch (Exception e) {
-                System.err.println("เกิดข้อผิดพลาดในการวาดพื้นหลัง: " + e.getMessage());
-                // วาดพื้นหลังสำรอง
-                g.setColor(Color.BLACK);
-                g.fillRect(0, 0, WIDTH, HEIGHT);
+            System.err.println("เกิดข้อผิดพลาดในการวาดพื้นหลัง: " + e.getMessage());
+            // วาดพื้นหลังสำรอง
+            g.setColor(Color.BLACK);
+            g.fillRect(0, 0, WIDTH, HEIGHT);
+        }
     }
-}
 
     public void movePlayer(int dx, int dy) {
         if (!gameOver && !gamePaused) {
@@ -1249,8 +1274,8 @@ public class GamePanel extends JPanel implements Runnable, GameState {
 
     public void playerShoot(int targetX, int targetY) {
         if (!gameOver && !gamePaused && !levelManager.isTransitioning()) {
-        System.out.println("กำลังยิงในเกม - พิกัด: " + targetX + ", " + targetY);
-        
+            System.out.println("กำลังยิงในเกม - พิกัด: " + targetX + ", " + targetY);
+
             // แปลงพิกัดเมาส์ให้อยู่ในระบบพิกัดของเกม
             int scaledX = (int) (targetX / scaleX);
             int scaledY = (int) (targetY / scaleY);
@@ -1260,9 +1285,15 @@ public class GamePanel extends JPanel implements Runnable, GameState {
             playerBullets.addAll(player.getBullets());
         } else {
             // เพิ่ม log เพื่อดีบั๊ก
-            if (gameOver) System.out.println("ไม่สามารถยิงได้: เกมจบแล้ว");
-            if (gamePaused) System.out.println("ไม่สามารถยิงได้: เกมหยุดชั่วคราว");
-            if (levelManager.isTransitioning()) System.out.println("ไม่สามารถยิงได้: กำลังเปลี่ยนด่าน");
+            if (gameOver) {
+                System.out.println("ไม่สามารถยิงได้: เกมจบแล้ว");
+            }
+            if (gamePaused) {
+                System.out.println("ไม่สามารถยิงได้: เกมหยุดชั่วคราว");
+            }
+            if (levelManager.isTransitioning()) {
+                System.out.println("ไม่สามารถยิงได้: กำลังเปลี่ยนด่าน");
+            }
         }
     }
 

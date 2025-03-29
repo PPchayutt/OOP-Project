@@ -1,7 +1,9 @@
+
 import java.awt.*;
 import java.util.Random;
 
 public class Monster2 extends Monster {
+
     private int patternCounter = 0;
     private static final Random random = new Random();
     private float speedMultiplier = 0.4f;
@@ -9,7 +11,7 @@ public class Monster2 extends Monster {
 
     public Monster2(int x, int y, Player player) {
         super(x, y, player); // เรียก constructor ของ Monster
-        
+
         // แก้ไขค่าพารามิเตอร์ต่างๆ
         this.width = 35;
         this.height = 35;
@@ -27,7 +29,7 @@ public class Monster2 extends Monster {
         updateCooldowns();
 
         spawnTime++;
-        
+
         // เพิ่มความเร็วเร็วกว่าด่าน 1
         if (spawnTime < 200) { // ใช้เวลาปรับความเร็วน้อยกว่า
             speedMultiplier = Math.min(0.3f + (spawnTime / 500f), 1.0f);
@@ -49,7 +51,7 @@ public class Monster2 extends Monster {
 
         // รูปแบบการเคลื่อนที่ใหม่ของมอนสเตอร์ด่าน 2
         int movementPattern = patternCounter / 60 % 4; // เปลี่ยนรูปแบบทุก 1 วินาที
-        
+
         switch (movementPattern) {
             case 0 -> {
                 // ตรงไปหาผู้เล่นเร็วกว่า
@@ -78,27 +80,41 @@ public class Monster2 extends Monster {
                 }
                 x += dx * speed * speedMultiplier;
                 y += dy * speed * speedMultiplier;
-                
+
                 // หากออกนอกจอให้กลับเข้ามา
-                if (x < 0) x = 0;
-                if (x > GamePanel.WIDTH - width) x = GamePanel.WIDTH - width;
-                if (y < 0) y = 0;
-                if (y > GamePanel.HEIGHT - height) y = GamePanel.HEIGHT - height;
+                if (x < 0) {
+                    x = 0;
+                }
+                if (x > GamePanel.WIDTH - width) {
+                    x = GamePanel.WIDTH - width;
+                }
+                if (y < 0) {
+                    y = 0;
+                }
+                if (y > GamePanel.HEIGHT - height) {
+                    y = GamePanel.HEIGHT - height;
+                }
             }
         }
     }
 
     @Override
     public void render(Graphics g) {
-        // สีแตกต่างจากมอนสเตอร์ด่าน 1
-        g.setColor(new Color(50, 150, 50)); // สีเขียว
-        g.fillRect((int) x, (int) y, width, height);
-        
-        // ตาของมอนสเตอร์
-        g.setColor(Color.RED);
-        g.fillOval((int) x + 5, (int) y + 5, 10, 10);
-        g.fillOval((int) x + width - 15, (int) y + 5, 10, 10);
-        
+        // ใช้รูปภาพจาก ImageManager หากมี
+        Image monster2Image = ImageManager.getImage("monster2");
+        if (monster2Image != null) {
+            g.drawImage(monster2Image, (int) x, (int) y, width, height, null);
+        } else {
+            // ถ้าไม่มีรูปภาพให้วาดรูปทรงพื้นฐานแทน
+            g.setColor(new Color(50, 150, 50)); // สีเขียว
+            g.fillRect((int) x, (int) y, width, height);
+
+            // ตาของมอนสเตอร์
+            g.setColor(Color.RED);
+            g.fillOval((int) x + 5, (int) y + 5, 10, 10);
+            g.fillOval((int) x + width - 15, (int) y + 5, 10, 10);
+        }
+
         // วาดแถบพลังชีวิต
         g.setColor(Color.RED);
         g.fillRect((int) x, (int) y - 5, width, 3);
