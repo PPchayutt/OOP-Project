@@ -33,6 +33,9 @@ public class SoundManager {
 
             // เพิ่มการโหลดเพลงสำหรับ Level 1
             loadMusic("level1_music", "resources/sounds/level1_music.wav");
+            
+            // เพิ่มการโหลดเพลงสำหรับ Level 2
+            loadMusic("level2_music", "resources/sounds/level2_music.wav");
 
             soundsLoaded = true;
             System.out.println("โหลดไฟล์เสียงทั้งหมดสำเร็จ!");
@@ -97,16 +100,24 @@ public class SoundManager {
             return;
         }
 
+        // ตรวจสอบว่ามีเพลงตามที่ต้องการหรือไม่
+        Clip clip = sounds.get(key);
+        if (clip == null) {
+            System.out.println("ไม่พบเพลง " + key + " จะใช้เพลงเริ่มต้นแทน");
+            // ใช้เพลงด่าน 1 เป็นเพลงเริ่มต้น
+            clip = sounds.get("level1_music");
+            if (clip == null) {
+                return; // ถ้าไม่มีเพลงเริ่มต้นให้ยกเลิก
+            }
+        }
+
         // หยุดเพลงปัจจุบัน (ถ้ามี)
         stopBackgroundMusic();
 
         // เริ่มเล่นเพลงใหม่
-        Clip clip = sounds.get(key);
-        if (clip != null) {
-            backgroundMusic = clip;
-            clip.setFramePosition(0);
-            clip.loop(Clip.LOOP_CONTINUOUSLY);
-        }
+        backgroundMusic = clip;
+        clip.setFramePosition(0);
+        clip.loop(Clip.LOOP_CONTINUOUSLY);
     }
 
     /**

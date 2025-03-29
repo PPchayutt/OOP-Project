@@ -8,6 +8,11 @@ public class LevelManager {
     private int monstersKilled = 0;
     private boolean bossSpawned = false;
     private static final Random random = new Random();
+    private boolean levelJustChanged = false;
+    private boolean isTransitioning = false;
+    private int transitionTimer = 0;
+    private boolean needMapChange = false;
+    private boolean levelReadyToPlay = false;
 
     public LevelManager() {
         monstersToKill = 20 + (currentLevel - 1) * 5;
@@ -21,10 +26,67 @@ public class LevelManager {
         currentLevel++;
         if (currentLevel > 5) {
             // เล่นจบเกม (จัดการเมื่อชนะเกม)
+            return;
         }
-        monstersToKill = 20 + (currentLevel - 1) * 5;
+        monstersToKill = 20 + (currentLevel - 1) * 10;
         monstersKilled = 0;
         bossSpawned = false;
+        isTransitioning = true;
+        transitionTimer = 120; // 2 วินาที
+        levelJustChanged = true;
+        needMapChange = true; // ตั้งค่าให้เปลี่ยนแผนที่
+    
+        System.out.println("กำลังเริ่มการเปลี่ยนด่านเป็นด่าน " + currentLevel);
+    }
+    public boolean needsMapChange() {
+        if (needMapChange) {
+            needMapChange = false; // รีเซ็ตค่าหลังจากอ่านแล้ว
+            return true;
+        }
+        return false;
+    }
+    
+    // เพิ่มเมธอดตรวจสอบว่ากำลัง transition หรือไม่
+    public boolean isTransitioning() {
+        return isTransitioning;
+    }
+    
+    // เพิ่มเมธอดอัพเดท transition timer
+    public void updateTransition() {
+        if (isTransitioning && transitionTimer > 0) {
+            transitionTimer--;
+            if (transitionTimer <= 0) {
+                isTransitioning = false;
+                levelReadyToPlay = true;
+                // อาจเพิ่มการส่งสัญญาณให้ GamePanel ขอโฟกัสกลับมา
+            }
+        }
+    }
+        public boolean isLevelReadyToPlay() {
+        if (levelReadyToPlay) {
+            levelReadyToPlay = false; // รีเซ็ตค่าหลังอ่านแล้ว
+            return true;
+        }
+        return false;
+    }
+    
+    // เพิ่มเมธอดสำหรับสปอนมอนสเตอร์ตามด่าน
+    public Monster spawnMonsterForLevel(int[] pos, Player player) {
+        if (currentLevel == 1) {
+            return new Monster(pos[0], pos[1], player);
+        } else {
+            return new Monster2(pos[0], pos[1], player);
+        }
+    }
+  
+    
+    // เพิ่มเมธอดสำหรับสปอนบอสตามด่าน
+    public Enemy spawnBossForLevel(int[] pos) {
+        if (currentLevel == 1) {
+            return new Boss(pos[0], pos[1], currentLevel);
+        } else {
+            return new Boss2(pos[0], pos[1], currentLevel - 1); // ลดระดับลง 1 เพื่อสมดุล
+        }
     }
 
     public boolean shouldSpawnBoss() {
@@ -69,6 +131,11 @@ public class LevelManager {
 
         return new int[]{x, y};
     }
+    public boolean isLevelJustChanged() {
+        boolean result = levelJustChanged;
+        levelJustChanged = false; // รีเซ็ตสถานะหลังจากอ่านค่าแล้ว
+        return result;
+    }
 
     public int getMonsterSpawnInterval() {
         // ลดเวลาสปอน์มอนสเตอร์ตามระดับความยาก
@@ -90,5 +157,12 @@ public class LevelManager {
 
     public int getMonstersKilled() {
         return monstersKilled;
+    }
+
+    public int getTransitionTimer() {
+        return transitionTimer;
+    }
+    public LevelManager getLevelManager() {
+        return this; // แก้จาก return levelManager; เป็น return this;
     }
 }

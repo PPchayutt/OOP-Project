@@ -17,9 +17,9 @@ public class InputHandler implements KeyListener, MouseListener, MouseMotionList
     public void keyPressed(KeyEvent e) {
         int key = e.getKeyCode();
         
-        // ตรวจสอบว่าเกมจบแล้วหรือยัง
+         // ตรวจสอบว่าเกมจบแล้วหรือยัง
         boolean isGameOver = gamePanel.isGameOver();
-
+        
         // การตรวจจับปุ่มสำหรับเคลื่อนที่
         if (key == KeyEvent.VK_W) {
             up = true;
@@ -82,16 +82,18 @@ public class InputHandler implements KeyListener, MouseListener, MouseMotionList
         if (isLeftHold) {
             long currentTime = System.currentTimeMillis();
             long playerCooldown = gamePanel.getPlayer().getShootCooldown();
+            long timeSinceLastShot = currentTime - lastShootTime;
 
             // ตรวจสอบว่าถึงเวลายิงหรือยัง
-            if (currentTime - lastShootTime >= playerCooldown) {
+            if (timeSinceLastShot >= playerCooldown) {
+                System.out.println("ยิงที่พิกัด: " + mouseX + ", " + mouseY);
+            
                 // ส่งพิกัดเมาส์ที่แท้จริงไปให้ gamePanel (ไม่ต้องแปลงที่นี่)
                 gamePanel.playerShoot(mouseX, mouseY);
                 lastShootTime = currentTime;
             }
         }
     }
-
     @Override
     public void mouseReleased(MouseEvent e) {
         if (e.getButton() == MouseEvent.BUTTON1) {
@@ -155,5 +157,18 @@ public class InputHandler implements KeyListener, MouseListener, MouseMotionList
         }
 
         gamePanel.movePlayer(dx, dy);
+    }
+    public void resetAllInputs() {
+        // รีเซ็ตสถานะการกดปุ่มทั้งหมด
+        up = false;
+        down = false;
+        left = false;
+        right = false;
+        isLeftHold = false;
+    
+        // อัพเดตการเคลื่อนที่ผู้เล่นให้หยุด
+        updatePlayerMovement();
+    
+        System.out.println("รีเซ็ตการควบคุมทั้งหมดแล้ว");
     }
 }

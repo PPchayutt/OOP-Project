@@ -9,7 +9,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import javax.imageio.ImageIO;
 
-/**
+/*
  * คลาสจัดการรูปภาพในเกมทั้งหมด
  * รับผิดชอบการโหลดและการสร้างรูปภาพทั้งหมดที่ใช้ในเกม
  */
@@ -18,7 +18,7 @@ public class ImageManager {
     private static final HashMap<String, Image> images = new HashMap<>();
     private static boolean imagesLoaded = false;
 
-    /**
+    /*
      * โหลดรูปภาพทั้งหมดที่จำเป็นสำหรับเกม
      */
     public static void loadImages() {
@@ -29,6 +29,8 @@ public class ImageManager {
                 resourceDir.mkdirs(); // สร้างโฟลเดอร์ถ้ายังไม่มี
                 System.out.println("สร้างโฟลเดอร์ resources/images เรียบร้อย โปรดนำรูปภาพไปใส่ในโฟลเดอร์นี้");
             }
+            // ใน ImageManager.java - เพิ่มในเมธอด loadImages()
+            // โหลดรูปภาพพื้นหลังด่าน 2
 
             try {
                 File playerFile = new File("resources/images/player.png");
@@ -69,7 +71,16 @@ public class ImageManager {
                 } else {
                     System.out.println("ไม่พบไฟล์ภาพฉากด่าน 1");
                 }
-
+                
+                File level2BgFile = new File("resources/images/level2_bg.png");
+                if (level2BgFile.exists()) {
+                    images.put("level2_bg", ImageIO.read(level2BgFile));
+                    System.out.println("โหลดรูปภาพฉากด่าน 2 สำเร็จ");
+                } else {
+                    System.out.println("ไม่พบไฟล์ภาพฉากด่าน 2 จะสร้างภาพเองอัตโนมัติ");
+                    createLevel2BackgroundImage();
+                }
+                
                 // โหลดรูปภาพปืนและเอฟเฟค
                 File gunFile = new File("resources/images/gun.png");
                 if (gunFile.exists()) {
@@ -250,8 +261,31 @@ public class ImageManager {
         g2d.dispose();
         images.put("broken_heart", brokenHeartImg);
     }
+    private static void createLevel2BackgroundImage() {
+        BufferedImage level2Bg = new BufferedImage(800, 600, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g2d = level2Bg.createGraphics();
+    
+        // สร้างพื้นหลังสีน้ำตาลอ่อน (พื้นไม้)
+        g2d.setColor(new Color(150, 120, 90));
+        g2d.fillRect(0, 0, 800, 600);
+    
+        // สร้างพื้นกระเบื้องมุมขวาล่าง
+        g2d.setColor(new Color(200, 200, 200));
+        g2d.fillRect(550, 400, 250, 150);
+    
+        // วาดรายละเอียดเพิ่มเติม
+        g2d.setColor(new Color(130, 100, 70));
+        for (int i = 0; i < 800; i += 40) {
+            for (int j = 0; j < 600; j += 20) {
+                g2d.drawRect(i, j, 40, 20);
+            }
+        }
+    
+        g2d.dispose();
+        images.put("level2_bg", level2Bg);
+    }
 
-    /**
+    /*
      * สร้างภาพอื่นๆ ที่จำเป็น
      */
     private static void createOtherDefaultImages() {

@@ -6,12 +6,12 @@ import java.util.Random;
 
 public class Boss extends Enemy {
 
-    private int phaseCounter = 0;
-    private int phase = 0;
-    private int moveDirection = 1;
-    private int attackPattern = 0;
+    int phaseCounter = 0;
+    int phase = 0;
+    int moveDirection = 1;
+    int attackPattern = 0;
     private static final Random random = new Random();
-    private final int level;
+    final int level;
 
     public Boss(int x, int y, int level) {
         super(x, y, 80, 80, 200 * level, 1, 20, 1000 * level);

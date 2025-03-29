@@ -9,7 +9,7 @@ public class Monster extends Enemy {
 
     private final int movementPattern;
     private int patternCounter = 0;
-    private final Player target;
+    final Player target;
     private static final Random random = new Random();
     private float speedMultiplier = 0.3f; // เพิ่มตัวแปรใหม่เพื่อทำให้เคลื่อนที่ช้าลงตอนเริ่มต้น
     private int spawnTime = 0; // นับเวลาตั้งแต่เกิด
@@ -113,5 +113,9 @@ public class Monster extends Enemy {
 
         // สร้างกระสุน
         return new EnemyBullet((int) x + width / 2, (int) y + height / 2, 8, 8, angle, 5, damage);
+    }
+
+    void setDamage(int i) {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
     }
 }
