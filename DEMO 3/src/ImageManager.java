@@ -293,14 +293,10 @@ public class ImageManager {
             // เปิดใช้ anti-aliasing เพื่อให้ภาพสวยขึ้น
             g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-            // สร้างพื้นหลังสีน้ำตาลอ่อน (พื้นไม้)
-            g2d.setColor(new Color(150, 120, 90));
-            g2d.fillRect(0, 0, GamePanel.WIDTH, GamePanel.HEIGHT);
-
-            // วาดรายละเอียดน้อยลงเพื่อเพิ่มประสิทธิภาพ
+            // วาดรายละเอียดเพิ่มเติม
             g2d.setColor(new Color(130, 100, 70));
-            for (int i = 0; i < GamePanel.WIDTH; i += 100) {
-                for (int j = 0; j < GamePanel.HEIGHT; j += 100) {
+            for (int i = 0; i < 800; i += 100) { // เพิ่มระยะห่างwa
+                for (int j = 0; j < 600; j += 100) { // เพิ่มระยะห่าง
                     g2d.drawRect(i, j, 100, 100);
                 }
             }
