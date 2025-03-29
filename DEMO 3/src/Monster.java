@@ -2,7 +2,7 @@
 import java.awt.*;
 import java.util.Random;
 
-/**
+/*
  * Monster คือศัตรูธรรมดาในเกม จะเคลื่อนที่ตามรูปแบบต่างๆ และพยายามเข้าหาผู้เล่น
  */
 public class Monster extends Enemy {
@@ -14,7 +14,7 @@ public class Monster extends Enemy {
     private float speedMultiplier = 0.3f; // เพิ่มตัวแปรใหม่เพื่อทำให้เคลื่อนที่ช้าลงตอนเริ่มต้น
     private int spawnTime = 0; // นับเวลาตั้งแต่เกิด
 
-    /**
+    /*
      * สร้างมอนสเตอร์ใหม่
      *
      * @param x

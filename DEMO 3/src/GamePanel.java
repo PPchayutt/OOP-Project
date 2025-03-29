@@ -518,6 +518,9 @@ public class GamePanel extends JPanel implements Runnable, GameState {
         String countdownMessage = seconds + "";
         int countdownWidth = g.getFontMetrics().stringWidth(countdownMessage);
         g.drawString(countdownMessage, (WIDTH - countdownWidth) / 2, HEIGHT / 2 + 90);
+        
+        g.setFont(new Font("Arial", Font.PLAIN, 12));
+        g.drawString("Timer: " + levelManager.getTransitionTimer(), 10, HEIGHT - 20);
     }
 
     private void initGame() {
@@ -717,6 +720,8 @@ public class GamePanel extends JPanel implements Runnable, GameState {
 
             // บังคับให้เริ่มสปอนมอนสเตอร์ทันที
             monsterSpawnTimer = levelManager.getMonsterSpawnRate();
+            player.setX(WIDTH / 2 - player.getWidth() / 2);
+            player.setY(HEIGHT - 100);
 
             // บังคับให้โฟกัสกลับมาที่ GamePanel
             requestFocusInWindow();
@@ -1091,7 +1096,7 @@ public class GamePanel extends JPanel implements Runnable, GameState {
             }
 
             int[] pos = levelManager.getRandomMonsterPosition();
-            Monster monster = levelManager.spawnMonsterForLevel(pos, player);
+            Monster monster = (Monster) levelManager.spawnMonsterForLevel(pos, player);
             if (monster != null) {
                 monsters.add(monster);
             }

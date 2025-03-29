@@ -21,7 +21,9 @@ public class GameMap {
             case "level1" ->
                 createLevel1Map();
             case "level2" ->
-                createLevel2Map(); // เพิ่มการเรียกเมธอดนี้
+                createLevel2Map();
+            case "level3" ->
+                createLevel3Map(); // เพิ่มการเรียกเมธอดนี้
             default -> // สร้างแผนที่เริ่มต้น
                 createDefaultMap();
         }
@@ -112,6 +114,51 @@ public class GameMap {
             createDefaultMap();
         }
     }
+    private void createLevel3Map() {
+        System.out.println("กำลังสร้างแผนที่ด่าน 3...");
+
+        try {
+            // ล้างบล็อกเก่าก่อนเพื่อป้องกันการซ้อนทับ
+            blocks.clear();
+
+            // สร้างขอบของแผนที่ (ใช้ซ้ำกับทุกด่าน)
+            blocks.add(new Block(0, 0, 800, 10));     // ขอบบน
+            blocks.add(new Block(0, 550, 800, 50));   // ขอบล่าง
+            blocks.add(new Block(0, 0, 10, 600));     // ขอบซ้าย
+            blocks.add(new Block(770, 0, 30, 600));   // ขอบขวา
+
+            // สร้างสิ่งกีดขวางตามที่เห็นในรูปพื้นหลังด่าน 3
+            blocks.add(new Block(150, 120, 200, 90)); // โต๊ะเอียงใหญ่ด้านซ้ายบน
+            blocks.add(new Block(380, 180, 120, 70)); // โต๊ะเล็กตรงกลาง
+            blocks.add(new Block(550, 250, 60, 120)); // ตู้ด้านขวา
+            blocks.add(new Block(100, 350, 150, 100)); // ตู้ด้านล่างซ้าย
+            blocks.add(new Block(300, 400, 60, 30));  // โต๊ะตรงกลางด้านล่าง
+            blocks.add(new Block(700, 350, 60, 60));  // วงกลมสีเทา (หม้อหรือถังน้ำ) ที่มุมขวาล่าง
+
+            // พื้นที่กระเบื้องที่มุมขวาบน
+            for (int x = 600; x < 800; x += 30) {
+                for (int y = 0; y < 320; y += 30) {
+                    if (Math.random() < 0.25) { // สุ่มบล็อกที่เดินไม่ได้ 25%
+                        blocks.add(new Block(x, y, 30, 30));
+                    }
+                }
+            }
+
+            if (DEBUG_MODE) {
+                for (Block block : blocks) {
+                    block.setVisible(true);
+                }
+            }
+
+            System.out.println("สร้างแผนที่ด่าน 3 สำเร็จ: " + blocks.size() + " บล็อก");
+        } catch (Exception e) {
+            System.err.println("เกิดข้อผิดพลาดในการสร้างแผนที่ด่าน 3: " + e.getMessage());
+            e.printStackTrace();
+            // สร้างแผนที่เริ่มต้นเพื่อไม่ให้เกมพัง
+            createDefaultMap();
+        }
+    }
+
 
     // แก้ไขเมธอด getName() ใน GameMap.java เป็น
     public Object getName() {
