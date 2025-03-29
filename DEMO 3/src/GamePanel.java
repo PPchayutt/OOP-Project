@@ -772,7 +772,7 @@ public class GamePanel extends JPanel implements Runnable, GameState {
         bosses.clear();
         enemyBullets.clear();
         playerBullets.clear();
-        powerups.clear();
+        powerups.clear();  // เพิ่มเคลียร์พาวเวอร์อัพด้วย
 
         // ช่วย GC ทำงาน
         System.gc();
@@ -991,31 +991,17 @@ public class GamePanel extends JPanel implements Runnable, GameState {
             // รีเซ็ตตัวนับเวลาการเกิดมอนสเตอร์
             monsterSpawnTimer = 0;
 
-            // สร้าง gameMap ใหม่ (ใช้ SwingUtilities.invokeLater เพื่อป้องกันปัญหาจากการทำงานข้ามเธรด)
-            SwingUtilities.invokeLater(() -> {
-                if (levelManager.getCurrentLevel() == 2) {
-                    gameMap = new GameMap("level2");
+            // เรียกใช้เมธอดใหม่เพื่อโหลดทรัพยากรด่านถัดไปแบบ async
+            loadNextLevelResourcesAsync();
 
-                    // เปลี่ยนเพลงประกอบ
-                    if (!SoundManager.isMusicMuted()) {
-                        SoundManager.stopBackgroundMusic(); // หยุดเพลงก่อน
-                        SoundManager.playBackgroundMusic("level2_music");
-                    }
-                } else if (levelManager.getCurrentLevel() > 2) {
-                    gameMap = new GameMap("default");
-                }
-
-                System.out.println("เปลี่ยนไปด่าน " + levelManager.getCurrentLevel() + " สำเร็จ");
-                repaint(); // บังคับให้วาดใหม่ทันที
-            });
-
+            System.out.println("เปลี่ยนไปด่าน " + levelManager.getCurrentLevel());
+            repaint(); // บังคับให้วาดใหม่ทันที
         } catch (Exception e) {
             System.err.println("เกิดข้อผิดพลาดในการเปลี่ยนด่าน: " + e.getMessage());
             e.printStackTrace();
         }
     }
 
-// เพิ่มเมธอดใหม่
     private void loadNextLevelResourcesAsync() {
         new Thread(() -> {
             try {

@@ -34,9 +34,10 @@ public class Monster2 extends Monster {
         if (spawnTime < 120) {
             speedMultiplier = 0.3f + (spawnTime / 600f);
         } else {
-            speedMultiplier = 0.8f; // ไม่ต้องให้เร็วเต็มที่เพื่อลดการกระตุก
+            speedMultiplier = 0.8f; // ไม่ต้องให้เร็วเต็มที่
         }
 
+        // คำนวณทิศทางไปหาผู้เล่น - ต้องมีส่วนนี้ก่อน!
         float targetX = target.getX() + target.getWidth() / 2;
         float targetY = target.getY() + target.getHeight() / 2;
 

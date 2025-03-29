@@ -283,37 +283,26 @@ public class ImageManager {
     }
 
     private static void createLevel2BackgroundImage() {
-        try {
-            System.out.println("กำลังสร้างภาพพื้นหลังด่าน 2...");
+        BufferedImage level2Bg = new BufferedImage(GamePanel.WIDTH, GamePanel.HEIGHT, BufferedImage.TYPE_INT_RGB);
+        Graphics2D g2d = level2Bg.createGraphics();
 
-            // แก้ไขตรงนี้: ใช้ขนาดที่แน่นอนตาม GamePanel
-            BufferedImage level2Bg = new BufferedImage(GamePanel.WIDTH, GamePanel.HEIGHT, BufferedImage.TYPE_INT_RGB);
-            Graphics2D g2d = level2Bg.createGraphics();
+        // เปิดใช้ anti-aliasing
+        g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-            // เปิดใช้ anti-aliasing เพื่อให้ภาพสวยขึ้น
-            g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        // วาดพื้นหลังสีน้ำตาล
+        g2d.setColor(new Color(150, 120, 90));
+        g2d.fillRect(0, 0, GamePanel.WIDTH, GamePanel.HEIGHT);
 
-            // วาดรายละเอียดเพิ่มเติม
-            g2d.setColor(new Color(130, 100, 70));
-            for (int i = 0; i < 800; i += 100) { // เพิ่มระยะห่างwa
-                for (int j = 0; j < 600; j += 100) { // เพิ่มระยะห่าง
-                    g2d.drawRect(i, j, 100, 100);
-                }
+        // ลดจำนวนเส้นตาราง ใช้เส้นห่างกว่าเดิม
+        g2d.setColor(new Color(130, 100, 70));
+        for (int i = 0; i < 800; i += 100) { // เพิ่มระยะห่าง
+            for (int j = 0; j < 600; j += 100) { // เพิ่มระยะห่าง
+                g2d.drawRect(i, j, 100, 100);
             }
-
-            g2d.dispose();
-            images.put("level2_bg", level2Bg);
-            System.out.println("สร้างภาพพื้นหลังด่าน 2 สำเร็จ");
-        } catch (Exception e) {
-            System.err.println("เกิดข้อผิดพลาดในการสร้างภาพพื้นหลังด่าน 2: " + e.getMessage());
-            // สร้างภาพพื้นหลังอย่างง่ายแทน
-            BufferedImage simpleBg = new BufferedImage(GamePanel.WIDTH, GamePanel.HEIGHT, BufferedImage.TYPE_INT_RGB);
-            Graphics2D g2d = simpleBg.createGraphics();
-            g2d.setColor(new Color(150, 120, 90));
-            g2d.fillRect(0, 0, GamePanel.WIDTH, GamePanel.HEIGHT);
-            g2d.dispose();
-            images.put("level2_bg", simpleBg);
         }
+
+        g2d.dispose();
+        images.put("level2_bg", level2Bg);
     }
 
     private static void createDefaultMonster2Image() {
