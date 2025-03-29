@@ -23,7 +23,11 @@ public class GameMap {
             case "level2" ->
                 createLevel2Map();
             case "level3" ->
-                createLevel3Map(); // เพิ่มการเรียกเมธอดนี้
+                createLevel3Map();
+            case "level4" ->
+                createLevel4Map();
+            case "level5" ->
+                createLevel5Map();
             default -> // สร้างแผนที่เริ่มต้น
                 createDefaultMap();
         }
@@ -114,6 +118,7 @@ public class GameMap {
             createDefaultMap();
         }
     }
+
     private void createLevel3Map() {
         System.out.println("กำลังสร้างแผนที่ด่าน 3...");
 
@@ -159,6 +164,108 @@ public class GameMap {
         }
     }
 
+    private void createLevel4Map() {
+        System.out.println("กำลังสร้างแผนที่ด่าน 4...");
+
+        try {
+            // ล้างบล็อกเก่าก่อนเพื่อป้องกันการซ้อนทับ
+            blocks.clear();
+
+            // สร้างขอบของแผนที่ (ใช้ซ้ำกับทุกด่าน)
+            blocks.add(new Block(0, 0, 800, 10));     // ขอบบน
+            blocks.add(new Block(0, 550, 800, 50));   // ขอบล่าง
+            blocks.add(new Block(0, 0, 10, 600));     // ขอบซ้าย
+            blocks.add(new Block(770, 0, 30, 600));   // ขอบขวา
+
+            // สร้างสิ่งกีดขวางของด่าน 4 (ห้องทดลองหรือห้องแล็บ)
+            // โต๊ะทดลองตรงกลาง
+            blocks.add(new Block(300, 150, 200, 80));
+
+            // เครื่องมือวิทยาศาสตร์มุมซ้ายบน
+            blocks.add(new Block(100, 80, 120, 60));
+
+            // ตู้เก็บอุปกรณ์มุมขวาบน
+            blocks.add(new Block(600, 80, 80, 160));
+
+            // โต๊ะเล็กใกล้ขอบซ้าย
+            blocks.add(new Block(50, 300, 70, 40));
+
+            // โต๊ะเล็กใกล้ขอบขวา
+            blocks.add(new Block(650, 300, 70, 40));
+
+            // สิ่งกีดขวางล่าง (คล้ายเคาน์เตอร์ยาว)
+            blocks.add(new Block(150, 430, 500, 30));
+
+            if (DEBUG_MODE) {
+                for (Block block : blocks) {
+                    block.setVisible(true);
+                }
+            }
+
+            System.out.println("สร้างแผนที่ด่าน 4 สำเร็จ: " + blocks.size() + " บล็อก");
+        } catch (Exception e) {
+            System.err.println("เกิดข้อผิดพลาดในการสร้างแผนที่ด่าน 4: " + e.getMessage());
+            e.printStackTrace();
+            // สร้างแผนที่เริ่มต้นเพื่อไม่ให้เกมพัง
+            createDefaultMap();
+        }
+    }
+
+    private void createLevel5Map() {
+        System.out.println("กำลังสร้างแผนที่ด่าน 5...");
+
+        try {
+            // ล้างบล็อกเก่าก่อนเพื่อป้องกันการซ้อนทับ
+            blocks.clear();
+
+            // สร้างขอบของแผนที่ (ใช้ซ้ำกับทุกด่าน)
+            blocks.add(new Block(0, 0, 800, 10));     // ขอบบน
+            blocks.add(new Block(0, 550, 800, 50));   // ขอบล่าง
+            blocks.add(new Block(0, 0, 10, 600));     // ขอบซ้าย
+            blocks.add(new Block(770, 0, 30, 600));   // ขอบขวา
+
+            // สร้างสิ่งกีดขวางของด่าน 5 (แท่นบูชาหรือพื้นที่พิธีกรรม)
+            // แท่นบูชาตรงกลาง
+            blocks.add(new Block(350, 200, 100, 100));
+
+            // เสาหินมุมบนซ้าย
+            blocks.add(new Block(150, 100, 40, 40));
+
+            // เสาหินมุมบนขวา
+            blocks.add(new Block(600, 100, 40, 40));
+
+            // เสาหินมุมล่างซ้าย
+            blocks.add(new Block(150, 400, 40, 40));
+
+            // เสาหินมุมล่างขวา
+            blocks.add(new Block(600, 400, 40, 40));
+
+            // สิ่งกีดขวางแนวทแยงซ้ายบน
+            blocks.add(new Block(220, 170, 60, 60));
+
+            // สิ่งกีดขวางแนวทแยงขวาบน
+            blocks.add(new Block(520, 170, 60, 60));
+
+            // สิ่งกีดขวางแนวทแยงซ้ายล่าง
+            blocks.add(new Block(220, 370, 60, 60));
+
+            // สิ่งกีดขวางแนวทแยงขวาล่าง
+            blocks.add(new Block(520, 370, 60, 60));
+
+            if (DEBUG_MODE) {
+                for (Block block : blocks) {
+                    block.setVisible(true);
+                }
+            }
+
+            System.out.println("สร้างแผนที่ด่าน 5 สำเร็จ: " + blocks.size() + " บล็อก");
+        } catch (Exception e) {
+            System.err.println("เกิดข้อผิดพลาดในการสร้างแผนที่ด่าน 5: " + e.getMessage());
+            e.printStackTrace();
+            // สร้างแผนที่เริ่มต้นเพื่อไม่ให้เกมพัง
+            createDefaultMap();
+        }
+    }
 
     // แก้ไขเมธอด getName() ใน GameMap.java เป็น
     public Object getName() {

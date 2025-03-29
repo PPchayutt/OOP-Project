@@ -85,18 +85,27 @@ public class LevelManager {
             return new Monster(pos[0], pos[1], player);
         } else if (currentLevel == 2) {
             return new Monster2(pos[0], pos[1], player);
-        } else {
+        } else if (currentLevel == 3) {
             return new Monster3(pos[0], pos[1], player);
+        } else if (currentLevel == 4) {
+            return new Monster4(pos[0], pos[1], player);
+        } else {
+            return new Monster5(pos[0], pos[1], player);
         }
     }
+
     // เพิ่มเมธอดสำหรับสปอนบอสตามด่าน
     public Enemy spawnBossForLevel(int[] pos) {
         if (currentLevel == 1) {
             return new Boss(pos[0], pos[1], currentLevel);
         } else if (currentLevel == 2) {
             return new Boss2(pos[0], pos[1], currentLevel - 1); // ลดระดับลง 1 เพื่อสมดุล
-        } else {
+        } else if (currentLevel == 3) {
             return new Boss3(pos[0], pos[1], currentLevel - 2); // ลดระดับลง 2 เพื่อสมดุล
+        } else if (currentLevel == 4) {
+            return new Boss4(pos[0], pos[1], currentLevel - 3); // ลดระดับลง 3 เพื่อสมดุล
+        } else {
+            return new Boss5(pos[0], pos[1], currentLevel - 4); // ลดระดับลง 4 เพื่อสมดุล
         }
     }
 

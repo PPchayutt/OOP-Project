@@ -7,6 +7,7 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.Random;
 import javax.imageio.ImageIO;
 
 /*
@@ -125,6 +126,65 @@ public class ImageManager {
                     System.out.println("ไม่พบไฟล์ภาพบอสด่าน 3 จะใช้ภาพพื้นฐานแทน");
                     createDefaultBoss3Image();
                 }
+                // โหลดรูปภาพฉากด่าน 4
+                File level4BgFile = new File("resources/images/level4_bg.png");
+                if (level4BgFile.exists()) {
+                    images.put("level4_bg", ImageIO.read(level4BgFile));
+                    System.out.println("โหลดรูปภาพฉากด่าน 4 สำเร็จ");
+                } else {
+                    System.out.println("ไม่พบไฟล์ภาพฉากด่าน 4 จะสร้างภาพเองอัตโนมัติ");
+                    createLevel4BackgroundImage();
+                }
+
+// โหลดรูปภาพฉากด่าน 5
+                File level5BgFile = new File("resources/images/level5_bg.png");
+                if (level5BgFile.exists()) {
+                    images.put("level5_bg", ImageIO.read(level5BgFile));
+                    System.out.println("โหลดรูปภาพฉากด่าน 5 สำเร็จ");
+                } else {
+                    System.out.println("ไม่พบไฟล์ภาพฉากด่าน 5 จะสร้างภาพเองอัตโนมัติ");
+                    createLevel5BackgroundImage();
+                }
+
+// โหลดรูปภาพมอนสเตอร์ด่าน 4
+                File monster4File = new File("resources/images/L4_Enemy.png");
+                if (monster4File.exists()) {
+                    images.put("monster4", ImageIO.read(monster4File));
+                    System.out.println("โหลดรูปภาพมอนสเตอร์ด่าน 4 สำเร็จ");
+                } else {
+                    System.out.println("ไม่พบไฟล์ภาพมอนสเตอร์ด่าน 4 จะใช้ภาพพื้นฐานแทน");
+                    createDefaultMonster4Image();
+                }
+
+// โหลดรูปภาพบอสด่าน 4
+                File boss4File = new File("resources/images/L4_Boss.png");
+                if (boss4File.exists()) {
+                    images.put("boss4", ImageIO.read(boss4File));
+                    System.out.println("โหลดรูปภาพบอสด่าน 4 สำเร็จ");
+                } else {
+                    System.out.println("ไม่พบไฟล์ภาพบอสด่าน 4 จะใช้ภาพพื้นฐานแทน");
+                    createDefaultBoss4Image();
+                }
+
+// โหลดรูปภาพมอนสเตอร์ด่าน 5
+                File monster5File = new File("resources/images/L5_Enemy.png");
+                if (monster5File.exists()) {
+                    images.put("monster5", ImageIO.read(monster5File));
+                    System.out.println("โหลดรูปภาพมอนสเตอร์ด่าน 5 สำเร็จ");
+                } else {
+                    System.out.println("ไม่พบไฟล์ภาพมอนสเตอร์ด่าน 5 จะใช้ภาพพื้นฐานแทน");
+                    createDefaultMonster5Image();
+                }
+
+// โหลดรูปภาพบอสด่าน 5
+                File boss5File = new File("resources/images/L5_Boss.png");
+                if (boss5File.exists()) {
+                    images.put("boss5", ImageIO.read(boss5File));
+                    System.out.println("โหลดรูปภาพบอสด่าน 5 สำเร็จ");
+                } else {
+                    System.out.println("ไม่พบไฟล์ภาพบอสด่าน 5 จะใช้ภาพพื้นฐานแทน");
+                    createDefaultBoss5Image();
+                }
 
                 // โหลดรูปภาพปืนและเอฟเฟค
                 File gunFile = new File("resources/images/gun.png");
@@ -227,6 +287,7 @@ public class ImageManager {
         g2d.dispose();
         images.put("monster", monsterImg);
     }
+
     /**
      * สร้างภาพบอสพื้นฐาน
      */
@@ -326,7 +387,7 @@ public class ImageManager {
         g2d.dispose();
         images.put("level2_bg", level2Bg);
     }
-    
+
     private static void createLevel3BackgroundImage() {
         BufferedImage level3Bg = new BufferedImage(GamePanel.WIDTH, GamePanel.HEIGHT, BufferedImage.TYPE_INT_RGB);
         Graphics2D g2d = level3Bg.createGraphics();
@@ -419,25 +480,27 @@ public class ImageManager {
         g2d.dispose();
         images.put("monster2", monster2Img);
     }
+
     private static void createDefaultMonster3Image() {
         BufferedImage monster3Img = new BufferedImage(35, 35, BufferedImage.TYPE_INT_ARGB);
         Graphics2D g2d = monster3Img.createGraphics();
-    
+
         // วาดตัวมอนสเตอร์สีฟ้า
         g2d.setColor(new Color(60, 170, 210)); // สีฟ้า
         g2d.fillOval(0, 0, 35, 35);
-    
+
         // วาดตา
         g2d.setColor(new Color(0, 0, 50)); // สีน้ำเงินเข้ม
         g2d.fillOval(7, 10, 7, 7);
         g2d.fillOval(21, 10, 7, 7);
-    
+
         // วาดปาก
         g2d.drawArc(10, 20, 15, 8, 0, 180);
-    
+
         g2d.dispose();
         images.put("monster3", monster3Img);
     }
+
     private static void createGlowEffect(Graphics2D g2d, int x, int y, int radius) {
         // สร้างรัศมีแสงโดยใช้สีเหลืองอ่อนโปร่งใส
         for (int i = 0; i < 5; i++) {
@@ -446,7 +509,7 @@ public class ImageManager {
             int currentRadius = radius - (i * 10);
             g2d.fillOval(x - currentRadius, y - currentRadius, currentRadius * 2, currentRadius * 2);
         }
-    }   
+    }
 
     private static void createDefaultBoss2Image() {
         BufferedImage boss2Img = new BufferedImage(100, 100, BufferedImage.TYPE_INT_ARGB);
@@ -466,39 +529,241 @@ public class ImageManager {
     private static void createDefaultBoss3Image() {
         BufferedImage boss3Img = new BufferedImage(100, 100, BufferedImage.TYPE_INT_ARGB);
         Graphics2D g2d = boss3Img.createGraphics();
-    
+
         // สร้างใบหน้าตามรูปภาพแรก (ใบหน้าคน)
         // วาดหน้าสีเนื้อ
         g2d.setColor(new Color(255, 213, 170));
         g2d.fillOval(0, 0, 100, 100);
-    
+
         // วาดผมสีดำ
         g2d.setColor(Color.BLACK);
         g2d.fillArc(0, 0, 100, 60, 0, 180);
-    
+
         // วาดคิ้วสีน้ำตาล
         g2d.setColor(new Color(139, 69, 19));
         g2d.fillRect(25, 35, 20, 3);
         g2d.fillRect(55, 35, 20, 3);
-    
+
         // วาดตาที่ปิด
         g2d.setColor(Color.BLACK);
         g2d.drawLine(25, 45, 45, 45);
         g2d.drawLine(55, 45, 75, 45);
-    
+
         // วาดจมูก
         g2d.setColor(new Color(220, 170, 140));
         int[] xPointsNose = {50, 45, 55};
         int[] yPointsNose = {60, 70, 70};
         g2d.fillPolygon(xPointsNose, yPointsNose, 3);
-    
+
         // วาดปาก
         g2d.setColor(new Color(200, 120, 120));
         g2d.drawArc(35, 75, 30, 10, 0, 180);
-    
+
         g2d.dispose();
         images.put("boss3", boss3Img);
     }
+
+    private static void createLevel4BackgroundImage() {
+        BufferedImage level4Bg = new BufferedImage(GamePanel.WIDTH, GamePanel.HEIGHT, BufferedImage.TYPE_INT_RGB);
+        Graphics2D g2d = level4Bg.createGraphics();
+
+        // สร้างพื้นหลังห้องแล็บหรือห้องทดลอง
+        g2d.setColor(new Color(220, 220, 220)); // สีพื้นขาวนวล
+        g2d.fillRect(0, 0, GamePanel.WIDTH, GamePanel.HEIGHT);
+
+        // วาดเส้นตารางเล็กๆ คล้ายกระเบื้อง
+        g2d.setColor(new Color(200, 200, 200));
+        for (int i = 0; i < GamePanel.WIDTH; i += 40) {
+            g2d.drawLine(i, 0, i, GamePanel.HEIGHT);
+        }
+        for (int j = 0; j < GamePanel.HEIGHT; j += 40) {
+            g2d.drawLine(0, j, GamePanel.WIDTH, j);
+        }
+
+        // วาดโต๊ะทดลองตรงกลาง
+        g2d.setColor(new Color(180, 180, 180));
+        g2d.fillRect(300, 150, 200, 80);
+        g2d.setColor(new Color(120, 120, 120));
+        g2d.drawRect(300, 150, 200, 80);
+
+        // วาดอุปกรณ์เล็กๆ บนโต๊ะทดลอง
+        g2d.setColor(new Color(100, 100, 200));
+        g2d.fillRect(320, 160, 30, 20);
+        g2d.setColor(new Color(200, 100, 100));
+        g2d.fillRect(370, 165, 25, 25);
+        g2d.setColor(new Color(100, 200, 100));
+        g2d.fillRect(420, 160, 40, 15);
+
+        // วาดสัญลักษณ์วิทยาศาสตร์บนกำแพง
+        g2d.setColor(new Color(100, 100, 100));
+        g2d.drawOval(100, 80, 60, 60);
+        g2d.drawOval(600, 80, 60, 60);
+
+        g2d.dispose();
+        images.put("level4_bg", level4Bg);
+    }
+
+    private static void createLevel5BackgroundImage() {
+        BufferedImage level5Bg = new BufferedImage(GamePanel.WIDTH, GamePanel.HEIGHT, BufferedImage.TYPE_INT_RGB);
+        Graphics2D g2d = level5Bg.createGraphics();
+
+        // สร้างพื้นหลังมืดๆ สำหรับด่านสุดท้าย
+        g2d.setColor(new Color(20, 0, 30)); // สีม่วงเข้มเกือบดำ
+        g2d.fillRect(0, 0, GamePanel.WIDTH, GamePanel.HEIGHT);
+
+        // วาดดวงดาวเล็กๆ ในฉากหลัง
+        g2d.setColor(new Color(255, 255, 255));
+        Random random = new Random(5); // ใช้ seed คงที่เพื่อให้ดาวอยู่ตำแหน่งเดิมทุกครั้ง
+        for (int i = 0; i < 200; i++) {
+            int starX = random.nextInt(GamePanel.WIDTH);
+            int starY = random.nextInt(GamePanel.HEIGHT);
+            int starSize = random.nextInt(3) + 1;
+            g2d.fillRect(starX, starY, starSize, starSize);
+        }
+
+        // วาดวงกลมเรืองแสงมุมต่างๆ ของห้อง
+        createGlowEffect(g2d, 150, 100, 60, new Color(80, 0, 120));
+        createGlowEffect(g2d, 600, 120, 70, new Color(120, 0, 80));
+        createGlowEffect(g2d, 200, 400, 50, new Color(80, 0, 120));
+        createGlowEffect(g2d, 550, 380, 65, new Color(120, 0, 80));
+
+        // วาดแท่นบูชาตรงกลาง
+        g2d.setColor(new Color(60, 30, 60));
+        g2d.fillRect(350, 200, 100, 100);
+        g2d.setColor(new Color(100, 50, 100));
+        g2d.drawRect(350, 200, 100, 100);
+
+        // วาดรูปวงแหวนบนพื้น
+        g2d.setColor(new Color(80, 0, 120, 100));
+        g2d.drawOval(250, 100, 300, 300);
+        g2d.drawOval(275, 125, 250, 250);
+
+        // วาดสัญลักษณ์พิธีกรรมบนพื้น
+        g2d.setColor(new Color(150, 0, 150, 80));
+        int[] xPoints = {400, 350, 400, 450};
+        int[] yPoints = {150, 250, 350, 250};
+        g2d.fillPolygon(xPoints, yPoints, 4);
+
+        g2d.dispose();
+        images.put("level5_bg", level5Bg);
+    }
+
+    private static void createDefaultMonster4Image() {
+        BufferedImage monster4Img = new BufferedImage(40, 40, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g2d = monster4Img.createGraphics();
+
+        // วาดตัวมอนสเตอร์หุ่นยนต์สีฟ้าเทา
+        g2d.setColor(new Color(150, 150, 200));
+        g2d.fillRect(0, 0, 40, 40);
+
+        // ตาสีแดง
+        g2d.setColor(Color.RED);
+        g2d.fillOval(8, 8, 8, 8);
+        g2d.fillOval(24, 8, 8, 8);
+
+        // ส่วนต่างๆ ของหุ่นยนต์
+        g2d.setColor(Color.DARK_GRAY);
+        g2d.fillRect(10, 25, 20, 5);
+        g2d.drawRect(5, 5, 30, 30);
+
+        g2d.dispose();
+        images.put("monster4", monster4Img);
+    }
+
+    private static void createDefaultMonster5Image() {
+        BufferedImage monster5Img = new BufferedImage(45, 45, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g2d = monster5Img.createGraphics();
+
+        // วาดตัวมอนสเตอร์ปีศาจมืด
+        g2d.setColor(new Color(30, 0, 50)); // สีม่วงเข้มเกือบดำ
+        g2d.fillOval(0, 0, 45, 45);
+
+        // เอฟเฟกต์คล้ายเปลวไฟสีม่วงรอบตัว
+        g2d.setColor(new Color(120, 0, 200, 100)); // สีม่วงโปร่งใส
+        g2d.fillOval(-5, -5, 55, 55);
+
+        // ตาสีแดงเรืองแสง
+        g2d.setColor(Color.RED);
+        g2d.fillOval(10, 13, 8, 8);
+        g2d.fillOval(27, 13, 8, 8);
+
+        g2d.dispose();
+        images.put("monster5", monster5Img);
+    }
+
+    private static void createDefaultBoss4Image() {
+        BufferedImage boss4Img = new BufferedImage(120, 120, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g2d = boss4Img.createGraphics();
+
+        // วาดหุ่นยนต์ขนาดใหญ่
+        g2d.setColor(new Color(120, 120, 180));
+        g2d.fillRect(0, 0, 120, 120);
+
+        // ส่วนต่างๆ ของหุ่นยนต์
+        g2d.setColor(new Color(80, 80, 100));
+        g2d.fillRect(30, 30, 60, 60);
+
+        // ตาเรืองแสง
+        g2d.setColor(Color.RED);
+        g2d.fillOval(30, 30, 20, 20);
+        g2d.fillOval(70, 30, 20, 20);
+
+        // แขนกล
+        g2d.setColor(new Color(100, 100, 140));
+        g2d.fillRect(-30, 40, 30, 20);
+        g2d.fillRect(120, 40, 30, 20);
+
+        // ขอบสีดำรอบตัว
+        g2d.setColor(Color.BLACK);
+        g2d.drawRect(0, 0, 119, 119);
+
+        g2d.dispose();
+        images.put("boss4", boss4Img);
+    }
+
+    private static void createDefaultBoss5Image() {
+        BufferedImage boss5Img = new BufferedImage(140, 140, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g2d = boss5Img.createGraphics();
+
+        // วาดปีศาจโบราณขนาดใหญ่
+        g2d.setColor(new Color(30, 0, 50)); // สีม่วงเข้มเกือบดำ
+        g2d.fillOval(0, 0, 140, 140);
+
+        // เอฟเฟกต์เรืองแสงรอบตัว
+        g2d.setColor(new Color(120, 0, 200, 80)); // สีม่วงโปร่งใส
+        g2d.fillOval(-10, -10, 160, 160);
+
+        // ตาสีแดงเรืองแสง
+        g2d.setColor(Color.RED);
+        g2d.fillOval(35, 40, 25, 25);
+        g2d.fillOval(80, 40, 25, 25);
+
+        // เขาหรือเงาด้านบน
+        g2d.setColor(Color.BLACK);
+        int[] xPoints = {35, 70, 105};
+        int[] yPoints = {0, -35, 0};
+        g2d.fillPolygon(xPoints, yPoints, 3);
+
+        // รายละเอียดอื่นๆ บนตัวบอส
+        g2d.setColor(new Color(100, 0, 150));
+        g2d.drawLine(70, 70, 70, 100);
+        g2d.drawOval(35, 70, 70, 50);
+
+        g2d.dispose();
+        images.put("boss5", boss5Img);
+    }
+
+// เพิ่มเมธอด createGlowEffect ที่ใช้โดย createLevel5BackgroundImage
+    private static void createGlowEffect(Graphics2D g2d, int x, int y, int radius, Color color) {
+        // สร้างรัศมีแสงโดยใช้สีที่กำหนดแบบโปร่งใส
+        for (int i = 0; i < 5; i++) {
+            int alpha = 50 - (i * 10); // ค่าความโปร่งใสลดลงตามรัศมี
+            g2d.setColor(new Color(color.getRed(), color.getGreen(), color.getBlue(), alpha));
+            int currentRadius = radius - (i * 10);
+            g2d.fillOval(x - currentRadius, y - currentRadius, currentRadius * 2, currentRadius * 2);
+        }
+    }
+
     /*
      * สร้างภาพอื่นๆ ที่จำเป็น
      */

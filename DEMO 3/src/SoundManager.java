@@ -36,9 +36,15 @@ public class SoundManager {
 
             // เพิ่มการโหลดเพลงสำหรับ Level 2
             loadMusic("level2_music", "resources/sounds/level2_music.wav");
-            
+
             // เพิ่มการโหลดเพลงสำหรับ Level 3
             loadMusic("level3_music", "resources/sounds/level3_music.wav");
+
+            // โหลดเพลงสำหรับด่าน 4
+            loadMusic("level4_music", "resources/sounds/level4_music.wav");
+
+// โหลดเพลงสำหรับด่าน 5
+            loadMusic("level5_music", "resources/sounds/level5_music.wav");
 
             soundsLoaded = true;
             System.out.println("โหลดไฟล์เสียงทั้งหมดสำเร็จ!");
