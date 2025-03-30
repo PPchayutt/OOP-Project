@@ -174,12 +174,17 @@ public class Player extends Entity {
             Powerup buff = iterator.next();
             buff.update();
 
-            // ถ้าบัฟหมดเวลา ให้เอาออกและยกเลิกเอฟเฟค
+            // ถ้าบัฟหมดเวลา ให้เอาออก
             if (buff.getDuration() == 0) {
-                removeBuff(buff);
+                // สำคัญ: ใช้ removeBuffEffect แทน removeBuff
+                // เพื่อลบเฉพาะเอฟเฟกต์ของบัฟนี้ โดยไม่กระทบบัฟอื่น
+                removeBuffEffect(buff);
                 iterator.remove();
             }
         }
+
+        // อัพเดทสถานะบัฟทั้งหมดอีกรอบหลังจากลบบัฟที่หมดเวลา
+        updateBuffStatus();
     }
 
     /**
@@ -198,6 +203,9 @@ public class Player extends Entity {
         if (buff.getDuration() != 0) {
             activeBuffs.add(buff);
         }
+
+        // อัพเดทสถานะบัฟทั้งหมดหลังจากเพิ่มบัฟใหม่
+        updateBuffStatus();
 
         // เล่นเสียงเก็บบัฟ
         SoundManager.playSound("get_skill");
@@ -272,57 +280,90 @@ public class Player extends Entity {
     }
 
     /**
-     * ลบบัฟที่หมดเวลา
+     * ลบบัฟที่หมดเวลา และอัพเดทสถานะของบัฟที่เหลือ
      */
     private void removeBuff(Powerup buff) {
+        // แทนที่จะรีเซ็ตค่าทั้งหมดตรงนี้ ให้เรียกใช้ removeBuffEffect แทน
+        // เพื่อลบเฉพาะเอฟเฟกต์ของบัฟนี้เท่านั้น
+        removeBuffEffect(buff);
+    }
+
+    /**
+     * ลบเฉพาะเอฟเฟกต์ของบัฟที่หมดอายุ
+     * เมธอดใหม่ที่เพิ่มเข้ามาเพื่อแก้ปัญหาบัฟหายหมด
+     */
+    private void removeBuffEffect(Powerup buff) {
+        // ลบเฉพาะเอฟเฟกต์ของบัฟนี้ออก
         switch (buff.getCategory()) {
-            case Powerup.CATEGORY_CRAZY -> {
+            case Powerup.CATEGORY_CRAZY:
+                // ไม่รีเซ็ตค่าสถานะที่นี่ เพราะอาจมีบัฟอื่นที่ยังทำงานอยู่
+                // สถานะจะถูกอัพเดทในเมธอด updateBuffStatus
+                break;
+
+            case Powerup.CATEGORY_TEMPORARY:
                 switch (buff.getType()) {
-                    case Powerup.TYPE_CRAZY_SHOOTING -> {
-                        crazyShootingMode = false;
-                    }
-                }
-            }
-            case Powerup.CATEGORY_TEMPORARY -> {
-                switch (buff.getType()) {
-                    case Powerup.TYPE_INCREASE_DAMAGE -> {
+                    case Powerup.TYPE_INCREASE_DAMAGE:
                         bulletDamage -= buff.getValue();
-                    }
-                    case Powerup.TYPE_INCREASE_SPEED -> {
+                        break;
+                    case Powerup.TYPE_INCREASE_SPEED:
                         speed -= buff.getValue();
-                    }
-                    case Powerup.TYPE_INCREASE_SHOOTING_SPEED -> {
+                        break;
+                    case Powerup.TYPE_INCREASE_SHOOTING_SPEED:
                         shootCooldownReduction -= buff.getValue();
-                    }
-                    case Powerup.TYPE_KNOCKBACK -> {
-                        // ตรวจสอบว่ายังมีบัฟ knockback อื่นทำงานอยู่หรือไม่
-                        boolean hasOtherKnockback = false;
-                        int maxPower = 0;
-
-                        for (Powerup activeBuff : activeBuffs) {
-                            if (activeBuff != buff
-                                    && (activeBuff.getCategory() == Powerup.CATEGORY_PERMANENT
-                                    || activeBuff.getCategory() == Powerup.CATEGORY_TEMPORARY)
-                                    && activeBuff.getType() == Powerup.TYPE_KNOCKBACK) {
-
-                                hasOtherKnockback = true;
-                                maxPower = Math.max(maxPower, activeBuff.getValue());
-                            }
-                        }
-
-                        if (!hasOtherKnockback) {
-                            knockbackEnabled = false;
-                            knockbackPower = 1;
-                        } else {
-                            knockbackPower = maxPower;
-                        }
-                    }
-                    case Powerup.TYPE_MULTIPLE_BULLETS -> {
+                        break;
+                    case Powerup.TYPE_KNOCKBACK:
+                        // ไม่รีเซ็ตค่า knockbackEnabled ที่นี่
+                        // เพราะอาจมีบัฟ knockback อื่นที่ยังทำงานอยู่
+                        break;
+                    case Powerup.TYPE_MULTIPLE_BULLETS:
                         extraBullets -= buff.getValue();
-                    }
+                        break;
                 }
+                break;
+        }
+    }
+
+    /**
+     * อัพเดทสถานะบัฟทั้งหมด หลังจากลบบัฟที่หมดอายุแล้ว
+     * เมธอดใหม่ที่เพิ่มเข้ามาเพื่อแก้ปัญหาบัฟหายหมด
+     */
+    private void updateBuffStatus() {
+        // รีเซ็ตค่าพื้นฐานของบัฟทั้งหมด
+        boolean hasCrazyShooting = false;
+        boolean hasStopTime = false;
+        boolean hasKnockback = false;
+        int maxKnockbackPower = 1;
+
+        // ตรวจสอบบัฟที่ยังเหลืออยู่ทั้งหมด
+        for (Powerup buff : activeBuffs) {
+            // ตรวจสอบแต่ละประเภทของบัฟ
+            if (buff.getCategory() == Powerup.CATEGORY_CRAZY) {
+                if (buff.getType() == Powerup.TYPE_CRAZY_SHOOTING) {
+                    hasCrazyShooting = true;
+                } else if (buff.getType() == Powerup.TYPE_STOP_TIME) {
+                    hasStopTime = true;
+                }
+            } // ตรวจสอบบัฟ knockback ทั้งแบบถาวรและชั่วคราว
+            else if ((buff.getCategory() == Powerup.CATEGORY_PERMANENT
+                    || buff.getCategory() == Powerup.CATEGORY_TEMPORARY)
+                    && buff.getType() == Powerup.TYPE_KNOCKBACK) {
+                hasKnockback = true;
+                maxKnockbackPower = Math.max(maxKnockbackPower, buff.getValue());
             }
         }
+
+        // อัพเดทสถานะของเอฟเฟกต์บัฟที่ทำงานอยู่
+        crazyShootingMode = hasCrazyShooting;
+
+        // อัพเดทค่า knockback
+        knockbackEnabled = hasKnockback;
+        if (hasKnockback) {
+            knockbackPower = maxKnockbackPower;
+        } else {
+            knockbackPower = 1;
+        }
+
+        // หมายเหตุ: ไม่ต้องอัพเดท Stop Time เพราะจะถูกตรวจสอบโดยเมธอด hasStopTimeBuff
     }
 
     /**
@@ -603,9 +644,11 @@ public class Player extends Entity {
      * @return true ถ้ามีบัฟ Stop Time ทำงาน
      */
     public boolean hasStopTimeBuff() {
+        // ตรวจสอบในรายการบัฟที่ใช้งานอยู่
         for (Powerup buff : activeBuffs) {
             if (buff.getCategory() == Powerup.CATEGORY_CRAZY
-                    && buff.getType() == Powerup.TYPE_STOP_TIME) {
+                    && buff.getType() == Powerup.TYPE_STOP_TIME
+                    && buff.getDuration() > 0) {  // ต้องแน่ใจว่าเวลายังไม่หมด
                 return true;
             }
         }

@@ -14,7 +14,7 @@ public class Boss extends Enemy {
     final int level;
 
     public Boss(int x, int y, int level) {
-        super(x, y, 80, 80, 200 * level, 1, 20, 1000 * level);
+        super(x, y, 80, 80, 300 * level, 1, 20, 1000 * level);
         this.level = level;
     }
 
@@ -149,9 +149,14 @@ public class Boss extends Enemy {
         super.takeDamage(damage);
 
         // เมื่อพลังชีวิตเหลือครึ่งเดียว ให้บอสเร็วขึ้นและโจมตีแรงขึ้น
-        if (health <= 100 * level && speed == 1) {
-            speed = 2;
+        if (health <= 150 * level && speed == 1) {
+            speed = 3; // เพิ่มความเร็วจาก 2 เป็น 3
             this.damage = this.damage * 2;
         }
     }
+
+    public int getLevel() {
+        return level;
+    }
+
 }

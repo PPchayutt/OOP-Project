@@ -299,21 +299,19 @@ public class Powerup implements GameObject {
     public static Powerup createRandomPowerup(int x, int y) {
         double randomValue = random.nextDouble();
 
-        // โอกาส 5% สำหรับบัฟสุดโหด (Crazy) - ดรอปน้อยสุด
-        if (randomValue < 0.05) {
+        // บัฟสุดโหด (Crazy) - ดรอปน้อยสุด
+        if (randomValue < 0.10) {
             int type = random.nextBoolean() ? TYPE_CRAZY_SHOOTING : TYPE_STOP_TIME;
             return new Powerup(x, y, CATEGORY_CRAZY, type);
-        } // โอกาส 15% สำหรับบัฟถาวร (Permanent) - ดรอปปานกลาง
-        else if (randomValue < 0.20) {
-            int type = random.nextInt(6); // 0-5
+        } // บัฟถาวร (Permanent) - ดรอปปานกลาง
+        else if (randomValue < 0.40) {
+            int type = random.nextInt(6);
             return new Powerup(x, y, CATEGORY_PERMANENT, type);
-        } // โอกาส 25% สำหรับบัฟชั่วคราว (Temporary) - ดรอปเยอะสุด
-        else if (randomValue < 0.45) {
-            // แก้ไขจาก nextInt(6) เป็น nextInt(7) เพื่อให้รวม TYPE_HEALING ด้วย
-            int type = random.nextInt(7); // 0-6 (รวมการฮีล)
+        } // บัฟชั่วคราว (Temporary) - ดรอปเยอะสุด
+        else if (randomValue < 0.70) {
+            int type = random.nextInt(7);
             return new Powerup(x, y, CATEGORY_TEMPORARY, type);
         }
-
-        return null; // ไม่ดรอปอะไร (55%)
+        return null; // ไม่ดรอปอะไร
     }
 }

@@ -4,8 +4,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
-/*
- * Boss5 คือบอสสุดท้ายของเกม มีลักษณะเป็นปีศาจโบราณ
+/**
+ * Boss5 คือบอสสุดท้ายของเกม มีลักษณะเป็นปีศาจโบราณและมี 2 เฟส เฟสที่ 2
+ * จะเปลี่ยนรูปร่างและมีการโจมตีที่รุนแรงมากขึ้น
  */
 public class Boss5 extends Boss {
 
@@ -15,9 +16,23 @@ public class Boss5 extends Boss {
     private float glowEffect = 0; // เอฟเฟกต์เรืองแสง
     private boolean glowIncreasing = true;
 
-    /*
+    // ตัวแปรสำหรับระบบ 2 เฟส
+    private boolean isPhase2 = false;
+    private Image phase1Image;
+    private Image phase2Image;
+    private boolean isTransforming = false; // กำลังเปลี่ยนเฟสอยู่หรือไม่
+    private int transformTimer = 0; // เวลาในการเปลี่ยนเฟส
+    private static final int TRANSFORM_DURATION = 180; // 3 วินาที (60 FPS)
+
+    // รูปแบบการโจมตีพิเศษในเฟส 2
+    private int phase2AttackPattern = 0;
+    private int phase2AttackTimer = 0;
+    private List<Point> bulletSpawnPoints = new ArrayList<>(); // จุดที่จะเกิดกระสุน
+    private List<Point> safeZones = new ArrayList<>(); // พื้นที่ปลอดภัย
+
+    /**
      * สร้างบอสด่าน 5 (บอสสุดท้าย) ใหม่
-     * 
+     *
      * @param x ตำแหน่ง x
      * @param y ตำแหน่ง y
      * @param level ระดับความยาก
@@ -28,38 +43,63 @@ public class Boss5 extends Boss {
         // ปรับให้บอสสุดท้ายแข็งแกร่งที่สุด
         this.width = 140;
         this.height = 140;
-        this.health = 500 * level;
-        this.maxHealth = 500 * level;
+        this.health = 600 * level; // เพิ่มพลังชีวิตให้มากขึ้น
+        this.maxHealth = 600 * level;
         this.damage = 35;
+
+        // โหลดรูปภาพทั้งสองเฟส
+        this.phase1Image = ImageManager.getImage("L5_Boss_Phase1");
+        this.phase2Image = ImageManager.getImage("L5_Boss_Phase2");
+
+        // ใช้รูปแบบสำรองหากไม่พบไฟล์
+        if (phase1Image == null) {
+            phase1Image = ImageManager.getImage("boss5");
+        }
+        if (phase2Image == null) {
+            phase2Image = phase1Image; // ใช้รูปเดิมถ้าไม่พบรูปเฟส 2
+        }
     }
 
     @Override
     public void update() {
         updateCooldowns();
 
-        // เอฟเฟกต์เรืองแสง
-        if (glowIncreasing) {
-            glowEffect += 0.05f;
-            if (glowEffect >= 1.0f) {
-                glowEffect = 1.0f;
-                glowIncreasing = false;
-            }
-        } else {
-            glowEffect -= 0.05f;
-            if (glowEffect <= 0.1f) {
-                glowEffect = 0.1f;
-                glowIncreasing = true;
-            }
+        // ถ้ากำลังเปลี่ยนเฟส ให้อัพเดตเฉพาะแอนิเมชันการเปลี่ยนเฟส
+        if (isTransforming) {
+            updateTransformation();
+            return;
         }
+
+        // เอฟเฟกต์เรืองแสง
+        updateGlowEffect();
 
         phaseCounter++;
-        if (phaseCounter >= 180) {
+        if (phaseCounter >= (isPhase2 ? 120 : 180)) { // เฟส 2 เปลี่ยนเร็วขึ้น
             phaseCounter = 0;
-            phase = (phase + 1) % 4; // เพิ่มเป็น 4 เฟส
-            attackPattern = random.nextInt(5); // เพิ่มเป็น 5 รูปแบบการโจมตี
+            phase = (phase + 1) % (isPhase2 ? 5 : 4); // เฟส 2 มีรูปแบบเพิ่มขึ้น
+            attackPattern = random.nextInt(isPhase2 ? 5 : 4); // เฟส 2 มีการโจมตีเพิ่มขึ้น
         }
 
-        // รูปแบบการเคลื่อนที่ของบอส
+        // อัพเดตหน่วยเวลาพิเศษ
+        specialAttackTimer++;
+        phase2AttackTimer++;
+
+        // การเคลื่อนที่แตกต่างกันตามเฟส
+        if (isPhase2) {
+            updatePhase2Movement();
+        } else {
+            updatePhase1Movement();
+        }
+
+        // จำกัดตำแหน่งไม่ให้ออกนอกจอ (เฟส 2 สามารถไปได้สูงกว่า)
+        x = Math.max(0, Math.min(x, GamePanel.WIDTH - width - 10));
+        y = Math.max(30, Math.min(y, isPhase2 ? 400 : 300));
+    }
+
+    /**
+     * อัพเดตการเคลื่อนที่ในเฟส 1
+     */
+    private void updatePhase1Movement() {
         switch (phase) {
             case 0:
                 // เคลื่อนที่จากซ้ายไปขวาเร็วและกว้างขึ้น
@@ -72,8 +112,6 @@ public class Boss5 extends Boss {
                 // เคลื่อนที่เป็นรูปคลื่นวงกลม
                 x += Math.cos(phaseCounter * 0.1) * speed * 2.0f;
                 y += Math.sin(phaseCounter * 0.1) * speed * 1.5f;
-                x = Math.max(0, Math.min(x, GamePanel.WIDTH - width));
-                y = Math.max(50, Math.min(y, 300));
                 break;
             case 2:
                 // เคลื่อนที่แบบวูบวาบ โผล่วับๆ หายๆ
@@ -94,105 +132,285 @@ public class Boss5 extends Boss {
                 break;
             case 3:
                 // หยุดนิ่ง (เตรียมโจมตีพิเศษ)
-                specialAttackTimer++;
-                // ทำการโจมตีพิเศษแบบอัตโนมัติทุก 1 วินาที
-                if (specialAttackTimer >= 60) {
-                    specialAttackTimer = 0;
+                // ไม่มีการเคลื่อนที่
+                break;
+        }
+    }
+
+    /**
+     * อัพเดตการเคลื่อนที่ในเฟส 2 (เร็วและคาดเดายากกว่า)
+     */
+    private void updatePhase2Movement() {
+        switch (phase) {
+            case 0:
+                // เคลื่อนที่จากซ้ายไปขวาเร็วมาก
+                x += speed * 2.5f * moveDirection;
+                if (x <= 0 || x >= GamePanel.WIDTH - width) {
+                    moveDirection *= -1;
+                }
+                break;
+            case 1:
+                // เคลื่อนที่วนเป็น 8
+                float t = phaseCounter * 0.05f;
+                x = GamePanel.WIDTH / 2 - width / 2 + (float) (Math.sin(t) * 200);
+                y = 200 + (float) (Math.sin(2 * t) * 100);
+                break;
+            case 2:
+                // เคลื่อนที่แบบซิกแซก
+                x += Math.cos(phaseCounter * 0.1) * speed * 2.5f;
+                y += Math.abs(Math.sin(phaseCounter * 0.2)) * speed * 2.0f;
+                break;
+            case 3:
+                // วาร์ปรอบๆ จอ
+                if (phaseCounter % 40 == 0) {
+                    // สุ่มตำแหน่งใหม่
+                    x = random.nextInt(GamePanel.WIDTH - width - 20) + 10;
+                    y = random.nextInt(300) + 50;
+                }
+                break;
+            case 4:
+                // หยุดนิ่ง (เตรียมโจมตีท้ายสุด)
+                // ไม่มีการเคลื่อนที่
+                if (phase2AttackTimer >= 300) { // ทุก 5 วินาที
+                    phase2AttackTimer = 0;
+                    prepareUltimateAttack(); // เตรียมการโจมตีสุดท้าย
                 }
                 break;
         }
+    }
 
-        // จำกัดตำแหน่งไม่ให้ออกนอกจอ
-        x = Math.max(0, Math.min(x, GamePanel.WIDTH - width));
-        y = Math.max(50, Math.min(y, 300));
+    /**
+     * อัพเดตเอฟเฟกต์เรืองแสง
+     */
+    private void updateGlowEffect() {
+        if (glowIncreasing) {
+            glowEffect += 0.05f;
+            if (glowEffect >= 1.0f) {
+                glowEffect = 1.0f;
+                glowIncreasing = false;
+            }
+        } else {
+            glowEffect -= 0.05f;
+            if (glowEffect <= 0.1f) {
+                glowEffect = 0.1f;
+                glowIncreasing = true;
+            }
+        }
+    }
+
+    /**
+     * อัพเดตแอนิเมชันการเปลี่ยนเฟส
+     */
+    private void updateTransformation() {
+        transformTimer++;
+
+        // เสร็จสิ้นการเปลี่ยนเฟสเมื่อครบกำหนดเวลา
+        if (transformTimer >= TRANSFORM_DURATION) {
+            isTransforming = false;
+            transformTimer = 0;
+
+            // ผลกระทบหลังเปลี่ยนเฟส
+            speed = 5;
+            damage = damage * 3;
+
+            // เล่นเสียงเมื่อเปลี่ยนเฟสเสร็จ
+            SoundManager.playSound("boss_transform");
+        }
+    }
+
+    /**
+     * เตรียมการโจมตีสุดท้ายของเฟส 2
+     */
+    private void prepareUltimateAttack() {
+        phase2AttackPattern = random.nextInt(4);
+
+        // รีเซ็ตจุดที่จะเกิดกระสุนและพื้นที่ปลอดภัย
+        bulletSpawnPoints.clear();
+        safeZones.clear();
+
+        switch (phase2AttackPattern) {
+            case 0: // "วงกลมแห่งความพินาศ"
+                // เตรียมพื้นที่สำหรับ Ultimate Attack แบบ 1
+                break;
+            case 1: // "พายุหมุนกระสุน"
+                // เตรียมพื้นที่สำหรับ Ultimate Attack แบบ 2 
+                break;
+            case 2: // "กำแพงกระสุน"
+                // เตรียมพื้นที่สำหรับ Ultimate Attack แบบ 3
+                break;
+            case 3: // "การพิพากษาครั้งสุดท้าย"
+                // เตรียมพื้นที่สำหรับ Ultimate Attack แบบ 4
+                for (int i = 0; i < 5; i++) {
+                    // สร้างพื้นที่ปลอดภัยแบบวงกลมสุ่ม 5 จุด
+                    int safeX = random.nextInt(GamePanel.WIDTH - 100) + 50;
+                    int safeY = random.nextInt(GamePanel.HEIGHT - 200) + 100;
+                    safeZones.add(new Point(safeX, safeY));
+                }
+                break;
+        }
     }
 
     @Override
     public void render(Graphics g) {
-        // ใช้รูปภาพจาก ImageManager
-        Image boss5Image = ImageManager.getImage("boss5");
-        if (boss5Image != null) {
-            // วาดเอฟเฟกต์เรืองแสงรอบบอส (ถ้าอยู่ในโหมดคลั่ง)
-            if (isEnraged) {
-                int glowSize = (int) (50 * glowEffect);
-                Graphics2D g2d = (Graphics2D) g.create();
-                g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.7f * glowEffect));
-                g2d.setColor(Color.RED);
-                g2d.fillOval((int) x - glowSize / 2, (int) y - glowSize / 2, width + glowSize, height + glowSize);
-                g2d.dispose();
-            }
+        Graphics2D g2d = (Graphics2D) g;
+        Composite originalComposite = g2d.getComposite();
 
-            g.drawImage(boss5Image, (int) x, (int) y, width, height, null);
+        // ถ้ากำลังเปลี่ยนเฟส ให้แสดงเอฟเฟกต์พิเศษ
+        if (isTransforming) {
+            renderTransformation(g2d);
+
+            // วาดแถบพลังชีวิต
+            renderHealthBar(g2d);
+
+            g2d.setComposite(originalComposite);
+            return;
+        }
+
+        // เลือกรูปภาพตามเฟส
+        Image bossImage = isPhase2 ? phase2Image : phase1Image;
+
+        // วาดตัวบอส
+        if (bossImage != null) {
+            g2d.drawImage(bossImage, (int) x, (int) y, width, height, null);
         } else {
-            // ถ้าไม่มีรูปภาพให้วาดรูปทรงพื้นฐานแทน
-            // วาดเอฟเฟกต์เรืองแสงรอบบอส (ถ้าอยู่ในโหมดคลั่ง)
-            if (isEnraged) {
-                int glowSize = (int) (50 * glowEffect);
-                Graphics2D g2d = (Graphics2D) g.create();
-                g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.7f * glowEffect));
-                g2d.setColor(Color.RED);
-                g2d.fillOval((int) x - glowSize / 2, (int) y - glowSize / 2, width + glowSize, height + glowSize);
-                g2d.dispose();
-            }
+            // ถ้าไม่มีรูปภาพ ให้วาดรูปทรงตามเฟส
+            renderFallbackBossImage(g2d, isPhase2);
+        }
 
-            // วาดตัวบอสเป็นปีศาจมืด
-            g.setColor(new Color(30, 0, 50)); // สีม่วงเข้มเกือบดำ
-            g.fillOval((int) x, (int) y, width, height);
+        // วาดแถบพลังชีวิต
+        renderHealthBar(g2d);
 
-            // กรณีโกรธ จะมีสีแดงปน
-            if (isEnraged) {
-                g.setColor(new Color(100, 0, 0, 150));
-                g.fillOval((int) x + 10, (int) y + 10, width - 20, height - 20);
-            }
+        // คืนค่า composite เดิม
+        g2d.setComposite(originalComposite);
+
+        // วาดพื้นที่ปลอดภัยถ้าอยู่ในเฟส 2 และกำลังเตรียมโจมตีสุดท้าย
+        if (isPhase2 && phase == 4 && !safeZones.isEmpty()) {
+            renderSafeZones(g2d);
+        }
+    }
+
+    /**
+     * วาดแอนิเมชันการเปลี่ยนเฟส
+     */
+    private void renderTransformation(Graphics2D g2d) {
+        // ใช้ภาพที่เลือนจากเฟส 1 ไปเป็นเฟส 2
+        if (transformTimer > TRANSFORM_DURATION / 3 && transformTimer < TRANSFORM_DURATION * 2 / 3) {
+            float blendFactor = (float) (transformTimer - TRANSFORM_DURATION / 3) / (TRANSFORM_DURATION / 3);
+
+            // วาดภาพเฟส 1 ด้วยความโปร่งใสที่ลดลง
+            g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1.0f - blendFactor));
+            g2d.drawImage(phase1Image, (int) x, (int) y, width, height, null);
+
+            // วาดภาพเฟส 2 ด้วยความโปร่งใสที่เพิ่มขึ้น
+            g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, blendFactor));
+            g2d.drawImage(phase2Image, (int) x, (int) y, width, height, null);
+        } else if (transformTimer <= TRANSFORM_DURATION / 3) {
+            // วาดภาพเฟส 1 ในช่วงแรก
+            g2d.drawImage(phase1Image, (int) x, (int) y, width, height, null);
+        } else {
+            // วาดภาพเฟส 2 ในช่วงท้าย
+            g2d.drawImage(phase2Image, (int) x, (int) y, width, height, null);
+        }
+
+        // เอฟเฟกต์แสงรอบตัวระหว่างเปลี่ยนเฟส
+        if (transformTimer >= TRANSFORM_DURATION / 3 && transformTimer <= TRANSFORM_DURATION * 2 / 3) {
+            // พลังงานระเบิดออกมา
+            int glowSize = (int) (Math.min(200, transformTimer % 20 * 10));
+            g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.3f));
+            g2d.setColor(new Color(255, 50, 50, 100));
+            g2d.fillOval((int) (x + width / 2 - glowSize / 2), (int) (y + height / 2 - glowSize / 2), glowSize, glowSize);
+        }
+    }
+
+    /**
+     * วาดรูปทรงบอสทดแทนในกรณีที่ไม่มีรูปภาพ
+     */
+    private void renderFallbackBossImage(Graphics2D g2d, boolean isPhase2) {
+        if (isPhase2) {
+            // รูปร่างเฟส 2 (มืดและอันตรายมากขึ้น)
+            g2d.setColor(new Color(80, 0, 0)); // สีแดงเข้มเกือบดำ
+            g2d.fillOval((int) x, (int) y, width, height);
 
             // ตาสีแดงเรืองแสง
-            g.setColor(Color.RED);
-            g.fillOval((int) (x + width / 4), (int) (y + height / 3), width / 6, height / 6);
-            g.fillOval((int) (x + width * 3 / 5), (int) (y + height / 3), width / 6, height / 6);
+            g2d.setColor(Color.RED);
+            g2d.fillOval((int) (x + width / 4), (int) (y + height / 3), width / 5, height / 5);
+            g2d.fillOval((int) (x + width * 3 / 5), (int) (y + height / 3), width / 5, height / 5);
+        } else {
+            // รูปร่างเฟส 1 (เหมือนเดิม)
+            g2d.setColor(new Color(30, 0, 50)); // สีม่วงเข้มเกือบดำ
+            g2d.fillOval((int) x, (int) y, width, height);
 
-            // เขาหรือเงาด้านบน
-            g.setColor(Color.BLACK);
-            int[] xPoints = {(int) (x + width / 4), (int) (x + width / 2), (int) (x + width * 3 / 4)};
-            int[] yPoints = {(int) y, (int) (y - height / 4), (int) y};
-            g.fillPolygon(xPoints, yPoints, 3);
-
-            // รายละเอียดอื่นๆ บนตัวบอส
-            if (isEnraged) {
-                g.setColor(Color.RED);
-            } else {
-                g.setColor(new Color(100, 0, 150));
-            }
-            g.drawLine((int) (x + width / 2), (int) (y + height / 2), (int) (x + width / 2), (int) (y + height * 3 / 4));
-            g.drawOval((int) (x + width / 4), (int) (y + height / 2), width / 2, height / 3);
+            // ตาสีแดงเรืองแสง
+            g2d.setColor(Color.RED);
+            g2d.fillOval((int) (x + width / 4), (int) (y + height / 3), width / 6, height / 6);
+            g2d.fillOval((int) (x + width * 3 / 5), (int) (y + height / 3), width / 6, height / 6);
         }
+    }
 
+    /**
+     * วาดแถบพลังชีวิต
+     */
+    private void renderHealthBar(Graphics2D g2d) {
         // แถบพลังชีวิต
-        g.setColor(Color.RED);
-        g.fillRect((int) x, (int) y - 25, width, 20);
-        g.setColor(isEnraged ? Color.ORANGE : Color.GREEN);
-        int healthBarWidth = (int) ((double) health / (500 * level) * width);
-        g.fillRect((int) x, (int) y - 25, healthBarWidth, 20);
+        g2d.setColor(Color.RED);
+        g2d.fillRect((int) x, (int) y - 25, width, 20);
+        g2d.setColor(isPhase2 ? Color.ORANGE : (isEnraged ? Color.YELLOW : Color.GREEN));
+        int healthBarWidth = (int) ((double) health / (isPhase2 ? 300 * level : 600 * level) * width);
+        g2d.fillRect((int) x, (int) y - 25, healthBarWidth, 20);
 
         // กรอบแถบพลังชีวิต
-        g.setColor(Color.WHITE);
-        g.drawRect((int) x, (int) y - 25, width, 20);
+        g2d.setColor(Color.WHITE);
+        g2d.drawRect((int) x, (int) y - 25, width, 20);
 
-        // พิมพ์ข้อความแสดงสถานะใต้บอส
-        g.setColor(Color.WHITE);
-        g.setFont(new Font("Arial", Font.BOLD, 16));
+        // พิมพ์ข้อความแสดงสถานะ
+        g2d.setColor(Color.WHITE);
+        g2d.setFont(new Font("Arial", Font.BOLD, 16));
         String statusText = "FINAL BOSS Lv." + level + " HP:" + health;
-        if (isEnraged) {
+        if (isPhase2) {
+            statusText += " [PHASE 2]";
+        } else if (isEnraged) {
             statusText += " [ENRAGED]";
         }
-        g.drawString(statusText, (int) x, (int) y + height + 25);
+        g2d.drawString(statusText, (int) x, (int) y + height + 25);
+    }
+
+    /**
+     * วาดพื้นที่ปลอดภัยในการโจมตีสุดท้าย
+     */
+    private void renderSafeZones(Graphics2D g2d) {
+        // วาดพื้นที่ปลอดภัย
+        for (Point safeZone : safeZones) {
+            g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.3f));
+            g2d.setColor(Color.GREEN);
+            int safeZoneSize = 120;
+            g2d.fillOval(safeZone.x - safeZoneSize / 2, safeZone.y - safeZoneSize / 2, safeZoneSize, safeZoneSize);
+
+            g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.7f));
+            g2d.setStroke(new BasicStroke(2.0f));
+            g2d.drawOval(safeZone.x - safeZoneSize / 2, safeZone.y - safeZoneSize / 2, safeZoneSize, safeZoneSize);
+        }
+
+        g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1.0f));
     }
 
     @Override
     public EnemyBullet attack() {
-        if (!canAttack()) {
+        if (!canAttack() || isTransforming) {
             return null;
         }
 
+        // การโจมตีจะแตกต่างกันในแต่ละเฟส
+        if (isPhase2) {
+            return attackPhase2();
+        } else {
+            return attackPhase1();
+        }
+    }
+
+    /**
+     * การโจมตีปกติในเฟส 1
+     */
+    private EnemyBullet attackPhase1() {
         switch (attackPattern) {
             case 0:
                 // ยิงกระสุนใหญ่ตรงลงมา
@@ -216,29 +434,86 @@ public class Boss5 extends Boss {
                 // กระสุนพิเศษที่เคลื่อนที่เป็นเส้นโค้ง
                 resetShootCooldown(isEnraged ? 40 : 60);
                 EnemyBullet bullet = new EnemyBullet((int) x + width / 2 - 15, (int) y + height / 2, 30, 30, Math.PI / 2, 3, damage * 2);
-                // ตั้งค่าพิเศษสำหรับกระสุนที่เคลื่อนที่แบบพิเศษได้ในอนาคต
                 return bullet;
-            case 4:
-                // กระสุนพิเศษที่แยกตัวเป็นหลายกระสุน
-                resetShootCooldown(isEnraged ? 50 : 80);
-                return new EnemyBullet((int) x + width / 2 - 20, (int) y + height / 2, 40, 40, Math.PI / 2, 2, damage * 3);
             default:
                 resetShootCooldown(isEnraged ? 20 : 30);
                 return new EnemyBullet((int) x + width / 2 - 10, (int) y + height, 20, 20, Math.PI / 2, 4, damage);
         }
     }
 
+    /**
+     * การโจมตีปกติในเฟส 2 (รุนแรงและซับซ้อนมากขึ้น)
+     */
+    private EnemyBullet attackPhase2() {
+        switch (attackPattern) {
+            case 0:
+                // ยิงกระสุนพลังงานขนาดใหญ่
+                resetShootCooldown(10);
+                return new EnemyBullet((int) x + width / 2 - 15, (int) y + height, 30, 30, Math.PI / 2, 8, damage * 2);
+            case 1:
+                // ยิงแบบพัดกระจาย 3 นัด
+                resetShootCooldown(20);
+
+                // ยิงนัดกลาง
+                double baseAngle = Math.PI / 2;
+                return new EnemyBullet((int) x + width / 2 - 10, (int) y + height / 2, 20, 20, baseAngle, 6, (int) (damage * 1.5));
+
+            case 2:
+                // ยิงล็อคเป้าผู้เล่น
+                resetShootCooldown(7); // เร็วมาก
+                int targetX = GamePanel.WIDTH / 2; // ในเกมจริงควรรับตำแหน่งผู้เล่น
+                int targetY = GamePanel.HEIGHT - 100;
+                double dx = targetX - (x + width / 2);
+                double dy = targetY - (y + height / 2);
+                double targetAngle = Math.atan2(dy, dx);
+                return new EnemyBullet((int) x + width / 2 - 12, (int) y + height / 2, 24, 24, targetAngle, 10, (int) (damage * 1.5));
+
+            case 3:
+                // กระสุนแตกกระจาย
+                resetShootCooldown(25);
+                return new EnemyBullet((int) x + width / 2 - 20, (int) y + height / 2, 40, 40, Math.PI / 2, 5, damage * 3);
+
+            case 4:
+                // กระสุนดูดเข้าตัวผู้เล่น
+                resetShootCooldown(30);
+                // ยิงไปทิศทางสุ่ม
+                double randomAngle = Math.random() * Math.PI * 2;
+                return new EnemyBullet((int) x + width / 2 - 8, (int) y + height / 2, 16, 16, randomAngle, 3, damage * 2);
+
+            default:
+                resetShootCooldown(15);
+                return new EnemyBullet((int) x + width / 2 - 10, (int) y + height, 20, 20, Math.PI / 2, 6, damage);
+        }
+    }
+
     @Override
     public List<EnemyBullet> attackSpecial() {
-        if (!canAttack()) {
+        if (!canAttack() || isTransforming) {
             return null;
         }
 
-        resetShootCooldown(isEnraged ? 60 : 90);
         List<EnemyBullet> bullets = new ArrayList<>();
 
+        // การโจมตีพิเศษแตกต่างกันในแต่ละเฟส
+        if (isPhase2) {
+            // รูปแบบการโจมตีพิเศษเฟส 2
+            specialAttackPhase2(bullets);
+        } else {
+            // รูปแบบการโจมตีพิเศษเฟส 1
+            specialAttackPhase1(bullets);
+        }
+
+        return bullets;
+    }
+
+    /**
+     * การโจมตีพิเศษในเฟส 1
+     */
+    private void specialAttackPhase1(List<EnemyBullet> bullets) {
+        resetShootCooldown(isEnraged ? 60 : 90);
+
         // เลือกการโจมตีพิเศษตามความเหมาะสม
-        int specialAttackType = random.nextInt(isEnraged ? 4 : 3); // เพิ่มประเภทการโจมตีเมื่อคลั่ง
+        int specialAttackType = random.nextInt(isEnraged ? 4 : 3);
 
         switch (specialAttackType) {
             case 0:
@@ -275,28 +550,274 @@ public class Boss5 extends Boss {
                 }
                 break;
         }
+    }
+
+    /**
+     * การโจมตีพิเศษในเฟส 2 (สุดโหด)
+     */
+    private void specialAttackPhase2(List<EnemyBullet> bullets) {
+        resetShootCooldown(40); // คูลดาวน์สั้นกว่า
+
+        int specialAttackType = random.nextInt(4);
+
+        switch (specialAttackType) {
+            case 0:
+                // "ราวกระสุนแห่งความมืด" - ยิงเป็นวงกลม 2 ชั้น
+                for (int i = 0; i < 36; i++) {
+                    double angle = Math.PI * 2 * i / 36;
+                    bullets.add(new EnemyBullet((int) x + width / 2 - 6, (int) y + height / 2, 12, 12, angle, 6, damage));
+
+                    // ชั้นนอก ช้ากว่า
+                    bullets.add(new EnemyBullet((int) x + width / 2 - 8, (int) y + height / 2, 16, 16, angle, 4, damage * 2));
+                }
+                break;
+
+            case 1:
+                // "พายุเชิงซ้อน" - วงกลมซ้อนกับกากบาท
+                // วงกลม
+                for (int i = 0; i < 24; i++) {
+                    double angle = Math.PI * 2 * i / 24;
+                    bullets.add(new EnemyBullet((int) x + width / 2 - 6, (int) y + height / 2, 12, 12, angle, 5, damage));
+                }
+
+                // กากบาท - ใหญ่และเร็วกว่า
+                for (int i = 0; i < 4; i++) {
+                    double angle = Math.PI * i / 2;
+                    bullets.add(new EnemyBullet((int) x + width / 2 - 15, (int) y + height / 2, 30, 30, angle, 8, damage * 3));
+                }
+                break;
+
+            case 2:
+                // "ตาข่ายเพชร" - รูปแบบตาข่ายสี่เหลี่ยมข้าวหลามตัด
+                for (int i = 0; i < 4; i++) {
+                    double baseAngle = Math.PI * i / 2;
+                    // แต่ละเส้นมีหลายกระสุน
+                    for (int j = 1; j <= 10; j++) {
+                        bullets.add(new EnemyBullet(
+                                (int) (x + width / 2 - 8 + Math.cos(baseAngle) * j * 20),
+                                (int) (y + height / 2 - 8 + Math.sin(baseAngle) * j * 20),
+                                16, 16, baseAngle + Math.PI, 7, (int) (damage * 1.5)));
+                    }
+                }
+
+                // เส้นตรงกลาง
+                for (int i = 0; i < 4; i++) {
+                    double baseAngle = Math.PI * i / 2 + Math.PI / 4;
+                    for (int j = 1; j <= 6; j++) {
+                        bullets.add(new EnemyBullet(
+                                (int) (x + width / 2 - 8 + Math.cos(baseAngle) * j * 30),
+                                (int) (y + height / 2 - 8 + Math.sin(baseAngle) * j * 30),
+                                16, 16, baseAngle + Math.PI, 6, damage
+                        ));
+                    }
+                }
+                break;
+
+            case 3:
+                // "การพิพากษาครั้งสุดท้าย" - ล็อคเป้าผู้เล่น 5 กระสุนขนาดใหญ่
+                double playerAngle = Math.PI / 2; // ในเกมจริงควรคำนวณจากตำแหน่งผู้เล่น
+
+                // กระสุนกลาง - ใหญ่และเร็วมาก
+                bullets.add(new EnemyBullet((int) x + width / 2 - 20, (int) y + height / 2, 40, 40, playerAngle, 9, damage * 3));
+
+                // กระสุนซ้าย-ขวา - เล็กกว่าแต่เร็ว
+                bullets.add(new EnemyBullet((int) x + width / 2 - 12, (int) y + height / 2, 24, 24, playerAngle - 0.2, 10, damage * 2));
+                bullets.add(new EnemyBullet((int) x + width / 2 - 12, (int) y + height / 2, 24, 24, playerAngle + 0.2, 10, damage * 2));
+
+                // กระสุนซ้าย-ขวาสุด - เล็กและเร็ว
+                bullets.add(new EnemyBullet((int) x + width / 2 - 8, (int) y + height / 2, 16, 16, playerAngle - 0.4, 11, damage));
+                bullets.add(new EnemyBullet((int) x + width / 2 - 8, (int) y + height / 2, 16, 16, playerAngle + 0.4, 11, damage));
+                break;
+        }
+    }
+
+    /**
+     * การโจมตีสุดท้ายในเฟส 2 (ใช้จาก GamePanel เมื่อบอสอยู่ในเฟส 2
+     * และตรงตามเงื่อนไข)
+     */
+    public List<EnemyBullet> executeUltimateAttack() {
+        List<EnemyBullet> bullets = new ArrayList<>();
+
+        switch (phase2AttackPattern) {
+            case 0: // "วงกลมแห่งความพินาศ"
+                // ยิงวงกลมจากขอบจอทั้ง 4 ด้าน
+                executeCircleOfDoom(bullets);
+                break;
+            case 1: // "พายุหมุนกระสุน"
+                // สร้างลมหมุนกระสุนหลายจุด
+                executeBulletTornado(bullets);
+                break;
+            case 2: // "กำแพงกระสุน"
+                // สร้างกำแพงกระสุนจากทั้ง 4 ทิศ บีบพื้นที่
+                executeBulletWall(bullets);
+                break;
+            case 3: // "การพิพากษาครั้งสุดท้าย"
+                // เติมพื้นที่เกือบทั้งจอด้วยกระสุนยกเว้นพื้นที่ปลอดภัย
+                executeFinaljudgment(bullets);
+                break;
+        }
 
         return bullets;
     }
 
+    /**
+     * การโจมตี: วงกลมแห่งความพินาศ
+     */
+    private void executeCircleOfDoom(List<EnemyBullet> bullets) {
+        // สร้างวงกลมจากขอบจอทั้ง 4 ด้าน
+        int[] centerX = {0, GamePanel.WIDTH, GamePanel.WIDTH / 2, GamePanel.WIDTH / 2};
+        int[] centerY = {GamePanel.HEIGHT / 2, GamePanel.HEIGHT / 2, 0, GamePanel.HEIGHT};
+
+        for (int c = 0; c < 4; c++) {
+            for (int i = 0; i < 36; i++) {
+                double angle = Math.PI * 2 * i / 36;
+                double bulletX = centerX[c] + Math.cos(angle) * 150;
+                double bulletY = centerY[c] + Math.sin(angle) * 150;
+
+                double moveAngle = Math.atan2(
+                        GamePanel.HEIGHT / 2 - bulletY,
+                        GamePanel.WIDTH / 2 - bulletX
+                );
+
+                bullets.add(new EnemyBullet(
+                        (int) bulletX, (int) bulletY,
+                        15, 15, moveAngle, 5, damage * 2
+                ));
+            }
+        }
+    }
+
+    /**
+     * การโจมตี: พายุหมุนกระสุน
+     */
+    private void executeBulletTornado(List<EnemyBullet> bullets) {
+        // สร้างพายุหมุน 3 จุด
+        int[][] tornadoCenters = {
+            {GamePanel.WIDTH / 4, GamePanel.HEIGHT / 3},
+            {GamePanel.WIDTH * 3 / 4, GamePanel.HEIGHT / 3},
+            {GamePanel.WIDTH / 2, GamePanel.HEIGHT * 2 / 3}
+        };
+
+        for (int[] center : tornadoCenters) {
+            for (int i = 0; i < 24; i++) {
+                double angle = Math.PI * 2 * i / 24;
+                double distance = 50 + (i % 3) * 20;
+
+                double bulletX = center[0] + Math.cos(angle) * distance;
+                double bulletY = center[1] + Math.sin(angle) * distance;
+
+                // กระสุนจะวนเข้าหาศูนย์กลาง
+                double moveAngle = angle + Math.PI / 2;
+
+                bullets.add(new EnemyBullet(
+                        (int) bulletX, (int) bulletY,
+                        10, 10, moveAngle, 3, damage
+                ));
+            }
+        }
+    }
+
+    /**
+     * การโจมตี: กำแพงกระสุน
+     */
+    private void executeBulletWall(List<EnemyBullet> bullets) {
+        // สร้างกำแพงจาก 4 ทิศ
+        // ทิศบน
+        for (int x = 50; x < GamePanel.WIDTH; x += 30) {
+            bullets.add(new EnemyBullet(x, 0, 20, 20, Math.PI / 2, 4, damage));
+        }
+
+        // ทิศล่าง
+        for (int x = 30; x < GamePanel.WIDTH; x += 30) {
+            bullets.add(new EnemyBullet(x, GamePanel.HEIGHT, 20, 20, -Math.PI / 2, 4, damage));
+        }
+
+        // ทิศซ้าย
+        for (int y = 50; y < GamePanel.HEIGHT; y += 30) {
+            bullets.add(new EnemyBullet(0, y, 20, 20, 0, 4, damage));
+        }
+
+        // ทิศขวา
+        for (int y = 30; y < GamePanel.HEIGHT; y += 30) {
+            bullets.add(new EnemyBullet(GamePanel.WIDTH, y, 20, 20, Math.PI, 4, damage));
+        }
+    }
+
+    /**
+     * การโจมตี: การพิพากษาครั้งสุดท้าย
+     */
+    private void executeFinaljudgment(List<EnemyBullet> bullets) {
+        // ยิงกระสุนเต็มจอ ยกเว้นพื้นที่ปลอดภัย
+        for (int x = 40; x < GamePanel.WIDTH; x += 60) {
+            for (int y = 40; y < GamePanel.HEIGHT; y += 60) {
+                // ตรวจสอบว่าอยู่ในพื้นที่ปลอดภัยหรือไม่
+                boolean inSafeZone = false;
+
+                for (Point safeZone : safeZones) {
+                    double distance = Math.sqrt(
+                            Math.pow(x - safeZone.x, 2)
+                            + Math.pow(y - safeZone.y, 2)
+                    );
+
+                    if (distance < 60) { // รัศมีปลอดภัย
+                        inSafeZone = true;
+                        break;
+                    }
+                }
+
+                if (!inSafeZone) {
+                    bullets.add(new EnemyBullet(x, 0, 15, 15, Math.PI / 2, 6, damage));
+                }
+            }
+        }
+    }
+
     @Override
     public void takeDamage(int damage) {
+        // ถ้ากำลังเปลี่ยนเฟส จะไม่รับความเสียหาย
+        if (isTransforming) {
+            return;
+        }
+
+        // รับความเสียหายตามปกติ
         super.takeDamage(damage);
 
-        // เมื่อพลังชีวิตเหลือน้อยกว่า 60% ให้บอสเร็วขึ้นและโจมตีแรงขึ้น
-        if (health <= 300 * level && speed == 1) {
+        // เมื่อพลังชีวิตเหลือน้อยกว่า 60% ให้บอสเร็วขึ้นและโจมตีแรงขึ้น (เฟส 1)
+        if (health <= 360 * level && !isEnraged && !isPhase2) {
             speed = 2;
             this.damage = this.damage * 2;
+            isEnraged = true; // เข้าสู่โหมดคลั่ง
         }
 
-        // เมื่อพลังชีวิตเหลือน้อยกว่า 30% ให้บอสคลั่ง
-        if (health <= 150 * level && !isEnraged) {
-            isEnraged = true;
-            speed = 4;
-            this.damage = this.damage * 2;
+        // เมื่อพลังชีวิตเหลือน้อยกว่า 30% และยังไม่เปลี่ยนเป็นเฟส 2
+        if (health <= 180 * level && !isPhase2) {
+            // เข้าสู่เฟส 2
+            isPhase2 = true;
+            isTransforming = true;
+            transformTimer = 0;
 
-            // เอฟเฟกต์พิเศษเมื่อคลั่ง
-            // (จะแสดงในเมธอด render)
+            // หยุดการโจมตีชั่วคราวระหว่างเปลี่ยนเฟส
+            resetShootCooldown(TRANSFORM_DURATION + 30);
+
+            // รีเซ็ตเลือดให้เต็มครึ่งหนึ่งของเลือดตั้งต้น
+            health = 300 * level;
+
+            // เล่นเสียงเมื่อเริ่มเปลี่ยนเฟส
+            SoundManager.playSound("boss_transform_start");
         }
+    }
+
+    /**
+     * ตรวจสอบว่าบอสอยู่ในเฟส 2 หรือไม่
+     */
+    public boolean isInPhase2() {
+        return isPhase2;
+    }
+
+    /**
+     * ตรวจสอบว่าบอสกำลังในเปลี่ยนเฟสหรือไม่
+     */
+    public boolean isTransforming() {
+        return isTransforming;
     }
 }

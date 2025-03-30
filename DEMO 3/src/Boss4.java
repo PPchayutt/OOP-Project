@@ -26,9 +26,9 @@ public class Boss4 extends Boss {
         // ปรับแต่งค่าพารามิเตอร์ให้แข็งแกร่งขึ้น
         this.width = 120;
         this.height = 120;
-        this.health = 400 * level;
-        this.maxHealth = 400 * level;
-        this.damage = 30;
+        this.health = 500 * level;
+        this.maxHealth = 500 * level;
+        this.damage = 35;
     }
 
     @Override

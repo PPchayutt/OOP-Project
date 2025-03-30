@@ -518,7 +518,7 @@ public class GamePanel extends JPanel implements Runnable, GameState {
         String countdownMessage = seconds + "";
         int countdownWidth = g.getFontMetrics().stringWidth(countdownMessage);
         g.drawString(countdownMessage, (WIDTH - countdownWidth) / 2, HEIGHT / 2 + 90);
-        
+
         g.setFont(new Font("Arial", Font.PLAIN, 12));
         g.drawString("Timer: " + levelManager.getTransitionTimer(), 10, HEIGHT - 20);
     }
@@ -610,6 +610,20 @@ public class GamePanel extends JPanel implements Runnable, GameState {
 
     @Override
     public void update() {
+
+        // ช่วยบังคับให้ GC ทำงานเป็นระยะ
+        if (System.currentTimeMillis() % 30000 < 100) { // ทุกๆ 30 วินาที
+            System.gc();
+        }
+
+        // จำกัดจำนวนกระสุนและเอฟเฟ็กต์
+        if (enemyBullets.size() > 200) {
+            // ลบกระสุนเก่าเกิน 200 ลูกออกไป
+            while (enemyBullets.size() > 150) {
+                enemyBullets.remove(0);
+            }
+        }
+
         // เพิ่มการตรวจสอบการเปลี่ยนแผนที่
         if (levelManager.needsMapChange()) {
             clearCurrentLevelResources(); // เรียกเมธอดใหม่เพื่อเคลียร์ทรัพยากร
@@ -740,26 +754,22 @@ public class GamePanel extends JPanel implements Runnable, GameState {
         if (!stopTimeActive) {
             // สปอนมอนสเตอร์ - แก้ไขเงื่อนไขให้เข้มงวดน้อยลง
             monsterSpawnTimer++;
-            if (monsterSpawnTimer >= levelManager.getMonsterSpawnRate() && monsters.size() < 10) {
-                try {
-                    // บังคับให้มีการพิมพ์ค่าเพื่อตรวจสอบ
-                    System.out.println("กำลังพยายามสปอนมอนสเตอร์ในด่าน " + levelManager.getCurrentLevel());
-                    spawnMonster();
-                    monsterSpawnTimer = 0;
-                } catch (Exception e) {
-                    System.err.println("เกิดข้อผิดพลาดในการสปอนมอนสเตอร์: " + e.getMessage());
-                    e.printStackTrace();
-                }
+            if (monsterSpawnTimer >= levelManager.getMonsterSpawnRate() && monsters.size() < 10 && bosses.isEmpty()) {
+                // สปอนมอนสเตอร์เฉพาะเมื่อไม่มีบอส
+                spawnMonster();
+                monsterSpawnTimer = 0;
+            }
+            if (monsterSpawnTimer >= levelManager.getMonsterSpawnRate() && monsters.size() < 10 && bosses.isEmpty()) {
+                // สปอนมอนสเตอร์เฉพาะเมื่อไม่มีบอส
+                spawnMonster();
+                monsterSpawnTimer = 0;
             }
             // สปอนบอสถ้าสังหารมอนสเตอร์ครบ
             if (levelManager.shouldSpawnBoss() && bosses.isEmpty()) {
-                try {
-                    spawnBoss();
-                    levelManager.bossSpawned();
-                    System.out.println("สปอนบอสด่าน " + levelManager.getCurrentLevel() + " สำเร็จ");
-                } catch (Exception e) {
-                    System.err.println("เกิดข้อผิดพลาดในการสปอนบอส: " + e.getMessage());
-                }
+                // ล้างมอนสเตอร์ทั้งหมดก่อนสปอนบอส
+                monsters.clear();
+                spawnBoss();
+                levelManager.bossSpawned();
             }
 
             // อัปเดตมอนสเตอร์และบอส
@@ -791,6 +801,10 @@ public class GamePanel extends JPanel implements Runnable, GameState {
 // จัดการมอนสเตอร์แบบง่ายกว่าเดิม - ลดการคำนวณซับซ้อน
         for (Enemy enemy : monsters) {
             enemy.update();
+            // เพิ่มการหลบหลีกระหว่างมอนสเตอร์
+            if (enemy instanceof Monster) {
+                ((Monster) enemy).avoidOtherMonsters(monsters);
+            }
 
             // ตรวจสอบการชนเฉพาะมอนสเตอร์ที่อยู่ใกล้กันในระยะ 50 พิกเซล
             for (Enemy otherEnemy : monsters) {
@@ -856,8 +870,14 @@ public class GamePanel extends JPanel implements Runnable, GameState {
                 // เพิ่มคะแนน
                 player.addScore(boss.getPoints());
 
-                // บอสจะดรอปบัฟเสมอ
-                spawnPowerup((int) (boss.getX() + boss.getWidth() / 2), (int) (boss.getY() + boss.getHeight() / 2));
+                // ดรอปบัฟหลายชิ้นตามระดับของบอส
+                int dropCount = Math.min(5, boss.getLevel() * 2); // จำกัดไม่เกิน 5 ชิ้น
+                for (int i = 0; i < dropCount; i++) {
+                    int offsetX = random.nextInt(boss.getWidth()) - boss.getWidth() / 2;
+                    int offsetY = random.nextInt(boss.getHeight()) - boss.getHeight() / 2;
+                    spawnPowerup((int) (boss.getX() + boss.getWidth() / 2 + offsetX),
+                            (int) (boss.getY() + boss.getHeight() / 2 + offsetY));
+                }
                 continue;
             }
 
@@ -1071,7 +1091,16 @@ public class GamePanel extends JPanel implements Runnable, GameState {
     private void checkBossPlayerCollisions() {
         for (Boss boss : bosses) {
             if (player.isAlive() && boss.isAlive() && player.collidesWith(boss)) {
-                player.takeDamage(boss.getDamage(), true);
+                int baseDamage = boss.getDamage();
+
+                // คำนวณความเสียหายโดยคำนึงถึงเลือดที่เหลือ
+                int actualDamage = baseDamage;
+                if (player.getHealth() <= 10) {
+                    // ลดความเสียหายลงถ้าเลือดเหลือน้อย
+                    actualDamage = Math.max(1, baseDamage / 3);
+                }
+
+                player.takeDamage(actualDamage, true);
                 boss.takeDamage(20);
             }
         }
@@ -1113,6 +1142,11 @@ public class GamePanel extends JPanel implements Runnable, GameState {
     }
 
     private void spawnPowerup(int x, int y) {
+        // จำกัดจำนวนบัฟในเกม
+        if (powerups.size() >= 20) {
+            powerups.remove(0); // ลบบัฟเก่าออก
+        }
+
         Powerup powerup = Powerup.createRandomPowerup(x, y);
         if (powerup != null) {
             powerups.add(powerup);

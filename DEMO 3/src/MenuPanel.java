@@ -104,10 +104,10 @@ public class MenuPanel extends JPanel implements MouseListener, GameState {
             }
             // ถ้ามี menuMusic อยู่แล้วและถูกเปิดอยู่ ให้หยุดและปิดก่อน
             if (menuMusic != null && menuMusic.isOpen()) {
-            menuMusic.stop();
-            menuMusic.close();
+                menuMusic.stop();
+                menuMusic.close();
             }
-        
+
             AudioInputStream audioInput = AudioSystem.getAudioInputStream(new File("resources/sounds/menu_music.wav"));
             menuMusic = AudioSystem.getClip();
             menuMusic.open(audioInput);
@@ -120,25 +120,26 @@ public class MenuPanel extends JPanel implements MouseListener, GameState {
 
     public void playMusic() {
         if (SoundManager.isMusicMuted()) {
-        return;
+            return;
         }
+
         try {
-            // ถ้า menuMusic เป็น null หรือถูกปิดไปแล้ว ให้โหลดและเล่นใหม่
+            // ตรวจสอบว่าไม่มีเพลงอื่นเล่นอยู่
+            SoundManager.stopBackgroundMusic();
+
+            // โหลดเพลงใหม่ถ้าจำเป็น
             if (menuMusic == null || !menuMusic.isOpen()) {
                 loadAndPlayMusic();
-            } 
-            // ถ้ามีอยู่แล้วแต่ไม่ได้เล่นอยู่ ให้เริ่มเล่น
-            else if (!menuMusic.isRunning()) {
-                menuMusic.setFramePosition(0); // รีเซ็ตตำแหน่งเพลงให้เริ่มจากต้น
+            } else if (!menuMusic.isRunning()) {
+                menuMusic.setFramePosition(0);
                 menuMusic.start();
                 menuMusic.loop(Clip.LOOP_CONTINUOUSLY);
             }
         } catch (Exception e) {
             System.err.println("ไม่สามารถเล่นเพลงเมนูได้: " + e.getMessage());
-            // ลองโหลดใหม่อีกครั้งเป็นทางเลือกสุดท้าย
             loadAndPlayMusic();
         }
-    }   
+    }
 
     public void stopMusic() {
         if (menuMusic != null && menuMusic.isRunning()) {

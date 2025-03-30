@@ -15,13 +15,13 @@ public class Monster2 extends Monster {
         // แก้ไขค่าพารามิเตอร์ต่างๆ
         this.width = 35;
         this.height = 35;
-        this.health = 80;
-        this.maxHealth = 80;
+        this.health = 70;
+        this.maxHealth = 70;
         this.speed = 2;
-        this.damage = 15;
+        this.damage = 12;
         this.points = 150;
-        this.dropsPowerup = random.nextDouble() < 0.25; // โอกาสดรอปบัฟมากขึ้น (25%)
-        this.speedMultiplier = 0.3f;
+        this.dropsPowerup = random.nextDouble() < 0.35;
+        this.speedMultiplier = 0.2f;
     }
 
     @Override
@@ -98,6 +98,11 @@ public class Monster2 extends Monster {
     public EnemyBullet attack() {
         if (!canAttack()) {
             return null;
+        }
+
+        // เพิ่มเงื่อนไขตรวจสอบว่าอยู่ในจอหรือไม่
+        if (x < 0 || x > GamePanel.WIDTH || y < 0 || y > GamePanel.HEIGHT) {
+            return null; // ไม่ยิงถ้าอยู่นอกจอ
         }
 
         // คูลดาวน์สั้นกว่า (ยิงถี่กว่า)

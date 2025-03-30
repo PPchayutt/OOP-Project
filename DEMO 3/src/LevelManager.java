@@ -15,7 +15,8 @@ public class LevelManager {
     private boolean levelReadyToPlay = false;
 
     public LevelManager() {
-        monstersToKill = 20 + (currentLevel - 1) * 5;
+        // เริ่มที่ 20 ตัวในด่านแรก
+        monstersToKill = 20;
     }
 
     public void monsterKilled() {
@@ -24,18 +25,20 @@ public class LevelManager {
 
     public void bossKilled() {
         currentLevel++;
-        // เพิ่มการเช็คว่าต้องเป็นด่าน 1-5 เท่านั้น
+        // ตรวจสอบระดับที่ถูกต้อง
         if (currentLevel > 5) {
-            currentLevel = 5; // จำกัดเป็นด่าน 5 ด่านตามโจทย์
+            currentLevel = 5;
             return;
         }
 
-        // ถ้าเป็นด่าน 2 ให้ลดจำนวนมอนสเตอร์ลง
-        if (currentLevel == 2) {
-            monstersToKill = 15; // ลดจาก 30 (20+10) เป็น 15
-        } else {
-            monstersToKill = 20 + (currentLevel - 1) * 10;
-        }
+        // กำหนดจำนวนมอนสเตอร์ที่ต้องกำจัดในแต่ละด่าน
+        monstersToKill = switch (currentLevel) {
+            case 2 -> 25; // ด่าน 2
+            case 3 -> 30; // ด่าน 3
+            case 4 -> 35; // ด่าน 4
+            case 5 -> 40; // ด่าน 5
+            default -> 20; // ด่าน 1
+        };
         monstersKilled = 0;
         bossSpawned = false;
         isTransitioning = true;

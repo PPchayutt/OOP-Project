@@ -25,13 +25,13 @@ public class Monster4 extends Monster {
         // ปรับค่าพารามิเตอร์ให้แข็งแกร่งขึ้นกว่าด่าน 3
         this.width = 40;
         this.height = 40;
-        this.health = 100;
-        this.maxHealth = 100;
-        this.speed = 3;
-        this.damage = 20;
+        this.health = 85;
+        this.maxHealth = 85;
+        this.speed = 2;
+        this.damage = 16;
         this.points = 200;
-        this.dropsPowerup = random.nextDouble() < 0.3; // โอกาสดรอปบัฟ 30%
-        this.speedMultiplier = 0.4f;
+        this.dropsPowerup = random.nextDouble() < 0.35;
+        this.speedMultiplier = 0.25f;
     }
 
     @Override
@@ -119,6 +119,11 @@ public class Monster4 extends Monster {
     public EnemyBullet attack() {
         if (!canAttack()) {
             return null;
+        }
+
+        // เพิ่มเงื่อนไขตรวจสอบว่าอยู่ในจอหรือไม่
+        if (x < 0 || x > GamePanel.WIDTH || y < 0 || y > GamePanel.HEIGHT) {
+            return null; // ไม่ยิงถ้าอยู่นอกจอ
         }
 
         // คูลดาวน์สั้นลงและยิงเร็วขึ้น

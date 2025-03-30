@@ -1,3 +1,4 @@
+
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -22,8 +23,8 @@ public class Boss3 extends Boss {
         // เพิ่มหรือแก้ไขคุณสมบัติพิเศษของ Boss3
         this.width = 100;
         this.height = 100;
-        this.health = 300 * level;
-        this.maxHealth = 300 * level;
+        this.health = 400 * level;
+        this.maxHealth = 400 * level;
         this.damage = 25;
     }
 
@@ -76,30 +77,30 @@ public class Boss3 extends Boss {
             // วาดหน้าสีเนื้อ (พื้นหลัง)
             g.setColor(new Color(255, 213, 170)); // สีผิว
             g.fillOval((int) x, (int) y, width, height);
-            
+
             // วาดผม
             g.setColor(Color.BLACK);
-            g.fillArc((int) x, (int) y, width, height/2, 0, 180);
-            
+            g.fillArc((int) x, (int) y, width, height / 2, 0, 180);
+
             // วาดคิ้ว
             g.setColor(new Color(139, 69, 19)); // สีน้ำตาล
-            g.fillRect((int) (x + width/4), (int) (y + height/3) - 5, width/5, 3);
-            g.fillRect((int) (x + width/2), (int) (y + height/3) - 5, width/5, 3);
-            
+            g.fillRect((int) (x + width / 4), (int) (y + height / 3) - 5, width / 5, 3);
+            g.fillRect((int) (x + width / 2), (int) (y + height / 3) - 5, width / 5, 3);
+
             // วาดตา (ปิด)
             g.setColor(Color.BLACK);
-            g.drawLine((int) (x + width/4), (int) (y + height/3), (int) (x + width/4 + width/5), (int) (y + height/3));
-            g.drawLine((int) (x + width/2), (int) (y + height/3), (int) (x + width/2 + width/5), (int) (y + height/3));
-            
+            g.drawLine((int) (x + width / 4), (int) (y + height / 3), (int) (x + width / 4 + width / 5), (int) (y + height / 3));
+            g.drawLine((int) (x + width / 2), (int) (y + height / 3), (int) (x + width / 2 + width / 5), (int) (y + height / 3));
+
             // วาดจมูก
             g.setColor(new Color(220, 170, 140));
-            int[] xPointsNose = {(int) (x + width/2), (int) (x + width/2 - 5), (int) (x + width/2 + 5)};
-            int[] yPointsNose = {(int) (y + height/2), (int) (y + height/2 + 10), (int) (y + height/2 + 10)};
+            int[] xPointsNose = {(int) (x + width / 2), (int) (x + width / 2 - 5), (int) (x + width / 2 + 5)};
+            int[] yPointsNose = {(int) (y + height / 2), (int) (y + height / 2 + 10), (int) (y + height / 2 + 10)};
             g.fillPolygon(xPointsNose, yPointsNose, 3);
-            
+
             // วาดปาก
             g.setColor(new Color(200, 120, 120));
-            g.drawArc((int) (x + width/3), (int) (y + height*2/3), width/3, height/8, 0, 180);
+            g.drawArc((int) (x + width / 3), (int) (y + height * 2 / 3), width / 3, height / 8, 0, 180);
         }
 
         // แถบพลังชีวิต
@@ -169,14 +170,24 @@ public class Boss3 extends Boss {
         return bullets;
     }
 
+    /**
+     *
+     * @param damage
+     */
     @Override
     public void takeDamage(int damage) {
         super.takeDamage(damage);
 
-        // เมื่อพลังชีวิตเหลือน้อยกว่า 50% ให้บอสเร็วขึ้นและโจมตีแรงขึ้น 3 เท่า
-        if (health <= 150 * level && speed == 1) {
+        // เมื่อพลังชีวิตเหลือน้อยกว่า 50% ให้บอสเร็วขึ้นและโจมตีแรงขึ้น
+        if (health <= 200 * level && speed == 1) {
             speed = 3;
             this.damage = this.damage * 3;
+        }
+
+        // เพิ่มระยะที่ 2 เมื่อเลือดเหลือน้อยกว่า 25%
+        if (health <= 100 * level && speed == 3) {
+            speed = 4;
+            this.damage = (int) (this.damage * 1.5);
         }
     }
 }

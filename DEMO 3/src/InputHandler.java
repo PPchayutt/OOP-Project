@@ -16,10 +16,10 @@ public class InputHandler implements KeyListener, MouseListener, MouseMotionList
     @Override
     public void keyPressed(KeyEvent e) {
         int key = e.getKeyCode();
-        
-         // ตรวจสอบว่าเกมจบแล้วหรือยัง
+
+        // ตรวจสอบว่าเกมจบแล้วหรือยัง
         boolean isGameOver = gamePanel.isGameOver();
-        
+
         // การตรวจจับปุ่มสำหรับเคลื่อนที่
         if (key == KeyEvent.VK_W) {
             up = true;
@@ -36,13 +36,8 @@ public class InputHandler implements KeyListener, MouseListener, MouseMotionList
 
         // กดปุ่ม P หรือ ESC เพื่อพักเกม (ทำงานเมื่อเกมไม่จบเท่านั้น)
         if ((key == KeyEvent.VK_P || key == KeyEvent.VK_ESCAPE) && !isGameOver) {
-        gamePanel.togglePause();
+            gamePanel.togglePause();
         }
-        // เพิ่มตรวจจับปุ่ม F11 สำหรับสลับโหมด fullscreen
-        if (key == KeyEvent.VK_F11) {
-            gamePanel.getGame().toggleFullscreen();
-        }
-
         updatePlayerMovement();
     }
 
@@ -87,13 +82,14 @@ public class InputHandler implements KeyListener, MouseListener, MouseMotionList
             // ตรวจสอบว่าถึงเวลายิงหรือยัง
             if (timeSinceLastShot >= playerCooldown) {
                 System.out.println("ยิงที่พิกัด: " + mouseX + ", " + mouseY);
-            
+
                 // ส่งพิกัดเมาส์ที่แท้จริงไปให้ gamePanel (ไม่ต้องแปลงที่นี่)
                 gamePanel.playerShoot(mouseX, mouseY);
                 lastShootTime = currentTime;
             }
         }
     }
+
     @Override
     public void mouseReleased(MouseEvent e) {
         if (e.getButton() == MouseEvent.BUTTON1) {
@@ -158,6 +154,7 @@ public class InputHandler implements KeyListener, MouseListener, MouseMotionList
 
         gamePanel.movePlayer(dx, dy);
     }
+
     public void resetAllInputs() {
         // รีเซ็ตสถานะการกดปุ่มทั้งหมด
         up = false;
@@ -165,10 +162,10 @@ public class InputHandler implements KeyListener, MouseListener, MouseMotionList
         left = false;
         right = false;
         isLeftHold = false;
-    
+
         // อัพเดตการเคลื่อนที่ผู้เล่นให้หยุด
         updatePlayerMovement();
-    
+
         System.out.println("รีเซ็ตการควบคุมทั้งหมดแล้ว");
     }
 }

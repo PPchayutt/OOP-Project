@@ -1,5 +1,6 @@
 
 import java.awt.*;
+import java.util.List; // เพิ่ม import นี้
 import java.util.Random;
 
 /*
@@ -11,7 +12,7 @@ public class Monster extends Enemy {
     private int patternCounter = 0;
     final Player target;
     private static final Random random = new Random();
-    private float speedMultiplier = 0.3f; // เพิ่มตัวแปรใหม่เพื่อทำให้เคลื่อนที่ช้าลงตอนเริ่มต้น
+    private float speedMultiplier = 0.15f;
     private int spawnTime = 0; // นับเวลาตั้งแต่เกิด
 
     /*
@@ -23,12 +24,34 @@ public class Monster extends Enemy {
      */
     public Monster(int x, int y, Player player) {
         // ใช้ speed เป็น 1 (จำนวนเต็ม) แทน 0.7
-        super(x, y, 30, 30, 50, 1, 10, 100);
+        super(x, y, 30, 30, 45, 1, 8, 100);
         this.target = player;
         this.movementPattern = random.nextInt(3);
-        this.dropsPowerup = random.nextDouble() < 0.2;
+        this.dropsPowerup = random.nextDouble() < 0.35;
         // ปรับค่า speedMultiplier ให้น้อยลง
         this.speedMultiplier = 0.2f; // จะทำให้มอนสเตอร์เคลื่อนที่ด้วยความเร็ว 20% ของค่าพื้นฐาน
+    }
+
+    protected void avoidOtherMonsters(List<Enemy> monsters) {
+        for (Enemy other : monsters) {
+            if (this != other && collidesWith(other)) {
+                // คำนวณทิศทางหลบ
+                float dx = x - other.getX();
+                float dy = y - other.getY();
+                float distance = (float) Math.sqrt(dx * dx + dy * dy);
+
+                if (distance > 0) {
+                    // ผลักออกจากกัน
+                    float pushForce = 1.0f;
+                    x += (dx / distance) * pushForce;
+                    y += (dy / distance) * pushForce;
+                } else {
+                    // ถ้าซ้อนทับพอดี ผลักในทิศทางสุ่ม
+                    x += (random.nextDouble() * 2 - 1) * 2; // ใช้ random แทน Math.random()
+                    y += (random.nextDouble() * 2 - 1) * 2; // ใช้ random แทน Math.random()
+                }
+            }
+        }
     }
 
     @Override
@@ -100,6 +123,11 @@ public class Monster extends Enemy {
             return null;
         }
 
+        // เพิ่มเงื่อนไขตรวจสอบว่าอยู่ในจอหรือไม่
+        if (x < 0 || x > GamePanel.WIDTH || y < 0 || y > GamePanel.HEIGHT) {
+            return null; // ไม่ยิงถ้าอยู่นอกจอ
+        }
+
         // กำหนดเวลาคูลดาวน์
         resetShootCooldown(60);
 
@@ -113,9 +141,5 @@ public class Monster extends Enemy {
 
         // สร้างกระสุน
         return new EnemyBullet((int) x + width / 2, (int) y + height / 2, 8, 8, angle, 5, damage);
-    }
-
-    void setDamage(int i) {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
     }
 }

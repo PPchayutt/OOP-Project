@@ -11,7 +11,6 @@ public class Monster5 extends Monster {
     private static final Random random = new Random();
     private float speedMultiplier = 0.6f;
     private int spawnTime = 0;
-    private final float maxSpeed = 4.0f;
 
     /*
      * สร้างมอนสเตอร์ด่าน 5 ใหม่
@@ -26,13 +25,13 @@ public class Monster5 extends Monster {
         // ปรับค่าพารามิเตอร์ให้แข็งแกร่งที่สุด
         this.width = 45;
         this.height = 45;
-        this.health = 120;
-        this.maxHealth = 120;
-        this.speed = 4;
-        this.damage = 25;
+        this.health = 100;
+        this.maxHealth = 100;
+        this.speed = 3;
+        this.damage = 20;
         this.points = 250;
-        this.dropsPowerup = random.nextDouble() < 0.35; // โอกาสดรอปบัฟ 35%
-        this.speedMultiplier = 0.5f;
+        this.dropsPowerup = random.nextDouble() < 0.35;
+        this.speedMultiplier = 0.3f;
     }
 
     @Override
@@ -132,6 +131,11 @@ public class Monster5 extends Monster {
     public EnemyBullet attack() {
         if (!canAttack()) {
             return null;
+        }
+
+        // เพิ่มเงื่อนไขตรวจสอบว่าอยู่ในจอหรือไม่
+        if (x < 0 || x > GamePanel.WIDTH || y < 0 || y > GamePanel.HEIGHT) {
+            return null; // ไม่ยิงถ้าอยู่นอกจอ
         }
 
         // คูลดาวน์สั้นมาก (ยิงถี่มาก)

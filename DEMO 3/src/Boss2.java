@@ -13,8 +13,8 @@ public class Boss2 extends Boss {
         // เพิ่มหรือแก้ไขคุณสมบัติพิเศษของ Boss2
         this.width = 100;
         this.height = 100;
-        this.health = 300 * level;
-        this.maxHealth = 300 * level;
+        this.health = 400 * level;
+        this.maxHealth = 400 * level;
         this.damage = 25;
     }
 
@@ -152,10 +152,16 @@ public class Boss2 extends Boss {
     public void takeDamage(int damage) {
         super.takeDamage(damage);
 
-        // เมื่อพลังชีวิตเหลือน้อยกว่า 50% ให้บอสเร็วขึ้นและโจมตีแรงขึ้น 3 เท่า
-        if (health <= 150 * level && speed == 1) {
+        // เมื่อพลังชีวิตเหลือน้อยกว่า 50% ให้บอสเร็วขึ้นและโจมตีแรงขึ้น
+        if (health <= 200 * level && speed == 1) {
             speed = 3;
             this.damage = this.damage * 3;
+        }
+
+        // เพิ่มระยะที่ 2 เมื่อเลือดเหลือน้อยกว่า 25%
+        if (health <= 100 * level && speed == 3) {
+            speed = 4;
+            this.damage = (int) (this.damage * 1.5);
         }
     }
 }

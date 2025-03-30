@@ -1,3 +1,4 @@
+
 import java.awt.*;
 import java.util.Random;
 
@@ -24,13 +25,13 @@ public class Monster3 extends Monster {
         // ปรับค่าพารามิเตอร์
         this.width = 35;
         this.height = 35;
-        this.health = 80;
-        this.maxHealth = 80;
+        this.health = 70;
+        this.maxHealth = 70;
         this.speed = 2;
-        this.damage = 15;
+        this.damage = 12;
         this.points = 150;
-        this.dropsPowerup = random.nextDouble() < 0.25; // โอกาสดรอปบัฟ 25%
-        this.speedMultiplier = 0.3f;
+        this.dropsPowerup = random.nextDouble() < 0.35;
+        this.speedMultiplier = 0.2f;
     }
 
     @Override
@@ -91,9 +92,9 @@ public class Monster3 extends Monster {
 
             // วาดตา
             g.setColor(Color.BLACK);
-            g.fillOval((int) (x + width/4), (int) (y + height/3), width/5, height/5);
-            g.fillOval((int) (x + width*3/5), (int) (y + height/3), width/5, height/5);
-            
+            g.fillOval((int) (x + width / 4), (int) (y + height / 3), width / 5, height / 5);
+            g.fillOval((int) (x + width * 3 / 5), (int) (y + height / 3), width / 5, height / 5);
+
             // วาดขอบ
             g.setColor(new Color(0, 0, 150));
             g.drawOval((int) x, (int) y, width, height);
@@ -111,6 +112,11 @@ public class Monster3 extends Monster {
     public EnemyBullet attack() {
         if (!canAttack()) {
             return null;
+        }
+
+        // เพิ่มเงื่อนไขตรวจสอบว่าอยู่ในจอหรือไม่
+        if (x < 0 || x > GamePanel.WIDTH || y < 0 || y > GamePanel.HEIGHT) {
+            return null; // ไม่ยิงถ้าอยู่นอกจอ
         }
 
         // คูลดาวน์สั้นกว่า (ยิงถี่กว่า)
