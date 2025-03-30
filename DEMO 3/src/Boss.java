@@ -88,7 +88,7 @@ public class Boss extends Enemy {
         // พิมพ์ข้อความแสดงสถานะใต้บอส (เพื่อการดีบัก)
         g.setColor(Color.WHITE);
         g.setFont(new Font("Arial", Font.PLAIN, 10));
-        g.drawString("Boss Lv." + level + " HP:" + health, (int) x, (int) y + height + 15);
+        g.drawString("Stage " + level + " Boss HP:" + health, (int) x, (int) y + height + 15);
     }
 
     @Override

@@ -74,7 +74,7 @@ public class ImageManager {
                 } else {
                     System.out.println("ไม่พบไฟล์ภาพฉากด่าน 1");
                 }
-                
+
                 loadPowerupImages();
 
                 File level2BgFile = new File("resources/images/level2_bg.png");
@@ -181,13 +181,55 @@ public class ImageManager {
                 }
 
 // โหลดรูปภาพบอสด่าน 5
-                File boss5File = new File("resources/images/L5_Boss.png");
-                if (boss5File.exists()) {
-                    images.put("boss5", ImageIO.read(boss5File));
-                    System.out.println("โหลดรูปภาพบอสด่าน 5 สำเร็จ");
+// เพิ่มการโหลดรูปภาพสำหรับเฟส 1 และเฟส 2 ของบอสด่าน 5
+                File boss5Phase1File = new File("resources/images/L5_Boss_Phase1.png");
+                if (boss5Phase1File.exists()) {
+                    images.put("L5_Boss_Phase1", ImageIO.read(boss5Phase1File));
+                    System.out.println("โหลดรูปภาพบอสด่าน 5 เฟส 1 สำเร็จ");
                 } else {
-                    System.out.println("ไม่พบไฟล์ภาพบอสด่าน 5 จะใช้ภาพพื้นฐานแทน");
-                    createDefaultBoss5Image();
+                    System.out.println("ไม่พบไฟล์ภาพบอสด่าน 5 เฟส 1 จะใช้ภาพพื้นฐานแทน");
+                    // ใช้รูปบอส 5 ปกติถ้าไม่มีรูปเฟส 1
+                    images.put("L5_Boss_Phase1", images.get("boss5"));
+                }
+
+                File boss5Phase2File = new File("resources/images/L5_Boss_Phase2.png");
+                if (boss5Phase2File.exists()) {
+                    images.put("L5_Boss_Phase2", ImageIO.read(boss5Phase2File));
+                    System.out.println("โหลดรูปภาพบอสด่าน 5 เฟส 2 สำเร็จ");
+                } else {
+                    System.out.println("ไม่พบไฟล์ภาพบอสด่าน 5 เฟส 2 จะใช้ภาพพื้นฐานแทน");
+                    // สร้างรูปเฟส 2 จากรูปปกติแต่เปลี่ยนสี (สีแดงเข้มกว่า)
+                    try {
+                        BufferedImage bossPh1 = (BufferedImage) images.get("boss5");
+                        if (bossPh1 != null) {
+                            BufferedImage bossPh2 = new BufferedImage(
+                                    bossPh1.getWidth(), bossPh1.getHeight(),
+                                    BufferedImage.TYPE_INT_ARGB);
+
+                            // คัดลอกรูปและปรับสีให้เข้มขึ้น/น่ากลัวขึ้น
+                            for (int x = 0; x < bossPh1.getWidth(); x++) {
+                                for (int y = 0; y < bossPh1.getHeight(); y++) {
+                                    int rgb = bossPh1.getRGB(x, y);
+                                    if (rgb != 0) { // ไม่ใช่พื้นที่โปร่งใส
+                                        Color c = new Color(rgb, true);
+                                        Color darker = new Color(
+                                                Math.min(255, c.getRed() + 50),
+                                                Math.max(0, c.getGreen() - 50),
+                                                Math.max(0, c.getBlue() - 50),
+                                                c.getAlpha()
+                                        );
+                                        bossPh2.setRGB(x, y, darker.getRGB());
+                                    }
+                                }
+                            }
+                            images.put("L5_Boss_Phase2", bossPh2);
+                        } else {
+                            createDefaultBoss5Phase2Image();
+                        }
+                    } catch (Exception e) {
+                        System.out.println("เกิดข้อผิดพลาดในการสร้างรูปบอสเฟส 2: " + e.getMessage());
+                        createDefaultBoss5Phase2Image();
+                    }
                 }
 
                 // โหลดรูปภาพปืนและเอฟเฟค
@@ -725,36 +767,35 @@ public class ImageManager {
         images.put("boss4", boss4Img);
     }
 
-    private static void createDefaultBoss5Image() {
-        BufferedImage boss5Img = new BufferedImage(140, 140, BufferedImage.TYPE_INT_ARGB);
-        Graphics2D g2d = boss5Img.createGraphics();
+    // เพิ่มเมธอดสำหรับสร้างรูปบอสเฟส 2 แบบพื้นฐาน
+    private static void createDefaultBoss5Phase2Image() {
+        BufferedImage boss5Ph2 = new BufferedImage(140, 140, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g2d = boss5Ph2.createGraphics();
 
-        // วาดปีศาจโบราณขนาดใหญ่
-        g2d.setColor(new Color(30, 0, 50)); // สีม่วงเข้มเกือบดำ
+        // สร้างรูปปีศาจเฟส 2 ที่ดูอันตรายกว่าเฟส 1
+        g2d.setColor(new Color(150, 0, 20)); // สีแดงเข้ม
         g2d.fillOval(0, 0, 140, 140);
 
         // เอฟเฟกต์เรืองแสงรอบตัว
-        g2d.setColor(new Color(120, 0, 200, 80)); // สีม่วงโปร่งใส
+        g2d.setColor(new Color(255, 30, 0, 80));
         g2d.fillOval(-10, -10, 160, 160);
 
         // ตาสีแดงเรืองแสง
-        g2d.setColor(Color.RED);
+        g2d.setColor(Color.YELLOW);
         g2d.fillOval(35, 40, 25, 25);
         g2d.fillOval(80, 40, 25, 25);
 
-        // เขาหรือเงาด้านบน
-        g2d.setColor(Color.BLACK);
-        int[] xPoints = {35, 70, 105};
-        int[] yPoints = {0, -35, 0};
-        g2d.fillPolygon(xPoints, yPoints, 3);
-
-        // รายละเอียดอื่นๆ บนตัวบอส
-        g2d.setColor(new Color(100, 0, 150));
-        g2d.drawLine(70, 70, 70, 100);
-        g2d.drawOval(35, 70, 70, 50);
+        // รายละเอียดอื่นๆ
+        g2d.setColor(new Color(255, 100, 0));
+        for (int i = 0; i < 8; i++) {
+            double angle = Math.PI * i / 4;
+            int x1 = 70 + (int) (Math.cos(angle) * 60);
+            int y1 = 70 + (int) (Math.sin(angle) * 60);
+            g2d.drawLine(70, 70, x1, y1);
+        }
 
         g2d.dispose();
-        images.put("boss5", boss5Img);
+        images.put("L5_Boss_Phase2", boss5Ph2);
     }
 
 // เพิ่มเมธอด createGlowEffect ที่ใช้โดย createLevel5BackgroundImage
@@ -858,21 +899,19 @@ public class ImageManager {
         g2d.dispose();
         images.put(isIncrease ? "volume_up" : "volume_down", buttonImg);
     }
-    
+
     private static void loadPowerupImages() {
         String[] powerupNames = {
             // บัฟสุดโหด (Crazy)
             "crazy_shooting", "stop_time",
-            
             // บัฟถาวร (Permanent)
             "increase_bullet_damage", "increase_movement_speed", "increase_shooting_speed",
             "knockback", "plus_more_heart", "shoot_multiple_bullets",
-            
             // บัฟชั่วคราว (Temporary)
             "increase_bullet_damage(temp)", "increase_movement_speed(temp)", "increase_shooting_speed(temp)",
             "knockback(temp)", "fires_multiple_bullets(temp)", "healing"
         };
-        
+
         for (String name : powerupNames) {
             try {
                 File imageFile = new File("resources/images/" + name + ".png");
@@ -888,16 +927,16 @@ public class ImageManager {
             }
         }
     }
-    
+
     /**
      * สร้างไอคอนพื้นฐานสำหรับบัฟที่ไม่มีรูปภาพ
-     * 
+     *
      * @param powerupName ชื่อบัฟ
      */
     private static void createDefaultPowerupIcon(String powerupName) {
         BufferedImage iconImage = new BufferedImage(50, 50, BufferedImage.TYPE_INT_ARGB);
         Graphics2D g = iconImage.createGraphics();
-        
+
         // กำหนดสีตามประเภทของบัฟ
         if (powerupName.contains("crazy")) {
             g.setColor(new Color(200, 50, 50)); // สีแดง
@@ -906,19 +945,19 @@ public class ImageManager {
         } else {
             g.setColor(new Color(130, 50, 200)); // สีม่วง
         }
-        
+
         // วาดวงกลม
         g.fillOval(0, 0, 50, 50);
-        
+
         // วาดขอบ
         g.setColor(Color.WHITE);
         g.setStroke(new BasicStroke(2));
         g.drawOval(0, 0, 49, 49);
-        
+
         // วาดตัวอักษรตามชื่อบัฟ
         g.setColor(Color.WHITE);
         g.setFont(new Font("Arial", Font.BOLD, 20));
-        
+
         String symbol = "";
         if (powerupName.contains("damage")) {
             symbol = "D";
@@ -937,13 +976,13 @@ public class ImageManager {
         } else if (powerupName.contains("stop_time")) {
             symbol = "T";
         }
-        
+
         // วาดตัวอักษรตรงกลาง
         FontMetrics fm = g.getFontMetrics();
         int textX = (50 - fm.stringWidth(symbol)) / 2;
         int textY = (50 - fm.getHeight()) / 2 + fm.getAscent();
         g.drawString(symbol, textX, textY);
-        
+
         g.dispose();
         images.put(powerupName, iconImage);
     }

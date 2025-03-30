@@ -113,7 +113,7 @@ public class Boss4 extends Boss {
         // พิมพ์ข้อความแสดงสถานะใต้บอส
         g.setColor(Color.WHITE);
         g.setFont(new Font("Arial", Font.BOLD, 14));
-        g.drawString("Boss Lv." + level + " HP:" + health, (int) x, (int) y + height + 20);
+        g.drawString("Boss Lv." + level + " HP:" + health, (int) x, (int) y + height + 15);
     }
 
     @Override
