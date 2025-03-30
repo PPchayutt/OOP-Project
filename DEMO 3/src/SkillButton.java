@@ -31,10 +31,8 @@ public class SkillButton extends AbstractMenuButton {
 
     @Override
     public void onClick() {
-        JOptionPane.showMessageDialog(parent, """
-                                              This game is a 2D bullet hell pixel game.
-                                              Control  with WASD and shoot with Left Click.
-                                              Collect buffs to strengthen your character.""",
-                "Skill Description", JOptionPane.INFORMATION_MESSAGE);
+        // แสดงหน้าต่างคำอธิบายสกิลใหม่
+        SkillDescriptionDialog dialog = new SkillDescriptionDialog(parent);
+        dialog.setVisible(true);
     }
 }

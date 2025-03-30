@@ -3,6 +3,8 @@ import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.BasicStroke;
+import java.awt.Font;
+import java.awt.FontMetrics;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -72,6 +74,8 @@ public class ImageManager {
                 } else {
                     System.out.println("ไม่พบไฟล์ภาพฉากด่าน 1");
                 }
+                
+                loadPowerupImages();
 
                 File level2BgFile = new File("resources/images/level2_bg.png");
                 if (level2BgFile.exists()) {
@@ -853,6 +857,95 @@ public class ImageManager {
 
         g2d.dispose();
         images.put(isIncrease ? "volume_up" : "volume_down", buttonImg);
+    }
+    
+    private static void loadPowerupImages() {
+        String[] powerupNames = {
+            // บัฟสุดโหด (Crazy)
+            "crazy_shooting", "stop_time",
+            
+            // บัฟถาวร (Permanent)
+            "increase_bullet_damage", "increase_movement_speed", "increase_shooting_speed",
+            "knockback", "plus_more_heart", "shoot_multiple_bullets",
+            
+            // บัฟชั่วคราว (Temporary)
+            "increase_bullet_damage(temp)", "increase_movement_speed(temp)", "increase_shooting_speed(temp)",
+            "knockback(temp)", "fires_multiple_bullets(temp)", "healing"
+        };
+        
+        for (String name : powerupNames) {
+            try {
+                File imageFile = new File("resources/images/" + name + ".png");
+                if (imageFile.exists()) {
+                    images.put(name, ImageIO.read(imageFile));
+                    System.out.println("โหลดรูปภาพบัฟ " + name + " สำเร็จ");
+                } else {
+                    createDefaultPowerupIcon(name);
+                }
+            } catch (Exception e) {
+                System.out.println("ไม่สามารถโหลดรูปภาพบัฟ " + name + ": " + e.getMessage());
+                createDefaultPowerupIcon(name);
+            }
+        }
+    }
+    
+    /**
+     * สร้างไอคอนพื้นฐานสำหรับบัฟที่ไม่มีรูปภาพ
+     * 
+     * @param powerupName ชื่อบัฟ
+     */
+    private static void createDefaultPowerupIcon(String powerupName) {
+        BufferedImage iconImage = new BufferedImage(50, 50, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g = iconImage.createGraphics();
+        
+        // กำหนดสีตามประเภทของบัฟ
+        if (powerupName.contains("crazy")) {
+            g.setColor(new Color(200, 50, 50)); // สีแดง
+        } else if (powerupName.contains("temp")) {
+            g.setColor(new Color(200, 130, 50)); // สีส้ม
+        } else {
+            g.setColor(new Color(130, 50, 200)); // สีม่วง
+        }
+        
+        // วาดวงกลม
+        g.fillOval(0, 0, 50, 50);
+        
+        // วาดขอบ
+        g.setColor(Color.WHITE);
+        g.setStroke(new BasicStroke(2));
+        g.drawOval(0, 0, 49, 49);
+        
+        // วาดตัวอักษรตามชื่อบัฟ
+        g.setColor(Color.WHITE);
+        g.setFont(new Font("Arial", Font.BOLD, 20));
+        
+        String symbol = "";
+        if (powerupName.contains("damage")) {
+            symbol = "D";
+        } else if (powerupName.contains("movement_speed")) {
+            symbol = "S";
+        } else if (powerupName.contains("shooting_speed")) {
+            symbol = "F";
+        } else if (powerupName.contains("knock")) {
+            symbol = "K";
+        } else if (powerupName.contains("heart") || powerupName.contains("healing")) {
+            symbol = "H";
+        } else if (powerupName.contains("bullet")) {
+            symbol = "M";
+        } else if (powerupName.contains("crazy")) {
+            symbol = "C";
+        } else if (powerupName.contains("stop_time")) {
+            symbol = "T";
+        }
+        
+        // วาดตัวอักษรตรงกลาง
+        FontMetrics fm = g.getFontMetrics();
+        int textX = (50 - fm.stringWidth(symbol)) / 2;
+        int textY = (50 - fm.getHeight()) / 2 + fm.getAscent();
+        g.drawString(symbol, textX, textY);
+        
+        g.dispose();
+        images.put(powerupName, iconImage);
     }
 
     /**
