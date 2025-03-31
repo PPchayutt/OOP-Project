@@ -1497,12 +1497,14 @@ public class GamePanel extends JPanel implements Runnable, GameState {
         initGame();
         gameOver = false;
         gamePaused = false;
+        gameWon = false;
 
         // เริ่มเล่นเพลงใหม่
         SoundManager.playBackgroundMusic("level1_music");
     }
 
     public void returnToMenu() {
+        gameWon = false;
         game.returnToMenu();
     }
 
