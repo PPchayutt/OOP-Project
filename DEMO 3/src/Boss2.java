@@ -67,31 +67,31 @@ public class Boss2 extends Boss {
         if (boss2Image != null) {
             g.drawImage(boss2Image, (int) x, (int) y, width, height, null);
         } else {
-            // บอสด่าน 2 เป็นสีม่วงเข้ม
+        // บอสด่าน 2 เป็นสีม่วงเข้ม
             g.setColor(new Color(75, 0, 130));
             g.fillOval((int) x, (int) y, width, height);
 
-            // ตาของบอส
+        // ตาของบอส
             g.setColor(Color.GREEN);
             g.fillOval((int) x + width / 4, (int) y + height / 4, width / 5, height / 5);
             g.fillOval((int) x + width * 3 / 5, (int) y + height / 4, width / 5, height / 5);
 
-            // ปากของบอส
+        // ปากของบอส
             g.setColor(Color.WHITE);
             g.fillRect((int) x + width / 4, (int) y + height * 2 / 3, width / 2, height / 8);
         }
 
-        // แถบพลังชีวิต
+    // แถบพลังชีวิต
         g.setColor(Color.GREEN);
         int healthBarWidth = (int) ((double) health / (300 * level) * width);
         g.fillRect((int) x, (int) y - 15, healthBarWidth, 10);
         g.setColor(Color.RED);
         g.drawRect((int) x, (int) y - 15, width, 10);
 
-        // พิมพ์ข้อความแสดงสถานะใต้บอส
+    // พิมพ์ข้อความแสดงสถานะใต้บอส - เปลี่ยนจาก level เป็นตัวเลข 2 เลย
         g.setColor(Color.WHITE);
         g.setFont(new Font("Arial", Font.BOLD, 12));
-        g.drawString("Boss Lv." + level + " HP:" + health, (int) x, (int) y + height + 15);
+        g.drawString("Boss Lv.2 HP:" + health, (int) x, (int) y + height + 15);
     }
 
     @Override

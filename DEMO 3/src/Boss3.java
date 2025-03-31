@@ -73,47 +73,47 @@ public class Boss3 extends Boss {
         if (boss3Image != null) {
             g.drawImage(boss3Image, (int) x, (int) y, width, height, null);
         } else {
-            // วาดใบหน้าบอสด่าน 3 ตามรูปภาพที่ 1
-            // วาดหน้าสีเนื้อ (พื้นหลัง)
+        // วาดใบหน้าบอสด่าน 3 ตามรูปภาพที่ 1
+        // วาดหน้าสีเนื้อ (พื้นหลัง)
             g.setColor(new Color(255, 213, 170)); // สีผิว
             g.fillOval((int) x, (int) y, width, height);
 
-            // วาดผม
+        // วาดผม
             g.setColor(Color.BLACK);
             g.fillArc((int) x, (int) y, width, height / 2, 0, 180);
 
-            // วาดคิ้ว
+        // วาดคิ้ว
             g.setColor(new Color(139, 69, 19)); // สีน้ำตาล
             g.fillRect((int) (x + width / 4), (int) (y + height / 3) - 5, width / 5, 3);
             g.fillRect((int) (x + width / 2), (int) (y + height / 3) - 5, width / 5, 3);
 
-            // วาดตา (ปิด)
+        // วาดตา (ปิด)
             g.setColor(Color.BLACK);
             g.drawLine((int) (x + width / 4), (int) (y + height / 3), (int) (x + width / 4 + width / 5), (int) (y + height / 3));
             g.drawLine((int) (x + width / 2), (int) (y + height / 3), (int) (x + width / 2 + width / 5), (int) (y + height / 3));
 
-            // วาดจมูก
+        // วาดจมูก
             g.setColor(new Color(220, 170, 140));
             int[] xPointsNose = {(int) (x + width / 2), (int) (x + width / 2 - 5), (int) (x + width / 2 + 5)};
             int[] yPointsNose = {(int) (y + height / 2), (int) (y + height / 2 + 10), (int) (y + height / 2 + 10)};
             g.fillPolygon(xPointsNose, yPointsNose, 3);
 
-            // วาดปาก
+        // วาดปาก
             g.setColor(new Color(200, 120, 120));
             g.drawArc((int) (x + width / 3), (int) (y + height * 2 / 3), width / 3, height / 8, 0, 180);
         }
 
-        // แถบพลังชีวิต
+    // แถบพลังชีวิต
         g.setColor(Color.GREEN);
         int healthBarWidth = (int) ((double) health / (300 * level) * width);
         g.fillRect((int) x, (int) y - 15, healthBarWidth, 10);
         g.setColor(Color.RED);
         g.drawRect((int) x, (int) y - 15, width, 10);
 
-        // พิมพ์ข้อความแสดงสถานะใต้บอส
+    // พิมพ์ข้อความแสดงสถานะใต้บอส - เปลี่ยนเป็นเลข 3 เลย
         g.setColor(Color.WHITE);
         g.setFont(new Font("Arial", Font.BOLD, 12));
-        g.drawString("Boss Lv." + level + " HP:" + health, (int) x, (int) y + height + 15);
+        g.drawString("Boss Lv.3 HP:" + health, (int) x, (int) y + height + 15);
     }
 
     @Override

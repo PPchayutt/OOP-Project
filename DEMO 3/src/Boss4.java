@@ -80,40 +80,40 @@ public class Boss4 extends Boss {
         if (boss4Image != null) {
             g.drawImage(boss4Image, (int) x, (int) y, width, height, null);
         } else {
-            // ถ้าไม่มีรูปภาพให้วาดรูปทรงพื้นฐานแทน
+        // ถ้าไม่มีรูปภาพให้วาดรูปทรงพื้นฐานแทน
             g.setColor(new Color(120, 120, 180)); // สีเทาฟ้า
             g.fillRect((int) x, (int) y, width, height);
 
-            // เพิ่มรายละเอียดให้ดูเป็นหุ่นยนต์
+        // เพิ่มรายละเอียดให้ดูเป็นหุ่นยนต์
             g.setColor(new Color(80, 80, 100));
             g.fillRect((int) (x + width / 4), (int) (y + height / 4), width / 2, height / 2);
 
-            // ตาเรืองแสง
+        // ตาเรืองแสง
             g.setColor(Color.RED);
             g.fillOval((int) (x + width / 4), (int) (y + height / 4), width / 6, height / 6);
             g.fillOval((int) (x + width * 3 / 5), (int) (y + height / 4), width / 6, height / 6);
 
-            // แขนกล
+        // แขนกล
             g.setColor(new Color(100, 100, 140));
             g.fillRect((int) (x - width / 4), (int) (y + height / 3), width / 4, height / 8);
             g.fillRect((int) (x + width), (int) (y + height / 3), width / 4, height / 8);
         }
 
-        // แถบพลังชีวิต
+    // แถบพลังชีวิต
         g.setColor(Color.RED);
         g.fillRect((int) x, (int) y - 20, width, 15);
         g.setColor(Color.GREEN);
         int healthBarWidth = (int) ((double) health / (400 * level) * width);
         g.fillRect((int) x, (int) y - 20, healthBarWidth, 15);
 
-        // กรอบแถบพลังชีวิต
+    // กรอบแถบพลังชีวิต
         g.setColor(Color.WHITE);
         g.drawRect((int) x, (int) y - 20, width, 15);
 
-        // พิมพ์ข้อความแสดงสถานะใต้บอส
+    // พิมพ์ข้อความแสดงสถานะใต้บอส - เปลี่ยนเป็นเลข 4 เลย
         g.setColor(Color.WHITE);
         g.setFont(new Font("Arial", Font.BOLD, 14));
-        g.drawString("Boss Lv." + level + " HP:" + health, (int) x, (int) y + height + 15);
+        g.drawString("Boss Lv.4 HP:" + health, (int) x, (int) y + height + 15);
     }
 
     @Override

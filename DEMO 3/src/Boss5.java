@@ -358,14 +358,14 @@ public class Boss5 extends Boss {
         int healthBarWidth = (int) ((double) health / (isPhase2 ? 300 * level : 600 * level) * width);
         g2d.fillRect((int) x, (int) y - 25, healthBarWidth, 20);
 
-        // กรอบแถบพลังชีวิต
+    // กรอบแถบพลังชีวิต
         g2d.setColor(Color.WHITE);
         g2d.drawRect((int) x, (int) y - 25, width, 20);
 
-        // พิมพ์ข้อความแสดงสถานะ
+    // พิมพ์ข้อความแสดงสถานะ - เปลี่ยนเป็น Boss Lv.5 แทนที่จะใช้ค่า level
         g2d.setColor(Color.WHITE);
         g2d.setFont(new Font("Arial", Font.BOLD, 16));
-        String statusText = "FINAL BOSS Lv." + level + " HP:" + health;
+        String statusText = "FINAL BOSS Lv.5 HP:" + health;
         if (isPhase2) {
             statusText += " [PHASE 2]";
         } else if (isEnraged) {
