@@ -645,34 +645,33 @@ public class GamePanel extends JPanel implements Runnable, GameState {
                 int seconds = buff.getDuration() / 60 + 1; // แปลงเฟรมเป็นวินาที
                 g.drawString(seconds + "s", x + (int) (10 * scaleX), y + (int) (45 * scaleY));
             } 
-             // ถ้าเป็นบัฟถาวร ให้ตรวจสอบว่ามีจำนวนซ้ำหรือไม่
-             else if (buff.getCategory() == Powerup.CATEGORY_PERMANENT) {
-                 int count = player.getPermanentBuffCount(buff);
-                 if (count > 1) {
-                     // วาดวงกลมสีน้ำเงินเข้มตรงมุมบนขวาของไอคอน
-                     g.setColor(new Color(0, 0, 150, 200));
-                     int badgeSize = (int) (15 * scaleX);
-                     g.fillOval(x + iconSize - badgeSize, y, badgeSize, badgeSize);
-                     
-                     // วาดตัวเลขสีขาวตรงกลางวงกลม
-                     g.setColor(Color.WHITE);
-                     Font originalFont = g.getFont();
-                     Font scaledFont = originalFont.deriveFont(Font.BOLD, originalFont.getSize() * 0.7f * scaleX);
-                     g.setFont(scaledFont);
-                     
-                     String countText = Integer.toString(count);
-                     FontMetrics fm = g.getFontMetrics();
-                     int textX = x + iconSize - badgeSize/2 - fm.stringWidth(countText)/2;
-                     int textY = y + badgeSize/2 + fm.getAscent()/2 - 1;
-                     
-                     g.drawString(countText, textX, textY);
-                     
-                     // คืนค่าฟอนต์เดิม
-                     g.setFont(originalFont);
-                 }
-
-            x += spacing; // เลื่อนไปทางขวา
+            // ถ้าเป็นบัฟถาวร ให้ตรวจสอบว่ามีจำนวนซ้ำหรือไม่
+            else if (buff.getCategory() == Powerup.CATEGORY_PERMANENT) {
+                int count = player.getPermanentBuffCount(buff);
+                if (count > 1) {
+                    // วาดวงกลมสีน้ำเงินเข้มตรงมุมบนขวาของไอคอน
+                    g.setColor(new Color(0, 0, 150, 200));
+                    int badgeSize = (int) (15 * scaleX);
+                    g.fillOval(x + iconSize - badgeSize, y, badgeSize, badgeSize);
+                    
+                    // วาดตัวเลขสีขาวตรงกลางวงกลม
+                    g.setColor(Color.WHITE);
+                    Font originalFont = g.getFont();
+                    Font scaledFont = originalFont.deriveFont(Font.BOLD, originalFont.getSize() * 0.7f * scaleX);
+                    g.setFont(scaledFont);
+                    
+                    String countText = Integer.toString(count);
+                    FontMetrics fm = g.getFontMetrics();
+                    int textX = x + iconSize - badgeSize/2 - fm.stringWidth(countText)/2;
+                    int textY = y + badgeSize/2 + fm.getAscent()/2 - 1;
+                    
+                    g.drawString(countText, textX, textY);
+                    
+                    // คืนค่าฟอนต์เดิม
+                    g.setFont(originalFont);
+                }
             }
+            x += spacing; // เลื่อนไปทางขวา
         }
     }
 

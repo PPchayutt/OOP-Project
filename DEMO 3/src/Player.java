@@ -1,9 +1,9 @@
 import java.awt.*;
- import java.util.ArrayList;
- import java.util.HashMap;
- import java.util.Iterator;
- import java.util.List;
- import java.util.Map;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
 public class Player extends Entity {
 
@@ -45,7 +45,7 @@ public class Player extends Entity {
     private final List<Powerup> activeBuffs = new ArrayList<>();
     
     // เพิ่มแฮชแมพเพื่อเก็บจำนวนบัฟถาวรที่ซ้ำกัน
-     private final Map<String, Integer> permanentBuffCounts = new HashMap<>();
+    private final Map<String, Integer> permanentBuffCounts = new HashMap<>();
     
     private boolean crazyShootingMode = false;
     private boolean knockbackEnabled = false;
@@ -75,11 +75,11 @@ public class Player extends Entity {
         return lastShotTime;
     }
     
-     // สร้างคีย์สำหรับแฮชแมพจากบัฟถาวร
-     private String getPermanentBuffKey(Powerup buff) {
-         return buff.getCategory() + "_" + buff.getType();
-     }
-     
+    // สร้างคีย์สำหรับแฮชแมพจากบัฟถาวร
+    private String getPermanentBuffKey(Powerup buff) {
+        return buff.getCategory() + "_" + buff.getType();
+    }
+
     public void move(int dx, int dy) {
         float targetX = 0;
         float targetY = 0;
@@ -211,28 +211,28 @@ public class Player extends Entity {
         buff.setActive(false);
 
         // ตรวจสอบว่าเป็นบัฟถาวรหรือไม่
-         if (buff.getCategory() == Powerup.CATEGORY_PERMANENT) {
-             // ใช้บัฟโดยไม่ต้องเพิ่มเข้า activeBuffs ถ้ามีอยู่แล้ว แต่เพิ่มค่าในแฮชแมพแทน
-             String buffKey = getPermanentBuffKey(buff);
-             int count = permanentBuffCounts.getOrDefault(buffKey, 0) + 1;
-             permanentBuffCounts.put(buffKey, count);
-             
-             // เพิ่มไว้ในรายการ activeBuffs เฉพาะถ้ายังไม่มีบัฟประเภทนี้
-             boolean hasExisting = false;
-             for (Powerup existingBuff : activeBuffs) {
-                 if (existingBuff.getCategory() == buff.getCategory() && 
-                     existingBuff.getType() == buff.getType()) {
-                     hasExisting = true;
-                     break;
-                 }
-             }
-             if (!hasExisting) {
-                 activeBuffs.add(buff);
-             }
-         } else {
-             // บัฟไม่ใช่ถาวร ใช้ลอจิกเดิม
-             activeBuffs.add(buff);
-         }
+        if (buff.getCategory() == Powerup.CATEGORY_PERMANENT) {
+            // ใช้บัฟโดยไม่ต้องเพิ่มเข้า activeBuffs ถ้ามีอยู่แล้ว แต่เพิ่มค่าในแฮชแมพแทน
+            String buffKey = getPermanentBuffKey(buff);
+            int count = permanentBuffCounts.getOrDefault(buffKey, 0) + 1;
+            permanentBuffCounts.put(buffKey, count);
+            
+            // เพิ่มไว้ในรายการ activeBuffs เฉพาะถ้ายังไม่มีบัฟประเภทนี้
+            boolean hasExisting = false;
+            for (Powerup existingBuff : activeBuffs) {
+                if (existingBuff.getCategory() == buff.getCategory() && 
+                    existingBuff.getType() == buff.getType()) {
+                    hasExisting = true;
+                    break;
+                }
+            }
+            if (!hasExisting) {
+                activeBuffs.add(buff);
+            }
+        } else {
+            // บัฟไม่ใช่ถาวร ใช้ลอจิกเดิม
+            activeBuffs.add(buff);
+        }
 
         // ใช้บัฟตามประเภท
         applyBuff(buff);
@@ -672,8 +672,6 @@ public class Player extends Entity {
     }
 }
 
-    
-
     /**
      * ดึงค่ารายการกระสุนทั้งหมด
      *
@@ -692,25 +690,25 @@ public class Player extends Entity {
         return activeBuffs;
     }
     
-     /**
-      * ดึงค่าจำนวนบัฟถาวรแต่ละชนิด
-      *
-      * @return แฮชแมพเก็บจำนวนบัฟถาวร
-      */
-     public Map<String, Integer> getPermanentBuffCounts() {
-         return permanentBuffCounts;
-     }
-     
-     /**
-      * ดึงค่าจำนวนบัฟถาวรตามชนิด
-      *
-      * @param buff บัฟที่ต้องการตรวจสอบจำนวน
-      * @return จำนวนบัฟ
-      */
-     public int getPermanentBuffCount(Powerup buff) {
-         String key = getPermanentBuffKey(buff);
-         return permanentBuffCounts.getOrDefault(key, 0);
-     }
+    /**
+     * ดึงค่าจำนวนบัฟถาวรแต่ละชนิด
+     *
+     * @return แฮชแมพเก็บจำนวนบัฟถาวร
+     */
+    public Map<String, Integer> getPermanentBuffCounts() {
+        return permanentBuffCounts;
+    }
+    
+    /**
+     * ดึงค่าจำนวนบัฟถาวรตามชนิด
+     *
+     * @param buff บัฟที่ต้องการตรวจสอบจำนวน
+     * @return จำนวนบัฟ
+     */
+    public int getPermanentBuffCount(Powerup buff) {
+        String key = getPermanentBuffKey(buff);
+        return permanentBuffCounts.getOrDefault(key, 0);
+    }
 
     /**
      * ดึงค่าความเร็วสูงสุด
