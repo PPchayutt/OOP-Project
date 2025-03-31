@@ -200,18 +200,39 @@ public class Player extends Entity {
         // เปลี่ยนสถานะของบัฟเป็นเก็บแล้ว
         buff.setActive(false);
 
-        // ใช้บัฟตามประเภท
+        // ตรวจสอบว่ามีบัฟประเภทเดียวกันอยู่แล้วหรือไม่ (สำหรับบัฟแบบชั่วคราวและบัฟแบบ Crazy)
+        if (buff.getCategory() == Powerup.CATEGORY_TEMPORARY || buff.getCategory() == Powerup.CATEGORY_CRAZY) {
+            for (Powerup activeBuff : activeBuffs) {
+                // ถ้าเป็นบัฟประเภทเดียวกันและชนิดเดียวกัน
+                if (activeBuff.getCategory() == buff.getCategory() && activeBuff.getType() == buff.getType()) {
+                    // รีเซ็ตเวลาของบัฟเดิม (แทนที่จะเพิ่มบัฟใหม่)
+                    if (buff.getCategory() == Powerup.CATEGORY_TEMPORARY) {
+                        // บัฟชั่วคราวมีเวลา 600 เฟรม (10 วินาที)
+                        activeBuff.setDuration(600);
+                    } else if (buff.getCategory() == Powerup.CATEGORY_CRAZY) {
+                        // บัฟ Crazy มีเวลา 300 เฟรม (5 วินาที)
+                        activeBuff.setDuration(300);
+                    }
+                
+                    // เล่นเสียงเก็บบัฟ
+                    SoundManager.playSound("get_skill");
+                    return; // ออกจากเมธอดเลย ไม่ต้องเพิ่มบัฟใหม่
+                }
+            }
+        }
+
+        // ถ้าไม่มีบัฟชนิดเดียวกันอยู่แล้ว หรือเป็นบัฟถาวร ให้ใช้บัฟตามปกติ
         applyBuff(buff);
 
         // เก็บบัฟไว้ในรายการถ้าไม่ใช่บัฟแบบใช้ครั้งเดียว
         if (buff.getDuration() != 0) {
             activeBuffs.add(buff);
         }
-
-        // อัพเดทสถานะบัฟทั้งหมดหลังจากเพิ่มบัฟใหม่
+        
+    // อัพเดทสถานะบัฟทั้งหมดหลังจากเพิ่มบัฟใหม่
         updateBuffStatus();
 
-        // เล่นเสียงเก็บบัฟ
+    // เล่นเสียงเก็บบัฟ
         SoundManager.playSound("get_skill");
     }
 
