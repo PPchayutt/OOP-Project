@@ -33,6 +33,12 @@ public class InputHandler implements KeyListener, MouseListener, MouseMotionList
         if (key == KeyEvent.VK_D) {
             right = true;
         }
+        if (key == KeyEvent.VK_I && !isGameOver) {
+            Player player = gamePanel.getPlayer();
+            player.toggleImmortalMode();
+        // เล่นเสียงเมื่อเปิด/ปิดโหมดอมตะ (ถ้ามี)
+            SoundManager.playSound("get_skill");
+        }
 
         // กดปุ่ม P หรือ ESC เพื่อพักเกม (ทำงานเมื่อเกมไม่จบเท่านั้น)
         if ((key == KeyEvent.VK_P || key == KeyEvent.VK_ESCAPE) && !isGameOver) {

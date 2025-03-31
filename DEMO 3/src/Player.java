@@ -47,6 +47,8 @@ public class Player extends Entity {
     private int knockbackPower = 1;
     private int extraBullets = 0;
     private long shootCooldownReduction = 0; // ลดเวลาคูลดาวน์การยิง (ms)
+    
+    private boolean immortalMode = false;
 
     public Player(float x, float y, int width, int height, int health, int speed) {
         super(x, y, width, height, health, speed);
@@ -64,6 +66,8 @@ public class Player extends Entity {
     public long getLastShotTime() {
         return lastShotTime;
     }
+    
+    
 
     public void move(int dx, int dy) {
         float targetX = 0;
@@ -547,41 +551,47 @@ public class Player extends Entity {
         this.targetVelY = targetVelY;
     }
 
+    /**
+     *
+     * @param damage
+     */
     @Override
     public void takeDamage(int damage) {
-        // ถ้าอยู่ในช่วงอมตะให้ไม่รับความเสียหาย
-        if (invincibleTime > 0) {
-            return;
-        }
-
-        health -= damage;
-        if (health <= 0) {
-            health = 0;
-            lives--;
-
-            if (lives > 0) {
-                // ยังมีชีวิตเหลือ ฟื้นฟูพลังชีวิต
-                health = maxHealth;
-                invincibleTime = maxInvincibleTime;
-            } else {
-                // หมดชีวิต
-                alive = false;
-
-                // เคลียร์บัฟทั้งหมดเมื่อตาย
-                activeBuffs.clear();
-                crazyShootingMode = false;
-                knockbackEnabled = false;
-                knockbackPower = 1;
-                extraBullets = 0;
-                shootCooldownReduction = 0;
-                bulletDamage = 25; // รีเซ็ตค่าพื้นฐาน
-                speed = 5; // รีเซ็ตค่าพื้นฐาน
-            }
-        } else {
-            // ได้รับความเสียหายแต่ยังไม่ตาย ให้อมตะชั่วคราว
-            invincibleTime = maxInvincibleTime / 2;
-        }
+    // ถ้าอยู่ในโหมดอมตะหรือช่วงเวลาอมตะหลังโดนโจมตี ให้ไม่รับความเสียหาย
+    if (immortalMode || invincibleTime > 0) {
+        return;
     }
+
+    health -= damage;
+    if (health <= 0) {
+        health = 0;
+        lives--;
+
+        if (lives > 0) {
+            // ยังมีชีวิตเหลือ ฟื้นฟูพลังชีวิต
+            health = maxHealth;
+            invincibleTime = maxInvincibleTime;
+        } else {
+            // หมดชีวิต
+            alive = false;
+
+            // เคลียร์บัฟทั้งหมดเมื่อตาย
+            activeBuffs.clear();
+            crazyShootingMode = false;
+            knockbackEnabled = false;
+            knockbackPower = 1;
+            extraBullets = 0;
+            shootCooldownReduction = 0;
+            bulletDamage = 25; // รีเซ็ตค่าพื้นฐาน
+            speed = 5; // รีเซ็ตค่าพื้นฐาน
+        }
+    } else {
+        // ได้รับความเสียหายแต่ยังไม่ตาย ให้อมตะชั่วคราว
+        invincibleTime = maxInvincibleTime / 2;
+    }
+}
+
+    
 
     /**
      * ดึงค่ารายการกระสุนทั้งหมด
@@ -637,6 +647,15 @@ public class Player extends Entity {
     public long getCurrentCooldown() {
         return currentCooldown;
     }
+    
+    public boolean isImmortalMode() {
+        return immortalMode;
+    }   
+
+    public void toggleImmortalMode() {
+        immortalMode = !immortalMode;
+    }
+
 
     /**
      * ตรวจสอบว่ามีบัฟ Stop Time ทำงานอยู่หรือไม่
