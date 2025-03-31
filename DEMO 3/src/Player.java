@@ -1,8 +1,9 @@
-
 import java.awt.*;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 public class Player extends Entity {
 
@@ -42,6 +43,10 @@ public class Player extends Entity {
 
     // ข้อมูลเกี่ยวกับบัฟ
     private final List<Powerup> activeBuffs = new ArrayList<>();
+    
+    // เพิ่มแฮชแมพเพื่อเก็บจำนวนบัฟถาวรที่ซ้ำกัน
+    private final Map<String, Integer> permanentBuffCounts = new HashMap<>();
+    
     private boolean crazyShootingMode = false;
     private boolean knockbackEnabled = false;
     private int knockbackPower = 1;
@@ -67,7 +72,10 @@ public class Player extends Entity {
         return lastShotTime;
     }
     
-    
+    // สร้างคีย์สำหรับแฮชแมพจากบัฟถาวร
+    private String getPermanentBuffKey(Powerup buff) {
+        return buff.getCategory() + "_" + buff.getType();
+    }
 
     public void move(int dx, int dy) {
         float targetX = 0;
@@ -200,39 +208,38 @@ public class Player extends Entity {
         // เปลี่ยนสถานะของบัฟเป็นเก็บแล้ว
         buff.setActive(false);
 
-        // ตรวจสอบว่ามีบัฟประเภทเดียวกันอยู่แล้วหรือไม่ (สำหรับบัฟแบบชั่วคราวและบัฟแบบ Crazy)
-        if (buff.getCategory() == Powerup.CATEGORY_TEMPORARY || buff.getCategory() == Powerup.CATEGORY_CRAZY) {
-            for (Powerup activeBuff : activeBuffs) {
-                // ถ้าเป็นบัฟประเภทเดียวกันและชนิดเดียวกัน
-                if (activeBuff.getCategory() == buff.getCategory() && activeBuff.getType() == buff.getType()) {
-                    // รีเซ็ตเวลาของบัฟเดิม (แทนที่จะเพิ่มบัฟใหม่)
-                    if (buff.getCategory() == Powerup.CATEGORY_TEMPORARY) {
-                        // บัฟชั่วคราวมีเวลา 600 เฟรม (10 วินาที)
-                        activeBuff.setDuration(600);
-                    } else if (buff.getCategory() == Powerup.CATEGORY_CRAZY) {
-                        // บัฟ Crazy มีเวลา 300 เฟรม (5 วินาที)
-                        activeBuff.setDuration(300);
-                    }
-                
-                    // เล่นเสียงเก็บบัฟ
-                    SoundManager.playSound("get_skill");
-                    return; // ออกจากเมธอดเลย ไม่ต้องเพิ่มบัฟใหม่
+        // ตรวจสอบว่าเป็นบัฟถาวรหรือไม่
+        if (buff.getCategory() == Powerup.CATEGORY_PERMANENT) {
+            // ใช้บัฟโดยไม่ต้องเพิ่มเข้า activeBuffs ถ้ามีอยู่แล้ว แต่เพิ่มค่าในแฮชแมพแทน
+            String buffKey = getPermanentBuffKey(buff);
+            int count = permanentBuffCounts.getOrDefault(buffKey, 0) + 1;
+            permanentBuffCounts.put(buffKey, count);
+            
+            // เพิ่มไว้ในรายการ activeBuffs เฉพาะถ้ายังไม่มีบัฟประเภทนี้
+            boolean hasExisting = false;
+            for (Powerup existingBuff : activeBuffs) {
+                if (existingBuff.getCategory() == buff.getCategory() && 
+                    existingBuff.getType() == buff.getType()) {
+                    hasExisting = true;
+                    break;
                 }
             }
-        }
-
-        // ถ้าไม่มีบัฟชนิดเดียวกันอยู่แล้ว หรือเป็นบัฟถาวร ให้ใช้บัฟตามปกติ
-        applyBuff(buff);
-
-        // เก็บบัฟไว้ในรายการถ้าไม่ใช่บัฟแบบใช้ครั้งเดียว
-        if (buff.getDuration() != 0) {
+            
+            if (!hasExisting) {
+                activeBuffs.add(buff);
+            }
+        } else {
+            // บัฟไม่ใช่ถาวร ใช้ลอจิกเดิม
             activeBuffs.add(buff);
         }
-        
-    // อัพเดทสถานะบัฟทั้งหมดหลังจากเพิ่มบัฟใหม่
+
+        // ใช้บัฟตามประเภท
+        applyBuff(buff);
+
+        // อัพเดทสถานะบัฟทั้งหมดหลังจากเพิ่มบัฟใหม่
         updateBuffStatus();
 
-    // เล่นเสียงเก็บบัฟ
+        // เล่นเสียงเก็บบัฟ
         SoundManager.playSound("get_skill");
     }
 
@@ -598,6 +605,7 @@ public class Player extends Entity {
 
             // เคลียร์บัฟทั้งหมดเมื่อตาย
             activeBuffs.clear();
+            permanentBuffCounts.clear(); // เคลียร์จำนวนบัฟถาวร
             crazyShootingMode = false;
             knockbackEnabled = false;
             knockbackPower = 1;
@@ -611,8 +619,6 @@ public class Player extends Entity {
         invincibleTime = maxInvincibleTime / 2;
     }
 }
-
-    
 
     /**
      * ดึงค่ารายการกระสุนทั้งหมด
@@ -630,6 +636,26 @@ public class Player extends Entity {
      */
     public List<Powerup> getActiveBuffs() {
         return activeBuffs;
+    }
+    
+    /**
+     * ดึงค่าจำนวนบัฟถาวรแต่ละชนิด
+     *
+     * @return แฮชแมพเก็บจำนวนบัฟถาวร
+     */
+    public Map<String, Integer> getPermanentBuffCounts() {
+        return permanentBuffCounts;
+    }
+    
+    /**
+     * ดึงค่าจำนวนบัฟถาวรตามชนิด
+     *
+     * @param buff บัฟที่ต้องการตรวจสอบจำนวน
+     * @return จำนวนบัฟ
+     */
+    public int getPermanentBuffCount(Powerup buff) {
+        String key = getPermanentBuffKey(buff);
+        return permanentBuffCounts.getOrDefault(key, 0);
     }
 
     /**
