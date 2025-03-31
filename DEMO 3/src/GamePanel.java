@@ -115,7 +115,19 @@ public class GamePanel extends JPanel implements Runnable, GameState {
         g.drawString("Level: " + levelManager.getCurrentLevel(), (int) (20 * scaleX), (int) (90 * scaleY));
         g.drawString("Monsters: " + levelManager.getMonstersKilled() + "/" + levelManager.getMonstersToKill(),
                 (int) (20 * scaleX), (int) (110 * scaleY));
-        g.drawString("Score: " + player.getScore(), (int) ((WIDTH - 150) * scaleX), (int) (30 * scaleY));
+        // แสดงพื้นหลังสำหรับข้อความ Score
+        String scoreText = "Score: " + player.getScore();
+        int textWidth = g.getFontMetrics().stringWidth(scoreText);
+        int textHeight = g.getFontMetrics().getHeight();
+
+        // วาดพื้นหลังสีทึบรองรับข้อความ Score
+        g.setColor(new Color(0, 0, 0, 150)); // สีดำโปร่งใส 
+        g.fillRect((int) ((WIDTH - 160) * scaleX), (int) (15 * scaleY),
+                (int) ((textWidth + 20) * scaleX), (int) ((textHeight + 5) * scaleY));
+
+        // วาดข้อความ Score ทับพื้นหลัง
+        g.setColor(Color.WHITE); // ยังใช้สีขาวเพราะพื้นหลังเป็นสีดำแล้ว
+        g.drawString(scoreText, (int) ((WIDTH - 150) * scaleX), (int) (30 * scaleY));
 
         // แสดงบัฟที่กำลังใช้งาน
         drawActiveBuffsWithScaling(g);

@@ -63,12 +63,16 @@ public class Boss extends Enemy {
         if (bossImage != null) {
             g.drawImage(bossImage, (int) x, (int) y, width, height, null);
 
-            // วาดแถบพลังชีวิตเหนือบอส
+            // วาดแถบพลังชีวิตเหนือบอส - แก้ไขส่วนนี้
             g.setColor(Color.RED);
-            g.fillRect((int) x, (int) y - 10, width, 5);
+            g.fillRect((int) x, (int) y - 25, width, 20);
             g.setColor(Color.GREEN);
-            int healthBarWidth = (int) ((double) health / (200 * level) * width);
-            g.fillRect((int) x, (int) y - 10, healthBarWidth, 5);
+            int healthBarWidth = (int) ((double) health / (400 * level) * width);
+            g.fillRect((int) x, (int) y - 25, healthBarWidth, 20);
+
+            // กรอบแถบพลังชีวิต - เพิ่มส่วนนี้
+            g.setColor(Color.WHITE);
+            g.drawRect((int) x, (int) y - 25, width, 20);
         } else {
             // ถ้าไม่มีรูปภาพให้วาดรูปทรงพื้นฐานแทน
             g.setColor(new Color(180, 0, 0));
@@ -163,6 +167,19 @@ public class Boss extends Enemy {
 
     public int getLevel() {
         return level;
+    }
+
+    @Override
+    public Rectangle getBounds() {
+        // ลดขนาด hitbox ให้เล็กลงประมาณ 80% ของขนาดจริง
+        int hitboxWidth = (int) (width * 0.8);
+        int hitboxHeight = (int) (height * 0.8);
+
+        // ปรับตำแหน่งให้ hitbox อยู่ตรงกลางของตัวละคร
+        int hitboxX = (int) (x + (width - hitboxWidth) / 2);
+        int hitboxY = (int) (y + (height - hitboxHeight) / 2);
+
+        return new Rectangle(hitboxX, hitboxY, hitboxWidth, hitboxHeight);
     }
 
 }
