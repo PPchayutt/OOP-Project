@@ -84,15 +84,20 @@ public class Boss extends Enemy {
             g.fillRect((int) x + width / 4, (int) y + height * 2 / 3, width / 2, height / 8);
 
             // แถบพลังชีวิต
+            g.setColor(Color.RED);
+            g.fillRect((int) x, (int) y - 25, width, 20);
             g.setColor(Color.GREEN);
-            int healthBarWidth = (int) ((double) health / (200 * level) * width);
-            g.fillRect((int) x, (int) y - 10, healthBarWidth, 5);
+            int healthBarWidth = (int) ((double) health / (400 * level) * width);
+            g.fillRect((int) x, (int) y - 25, healthBarWidth, 20);
+
+            // กรอบแถบพลังชีวิต
+            g.setColor(Color.WHITE);
+            g.drawRect((int) x, (int) y - 25, width, 20);
         }
 
-        // พิมพ์ข้อความแสดงสถานะใต้บอส (เพื่อการดีบัก)
         g.setColor(Color.WHITE);
-        g.setFont(new Font("Arial", Font.PLAIN, 10));
-        g.drawString("Stage " + level + " Boss HP:" + health, (int) x, (int) y + height + 15);
+        g.setFont(new Font("Arial", Font.BOLD, 12)); // เพิ่มขนาดฟอนต์และทำเป็นตัวหนา
+        g.drawString("Boss Lv." + level + " HP:" + health, (int) x, (int) y + height + 15);
     }
 
     @Override
