@@ -231,6 +231,32 @@ public class ImageManager {
                         createDefaultBoss5Phase2Image();
                     }
                 }
+                
+                // โหลดรูปภาพ hotbar
+                File hotbarUIFile = new File("resources/images/weapon bar.png");
+                if (hotbarUIFile.exists()) {
+                    images.put("hotbar", ImageIO.read(hotbarUIFile));
+                } else {
+                    createDefaultHotbarImage();
+                }
+                
+                File activeFrameFile = new File("resources/images/Weapon selection framework.png");
+                if (activeFrameFile.exists()) {
+                    images.put("activeFrame", ImageIO.read(activeFrameFile));
+                    System.out.println("โหลดรูปภาพกรอบอาวุธสำเร็จ YES");
+                } else {
+                    createDefaultActiveFrame();
+                }
+                
+                File turretHeadFile = new File("resources/images/Turret Head.png");
+                if (turretHeadFile.exists()) {
+                    images.put("turretHead", ImageIO.read(turretHeadFile));
+                }
+                
+                File turretBaseFile = new File("resources/images/Turret base.png");
+                if (turretHeadFile.exists()) {
+                    images.put("turretBase", ImageIO.read(turretBaseFile));
+                }
 
                 // โหลดรูปภาพปืนและเอฟเฟค
                 File gunFile = new File("resources/images/gun.png");
@@ -371,6 +397,30 @@ public class ImageManager {
         g2d.fillOval(2, 2, 6, 6);
         g2d.dispose();
         images.put("muzzle_flash", flashImg);
+    }
+    
+    // สร้าง hotbar พื้นฐาน
+    private static void createDefaultHotbarImage() {
+        BufferedImage hotbarBg = new BufferedImage(400, 60, BufferedImage.TYPE_INT_ARGB);
+        java.awt.Graphics2D g2d = hotbarBg.createGraphics();
+        g2d.setColor(new Color(50, 50, 50, 200));
+        g2d.fillRoundRect(0, 0, 400, 60, 10, 10);
+        g2d.setColor(Color.DARK_GRAY);
+        g2d.drawRoundRect(0, 0, 399, 59, 10, 10);
+        g2d.dispose();
+        images.put("hotbar", hotbarBg);
+    }
+    
+    private static void createDefaultActiveFrame() {
+        BufferedImage frameImg = new BufferedImage(50, 50, BufferedImage.TYPE_INT_ARGB);
+        java.awt.Graphics2D g2d = frameImg.createGraphics();
+        g2d.setColor(Color.RED);
+        g2d.setStroke(new BasicStroke(3));
+        g2d.drawRoundRect(2, 2, 46, 46, 10, 10);
+        g2d.setColor(new Color(255, 0, 0, 80)); // สีแดงโปร่งใส
+        g2d.fillRoundRect(2, 2, 46, 46, 10, 10);
+        g2d.dispose();
+        images.put("activeFrame", frameImg);
     }
 
     /**

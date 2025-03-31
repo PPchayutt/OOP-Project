@@ -48,6 +48,10 @@ public class GamePanel extends JPanel implements Runnable, GameState {
     private float gameWonPulseValue = 0.0f;
     private boolean gameWonPulseDirection = true;
     private int finalScore = 0;
+    
+    private static int selectedWeaponIndex = -1;
+    private static WeaponManager weaponManager;
+    private final HotbarUI hotbarUI;
 
     public GamePanel(Game game) {
         this.game = game;
@@ -57,7 +61,8 @@ public class GamePanel extends JPanel implements Runnable, GameState {
 
         initGame();
         initPauseMenu();
-
+        
+        hotbarUI = new HotbarUI(player);
         inputHandler = new InputHandler(this);
         addKeyListener(inputHandler);
         addMouseListener(inputHandler);
@@ -115,7 +120,19 @@ public class GamePanel extends JPanel implements Runnable, GameState {
         g.drawString("Level: " + levelManager.getCurrentLevel(), (int) (20 * scaleX), (int) (90 * scaleY));
         g.drawString("Monsters: " + levelManager.getMonstersKilled() + "/" + levelManager.getMonstersToKill(),
                 (int) (20 * scaleX), (int) (110 * scaleY));
-        g.drawString("Score: " + player.getScore(), (int) ((WIDTH - 150) * scaleX), (int) (30 * scaleY));
+        // แสดงพื้นหลังสำหรับข้อความ Score
+        String scoreText = "Score: " + player.getScore();
+        int textWidth = g.getFontMetrics().stringWidth(scoreText);
+        int textHeight = g.getFontMetrics().getHeight();
+
+        // วาดพื้นหลังสีทึบรองรับข้อความ Score
+        g.setColor(new Color(0, 0, 0, 150)); // สีดำโปร่งใส 
+        g.fillRect((int) ((WIDTH - 160) * scaleX), (int) (15 * scaleY),
+                (int) ((textWidth + 20) * scaleX), (int) ((textHeight + 5) * scaleY));
+
+        // วาดข้อความ Score ทับพื้นหลัง
+        g.setColor(Color.WHITE); // ยังใช้สีขาวเพราะพื้นหลังเป็นสีดำแล้ว
+        g.drawString(scoreText, (int) ((WIDTH - 150) * scaleX), (int) (30 * scaleY));
 
         // แสดงบัฟที่กำลังใช้งาน
         drawActiveBuffsWithScaling(g);
@@ -367,21 +384,21 @@ public class GamePanel extends JPanel implements Runnable, GameState {
         g2d.setFont(buttonFont);
         g2d.setColor(Color.WHITE);  // ตั้งค่าสีเป็นขาว
 
-// คำนวณตำแหน่งเพื่อให้ข้อความอยู่ตรงกลางปุ่ม
+        // คำนวณตำแหน่งเพื่อให้ข้อความอยู่ตรงกลางปุ่ม
         String resumeText = "Resume";
         FontMetrics metrics = g2d.getFontMetrics(buttonFont);
         int textWidth = metrics.stringWidth(resumeText);
         int buttonCenterX = (int) ((WIDTH / 2) * scaleX);
         int textX = buttonCenterX - textWidth / 2;
 
-// ปรับความสูงให้อยู่ตรงกลางปุ่มตามแนวดิ่ง
+        // ปรับความสูงให้อยู่ตรงกลางปุ่มตามแนวดิ่ง
         int buttonCenterY = (int) ((HEIGHT / 2 + 20 + 20) * scaleY); // กึ่งกลางความสูงของปุ่ม
         int textHeight = metrics.getHeight();
         int textY = buttonCenterY + (textHeight / 4); // ปรับให้อยู่กึ่งกลางตามแนวดิ่ง
 
         g2d.drawString(resumeText, textX, textY);
 
-// วาดปุ่ม "Restart Game" พร้อมไล่เฉดสี
+        // วาดปุ่ม "Restart Game" พร้อมไล่เฉดสี
         GradientPaint restartGradient = new GradientPaint(
                 (int) ((WIDTH / 2 - 100) * scaleX), (int) ((HEIGHT / 2 + 70) * scaleY), new Color(20, 90, 140),
                 (int) ((WIDTH / 2 + 100) * scaleX), (int) ((HEIGHT / 2 + 110) * scaleY), new Color(70, 130, 180)
@@ -396,7 +413,7 @@ public class GamePanel extends JPanel implements Runnable, GameState {
                 (int) (15 * scaleY)
         );
 
-// วาดขอบปุ่ม "Restart Game"
+        // วาดขอบปุ่ม "Restart Game"
         g2d.setColor(new Color(100, 150, 200));
         g2d.drawRoundRect(
                 (int) ((WIDTH / 2 - 100) * scaleX),
@@ -407,19 +424,19 @@ public class GamePanel extends JPanel implements Runnable, GameState {
                 (int) (15 * scaleY)
         );
 
-// ข้อความสำหรับปุ่ม "Restart Game"
+        // ข้อความสำหรับปุ่ม "Restart Game"
         g2d.setColor(Color.WHITE);  // เพิ่มบรรทัดนี้! ตั้งค่าสีข้อความเป็นขาวอีกครั้ง
         String restartText = "Restart Game";
         textWidth = metrics.stringWidth(restartText);
         textX = buttonCenterX - textWidth / 2;
 
-// ปรับความสูงสำหรับปุ่ม Restart
+        // ปรับความสูงสำหรับปุ่ม Restart
         buttonCenterY = (int) ((HEIGHT / 2 + 70 + 20) * scaleY);
         textY = buttonCenterY + (textHeight / 4);
 
         g2d.drawString(restartText, textX, textY);
 
-// วาดปุ่ม "Main Menu" พร้อมไล่เฉดสี
+        // วาดปุ่ม "Main Menu" พร้อมไล่เฉดสี
         GradientPaint menuGradient = new GradientPaint(
                 (int) ((WIDTH / 2 - 100) * scaleX), (int) ((HEIGHT / 2 + 120) * scaleY), new Color(130, 30, 30),
                 (int) ((WIDTH / 2 + 100) * scaleX), (int) ((HEIGHT / 2 + 160) * scaleY), new Color(180, 50, 50)
@@ -434,7 +451,7 @@ public class GamePanel extends JPanel implements Runnable, GameState {
                 (int) (15 * scaleY)
         );
 
-// วาดขอบปุ่ม "Main Menu"
+        // วาดขอบปุ่ม "Main Menu"
         g2d.setColor(new Color(200, 100, 100));
         g2d.drawRoundRect(
                 (int) ((WIDTH / 2 - 100) * scaleX),
@@ -445,13 +462,13 @@ public class GamePanel extends JPanel implements Runnable, GameState {
                 (int) (15 * scaleY)
         );
 
-// ข้อความสำหรับปุ่ม "Main Menu"
+        // ข้อความสำหรับปุ่ม "Main Menu"
         g2d.setColor(Color.WHITE);  // เพิ่มบรรทัดนี้! ตั้งค่าสีข้อความเป็นขาวอีกครั้ง
         String menuText = "Main Menu";
         textWidth = metrics.stringWidth(menuText);
         textX = buttonCenterX - textWidth / 2;
 
-// ปรับความสูงสำหรับปุ่ม Main Menu
+        // ปรับความสูงสำหรับปุ่ม Main Menu
         buttonCenterY = (int) ((HEIGHT / 2 + 120 + 20) * scaleY);
         textY = buttonCenterY + (textHeight / 4);
 
@@ -459,78 +476,78 @@ public class GamePanel extends JPanel implements Runnable, GameState {
     }
     
     private void drawGameWonWithScaling(Graphics g) {
-    // สร้าง Graphics2D เพื่อใช้เอฟเฟกต์ขั้นสูง
+        // สร้าง Graphics2D เพื่อใช้เอฟเฟกต์ขั้นสูง
         Graphics2D g2d = (Graphics2D) g;
 
-    // เพิ่มการรองรับ Anti-aliasing เพื่อทำให้ตัวอักษรสวยขึ้น
+        // เพิ่มการรองรับ Anti-aliasing เพื่อทำให้ตัวอักษรสวยขึ้น
         g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
 
-    // เพิ่มเอฟเฟกต์การเบลอพื้นหลัง
+        // เพิ่มเอฟเฟกต์การเบลอพื้นหลัง
         g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.85f));
         g2d.setColor(new Color(0, 0, 0));
         g2d.fillRect(0, 0, (int) (WIDTH * scaleX), (int) (HEIGHT * scaleY));
         g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1.0f));
 
-    // วาดกรอบหน้า "You Won" พร้อมไล่เฉดสี
+        // วาดกรอบหน้า "You Won" พร้อมไล่เฉดสี
         GradientPaint gradient = new GradientPaint(
-            (int) ((WIDTH / 2 - 200) * scaleX), (int) ((HEIGHT / 2 - 150) * scaleY), new Color(20, 60, 20),
-            (int) ((WIDTH / 2 + 200) * scaleX), (int) ((HEIGHT / 2 + 150) * scaleY), new Color(20, 150, 20)
+                (int) ((WIDTH / 2 - 200) * scaleX), (int) ((HEIGHT / 2 - 150) * scaleY), new Color(20, 60, 20),
+                (int) ((WIDTH / 2 + 200) * scaleX), (int) ((HEIGHT / 2 + 150) * scaleY), new Color(20, 150, 20)
         );
         g2d.setPaint(gradient);
         g2d.fillRoundRect(
-            (int) ((WIDTH / 2 - 200) * scaleX),
-            (int) ((HEIGHT / 2 - 150) * scaleY),
-            (int) (400 * scaleX),
-            (int) (300 * scaleY),
-            (int) (20 * scaleX),
-            (int) (20 * scaleY)
+                (int) ((WIDTH / 2 - 200) * scaleX),
+                (int) ((HEIGHT / 2 - 150) * scaleY),
+                (int) (400 * scaleX),
+                (int) (300 * scaleY),
+                (int) (20 * scaleX),
+                (int) (20 * scaleY)
         );
 
-    // วาดขอบกรอบหนา
+        // วาดขอบกรอบหนา
         g2d.setStroke(new BasicStroke(3 * scaleX));
         g2d.setColor(new Color(100, 200, 100));
         g2d.drawRoundRect(
-            (int) ((WIDTH / 2 - 200) * scaleX),
-            (int) ((HEIGHT / 2 - 150) * scaleY),
-            (int) (400 * scaleX),
-            (int) (300 * scaleY),
-            (int) (20 * scaleX),
-            (int) (20 * scaleY)
+                (int) ((WIDTH / 2 - 200) * scaleX),
+                (int) ((HEIGHT / 2 - 150) * scaleY),
+                (int) (400 * scaleX),
+                (int) (300 * scaleY),
+                (int) (20 * scaleX),
+                (int) (20 * scaleY)
         );
         
-    // เพิ่มเอฟเฟกต์เรืองแสงรอบกรอบ
+        // เพิ่มเอฟเฟกต์เรืองแสงรอบกรอบ
         float glowSize = 10.0f * (1.0f + gameWonPulseValue * 0.5f);
         g2d.setStroke(new BasicStroke(glowSize * scaleX));
         g2d.setColor(new Color(100, 255, 100, 50));
         g2d.drawRoundRect(
-            (int) ((WIDTH / 2 - 200 - glowSize/2) * scaleX),
-            (int) ((HEIGHT / 2 - 150 - glowSize/2) * scaleY),
-            (int) ((400 + glowSize) * scaleX),
-            (int) ((300 + glowSize) * scaleY),
-            (int) (25 * scaleX),
-            (int) (25 * scaleY)
+                (int) ((WIDTH / 2 - 200 - glowSize/2) * scaleX),
+                (int) ((HEIGHT / 2 - 150 - glowSize/2) * scaleY),
+                (int) ((400 + glowSize) * scaleX),
+                (int) ((300 + glowSize) * scaleY),
+                (int) (25 * scaleX),
+                (int) (25 * scaleY)
         );
 
-    // เพิ่มเงาให้ข้อความ YOU WON!
+        // เพิ่มเงาให้ข้อความ YOU WON!
         Font gameWonFont = new Font("Arial", Font.BOLD, (int) (50 * scaleX));
         g2d.setFont(gameWonFont);
         g2d.setColor(new Color(0, 50, 0));
 
-    // คำนวณตำแหน่งเพื่อให้ข้อความ YOU WON! อยู่ตรงกลาง
+        // คำนวณตำแหน่งเพื่อให้ข้อความ YOU WON! อยู่ตรงกลาง
         String gameWonText = "YOU WON!";
         FontMetrics gameWonMetrics = g2d.getFontMetrics(gameWonFont);
         int gameWonWidth = gameWonMetrics.stringWidth(gameWonText);
         int gameWonX = (int) ((WIDTH / 2) * scaleX - gameWonWidth / 2);
 
-    // วาดเงา YOU WON!
+        // วาดเงา YOU WON!
         g2d.drawString(gameWonText, gameWonX + (int) (3 * scaleX), (int) ((HEIGHT / 2 - 70) * scaleY) + (int) (3 * scaleX));
 
-    // วาดข้อความ YOU WON! หลัก
+        // วาดข้อความ YOU WON! หลัก
         g2d.setColor(new Color(50, 255, 50));
         g2d.drawString(gameWonText, gameWonX, (int) ((HEIGHT / 2 - 73) * scaleY));
 
-    // วาดข้อความแสดงความยินดี
+        // วาดข้อความแสดงความยินดี
         Font congratsFont = new Font("Arial", Font.BOLD, (int) (20 * scaleX));
         g2d.setFont(congratsFont);
         g2d.setColor(Color.WHITE);
@@ -541,44 +558,44 @@ public class GamePanel extends JPanel implements Runnable, GameState {
         int congratsX = (int) ((WIDTH / 2) * scaleX - congratsWidth / 2);
         g2d.drawString(congratsText, congratsX, (int) ((HEIGHT / 2 - 15) * scaleY));
 
-    // วาดสถิติผู้เล่น
+        // วาดสถิติผู้เล่น
         Font statsFont = new Font("Arial", Font.BOLD, (int) (24 * scaleX));
         g2d.setFont(statsFont);
         g2d.setColor(Color.WHITE);
 
-    // ตั้งค่าและวาดข้อความสถิติ โดยจัดให้อยู่ในแนวเดียวกัน
+        // ตั้งค่าและวาดข้อความสถิติ โดยจัดให้อยู่ในแนวเดียวกัน
         int statsX = (int) ((WIDTH / 2 - 80) * scaleX);
         g2d.drawString("Final Score: " + finalScore, statsX, (int) ((HEIGHT / 2 + 30) * scaleY));
         g2d.drawString("Level Completed: 5", statsX, (int) ((HEIGHT / 2 + 65) * scaleY));
         g2d.drawString("All Bosses Defeated!", statsX, (int) ((HEIGHT / 2 + 100) * scaleY));
 
-    // วาดปุ่ม "กลับเมนูหลัก"
+        // วาดปุ่ม "กลับเมนูหลัก"
         GradientPaint menuGradient = new GradientPaint(
-            (int) ((WIDTH / 2 - 100) * scaleX), (int) ((HEIGHT / 2 + 140) * scaleY), new Color(20, 100, 20),
-            (int) ((WIDTH / 2 + 100) * scaleX), (int) ((HEIGHT / 2 + 180) * scaleY), new Color(50, 150, 50)
+                (int) ((WIDTH / 2 - 100) * scaleX), (int) ((HEIGHT / 2 + 140) * scaleY), new Color(20, 100, 20),
+                (int) ((WIDTH / 2 + 100) * scaleX), (int) ((HEIGHT / 2 + 180) * scaleY), new Color(50, 150, 50)
         );
         g2d.setPaint(menuGradient);
         g2d.fillRoundRect(
-            (int) ((WIDTH / 2 - 100) * scaleX),
-            (int) ((HEIGHT / 2 + 140) * scaleY),
-            (int) (200 * scaleX),
-            (int) (40 * scaleY),
-            (int) (15 * scaleX),
-            (int) (15 * scaleY)
+                (int) ((WIDTH / 2 - 100) * scaleX),
+                (int) ((HEIGHT / 2 + 140) * scaleY),
+                (int) (200 * scaleX),
+                (int) (40 * scaleY),
+                (int) (15 * scaleX),
+                (int) (15 * scaleY)
         );
 
-    // วาดขอบปุ่ม "กลับเมนูหลัก"
+        // วาดขอบปุ่ม "กลับเมนูหลัก"
         g2d.setColor(new Color(100, 200, 100));
         g2d.drawRoundRect(
-            (int) ((WIDTH / 2 - 100) * scaleX),
-            (int) ((HEIGHT / 2 + 140) * scaleY),
-            (int) (200 * scaleX),
-            (int) (40 * scaleY),
-            (int) (15 * scaleX),
-            (int) (15 * scaleY)
+                (int) ((WIDTH / 2 - 100) * scaleX),
+                (int) ((HEIGHT / 2 + 140) * scaleY),
+                (int) (200 * scaleX),
+                (int) (40 * scaleY),
+                (int) (15 * scaleX),
+                (int) (15 * scaleY)
         );
 
-    // ข้อความสำหรับปุ่ม "กลับเมนูหลัก"
+        // ข้อความสำหรับปุ่ม "กลับเมนูหลัก"
         g2d.setColor(Color.WHITE);
         String menuText = "Main Menu";
         FontMetrics metrics = g2d.getFontMetrics(statsFont);
@@ -586,7 +603,7 @@ public class GamePanel extends JPanel implements Runnable, GameState {
         int buttonCenterX = (int) ((WIDTH / 2) * scaleX);
         int textX = buttonCenterX - textWidth / 2;
 
-    // ปรับความสูงสำหรับปุ่มเมนู
+        // ปรับความสูงสำหรับปุ่มเมนู
         int buttonCenterY = (int) ((HEIGHT / 2 + 140 + 20) * scaleY);
         int textHeight = metrics.getHeight();
         int textY = buttonCenterY + (textHeight / 4);
@@ -672,7 +689,16 @@ public class GamePanel extends JPanel implements Runnable, GameState {
         playerBullets = new ArrayList<>();
         enemyBullets = new ArrayList<>();
         powerups = new ArrayList<>();
-
+        
+        weaponManager = new WeaponManager();
+        player.setWeaponManager(weaponManager);
+        
+        weaponManager.addWeapon(WeaponType.TURRET);
+        weaponManager.addWeapon(WeaponType.TURRET);
+        weaponManager.addWeapon(WeaponType.GATLING_GUN);
+        weaponManager.addWeapon(WeaponType.TURRET);
+        weaponManager.addWeapon(WeaponType.AK47);
+        
         levelManager = new LevelManager();
         gameMap = new GameMap("level1"); // สร้างแผนที่ด่าน 1
     }
@@ -758,27 +784,27 @@ public class GamePanel extends JPanel implements Runnable, GameState {
             System.gc();
         }
 
-    // จำกัดจำนวนกระสุนและเอฟเฟ็กต์
+        // จำกัดจำนวนกระสุนและเอฟเฟ็กต์
         if (enemyBullets.size() > 200) {
-        // ลบกระสุนเก่าเกิน 200 ลูกออกไป
+            // ลบกระสุนเก่าเกิน 200 ลูกออกไป
             while (enemyBullets.size() > 150) {
                 enemyBullets.remove(0);
             }
         }
 
-    // เพิ่มการตรวจสอบการเปลี่ยนแผนที่
+        // เพิ่มการตรวจสอบการเปลี่ยนแผนที่
         if (levelManager.needsMapChange()) {
             clearCurrentLevelResources(); // เรียกเมธอดใหม่เพื่อเคลียร์ทรัพยากร
 
             try {
                 System.out.println("กำลังเปลี่ยนแผนที่เป็นด่าน " + levelManager.getCurrentLevel());
 
-            // สร้างแผนที่ใหม่
+                // สร้างแผนที่ใหม่
                 String newMapName = "level" + levelManager.getCurrentLevel();
                 gameMap = new GameMap(newMapName);
                 System.out.println("สร้างแผนที่ " + newMapName + " สำเร็จ");
 
-            // เปลี่ยนเพลง (ใช้ invokeLater เพื่อป้องกันปัญหา)
+                // เปลี่ยนเพลง (ใช้ invokeLater เพื่อป้องกันปัญหา)
                 SwingUtilities.invokeLater(() -> {
                     if (!SoundManager.isMusicMuted()) {
                         SoundManager.stopBackgroundMusic(); // หยุดเพลงเก่าก่อน
@@ -791,44 +817,43 @@ public class GamePanel extends JPanel implements Runnable, GameState {
             }
         }
 
-    // อัพเดตผู้เล่น (รวมถึงบัฟด้วย)
+        // อัพเดตผู้เล่น (รวมถึงบัฟด้วย)
         player.update();
-
-    // อัพเดท transition ระหว่างด่าน
+        // อัพเดท transition ระหว่างด่าน
         levelManager.updateTransition();
 
-    // ตรวจสอบว่ากำลังอยู่ใน transition หรือไม่
+        // ตรวจสอบว่ากำลังอยู่ใน transition หรือไม่
         if (levelManager.isTransitioning()) {
-        // ถ้าอยู่ใน transition ให้ล้างมอนเตอร์และกระสุนทั้งหมด
+            // ถ้าอยู่ใน transition ให้ล้างมอนเตอร์และกระสุนทั้งหมด
             monsters.clear();
             enemyBullets.clear();
             return; // ข้ามการอัพเดทอื่นๆ
         }   
 
-    // ตรวจสอบว่าเพิ่งเปลี่ยนเลเวลหรือไม่
+        // ตรวจสอบว่าเพิ่งเปลี่ยนเลเวลหรือไม่
         if (levelManager.isLevelJustChanged()) {
             prepareNextLevel();
             return; // ออกจากการอัพเดทรอบนี้เลย
         }
 
-    // ตรวจสอบว่าผู้เล่นยังมีชีวิตอยู่หรือไม่
+        // ตรวจสอบว่าผู้เล่นยังมีชีวิตอยู่หรือไม่
         if (!player.isAlive()) {
             if (!gameOver) { // เพิ่มเงื่อนไขให้ทำงานเพียงครั้งเดียวเมื่อเพิ่งตาย
                 gameOver = true;
-            // หยุดเพลงพื้นหลังเมื่อเกมจบ
+                // หยุดเพลงพื้นหลังเมื่อเกมจบ
                 SoundManager.stopBackgroundMusic();
-            // อาจเล่นเสียง game over ถ้ามี
-            // SoundManager.playSound("game_over");
+                // อาจเล่นเสียง game over ถ้ามี
+                // SoundManager.playSound("game_over");
             }
             return;
         }
 
-    // ถ้าเกมจบแล้ว (Game Over) ให้อัพเดทเฉพาะเอฟเฟกต์หน้า Game Over
+        // ถ้าเกมจบแล้ว (Game Over) ให้อัพเดทเฉพาะเอฟเฟกต์หน้า Game Over
         if (gameOver) {
-        // อัพเดทเอฟเฟกต์ของหน้า Game Over
+            // อัพเดทเอฟเฟกต์ของหน้า Game Over
             gameOverEffectTimer++;
 
-        // เอฟเฟกต์กระพริบ (pulse effect)
+            // เอฟเฟกต์กระพริบ (pulse effect)
             if (gameOverPulseDirection) {
                 gameOverPulseValue += 0.03f;
                 if (gameOverPulseValue >= 1.0f) {
@@ -845,12 +870,12 @@ public class GamePanel extends JPanel implements Runnable, GameState {
             return; // ออกจากเมธอดเพราะเกมจบแล้ว ไม่ต้องอัพเดทสิ่งอื่น
         }
 
-    // เพิ่มเงื่อนไขสำหรับ gameWon ตรงนี้ (ส่วนที่ต้องเพิ่มใหม่)
+        // เพิ่มเงื่อนไขสำหรับ gameWon ตรงนี้ (ส่วนที่ต้องเพิ่มใหม่)
         if (gameWon) {
-        // อัพเดทเอฟเฟกต์ของหน้า Game Won
+            // อัพเดทเอฟเฟกต์ของหน้า Game Won
             gameWonEffectTimer++;
 
-        // เอฟเฟกต์กระพริบ (pulse effect)
+            // เอฟเฟกต์กระพริบ (pulse effect)
             if (gameWonPulseDirection) {
                 gameWonPulseValue += 0.03f;
                 if (gameWonPulseValue >= 1.0f) {
@@ -867,13 +892,13 @@ public class GamePanel extends JPanel implements Runnable, GameState {
             return; // ออกจากเมธอดเพราะเกมจบแล้ว ไม่ต้องอัพเดทสิ่งอื่น
         }
 
-    // ถ้าเกมหยุดชั่วคราว ให้ไม่ต้องอัพเดทสถานะเกม
+        // ถ้าเกมหยุดชั่วคราว ให้ไม่ต้องอัพเดทสถานะเกม
         if (gamePaused) {
             return;
         }
 
-    // เพิ่มการเรียกใช้งาน handleShooting แทนการเช็คใน InputHandler
-    // บังคับใช้ handleShooting
+        // เพิ่มการเรียกใช้งาน handleShooting แทนการเช็คใน InputHandler
+        // บังคับใช้ handleShooting
         if (levelManager.isLevelReadyToPlay()) {
             System.out.println("เริ่มเล่นด่าน " + levelManager.getCurrentLevel() + " แล้ว!");
         // รีเซ็ตสถานะควบคุมตัวละคร
@@ -884,56 +909,58 @@ public class GamePanel extends JPanel implements Runnable, GameState {
             player.setVelX(0);
             player.setVelY(0);
         
-        // บังคับให้เริ่มสปอนมอนสเตอร์ทันที
+            // บังคับให้เริ่มสปอนมอนสเตอร์ทันที
             monsterSpawnTimer = levelManager.getMonsterSpawnRate();
             player.setX(WIDTH / 2 - player.getWidth() / 2);
             player.setY(HEIGHT - 100);
 
-        // บังคับให้โฟกัสกลับมาที่ GamePanel
+            // บังคับให้โฟกัสกลับมาที่ GamePanel
             requestFocusInWindow();
             return; // ออกจาก update รอบนี้เพื่อให้รอบถัดไปเริ่มเกมจริงๆ
         }
-    // เพิ่มการเรียกใช้ handleShooting ตรงนี้ - อยู่ก่อนการตรวจสอบ stopTimeActive
-    // แต่หลังจากการตรวจสอบว่าผู้เล่นมีชีวิตอยู่
+        // เพิ่มการเรียกใช้ handleShooting ตรงนี้ - อยู่ก่อนการตรวจสอบ stopTimeActive
+        // แต่หลังจากการตรวจสอบว่าผู้เล่นมีชีวิตอยู่
         if (!gamePaused && !levelManager.isTransitioning()) {
             inputHandler.handleShooting();
         }
-    // ตรวจสอบว่ามีบัฟ Stop Time ทำงานอยู่หรือไม่
+        // ตรวจสอบว่ามีบัฟ Stop Time ทำงานอยู่หรือไม่
         boolean stopTimeActive = player.hasStopTimeBuff();
 
-    // แก้ไขเงื่อนไขการสปอนมอนสเตอร์ใน update()
-    // ถ้าไม่มีการหยุดเวลา ให้อัปเดตมอนสเตอร์และบอสตามปกติ
+        // แก้ไขเงื่อนไขการสปอนมอนสเตอร์ใน update()
+        // ถ้าไม่มีการหยุดเวลา ให้อัปเดตมอนสเตอร์และบอสตามปกติ
         if (!stopTimeActive) {
-        // สปอนมอนสเตอร์ - แก้ไขเงื่อนไขให้เข้มงวดน้อยลง
+            // สปอนมอนสเตอร์ - แก้ไขเงื่อนไขให้เข้มงวดน้อยลง
             monsterSpawnTimer++;
             if (monsterSpawnTimer >= levelManager.getMonsterSpawnRate() && monsters.size() < 10 && bosses.isEmpty()) {
-            // สปอนมอนสเตอร์เฉพาะเมื่อไม่มีบอส
+                // สปอนมอนสเตอร์เฉพาะเมื่อไม่มีบอส
                 spawnMonster();
                 monsterSpawnTimer = 0;
             }
             if (monsterSpawnTimer >= levelManager.getMonsterSpawnRate() && monsters.size() < 10 && bosses.isEmpty()) {
-            // สปอนมอนสเตอร์เฉพาะเมื่อไม่มีบอส
+                // สปอนมอนสเตอร์เฉพาะเมื่อไม่มีบอส
                 spawnMonster();
                 monsterSpawnTimer = 0;
             }
-        // สปอนบอสถ้าสังหารมอนสเตอร์ครบ
+            // สปอนบอสถ้าสังหารมอนสเตอร์ครบ
             if (levelManager.shouldSpawnBoss() && bosses.isEmpty()) {
-            // ล้างมอนสเตอร์ทั้งหมดก่อนสปอนบอส
+                // ล้างมอนสเตอร์ทั้งหมดก่อนสปอนบอส
                 monsters.clear();
                 spawnBoss();
                 levelManager.bossSpawned();
             }
 
-        // อัปเดตมอนสเตอร์และบอส
+            // อัปเดตมอนสเตอร์และบอส
             updateMonsters();
             updateBosses();
             updateEnemyBullets();
         }
 
-    // อัปเดตอื่นๆ ที่ไม่เกี่ยวข้องกับเวลาที่หยุด
+        // อัปเดตอื่นๆ ที่ไม่เกี่ยวข้องกับเวลาที่หยุด
         updatePlayerBullets();
         updatePowerups();
         checkCollisions();
+        weaponManager.update(player, monsters, bosses);
+        hotbarUI.updateSlots();
     }
 
     private void clearCurrentLevelResources() {
@@ -950,7 +977,7 @@ public class GamePanel extends JPanel implements Runnable, GameState {
 
     // เมธอดย่อยสำหรับอัพเดทมอนสเตอร์
     private void updateMonsters() {
-// จัดการมอนสเตอร์แบบง่ายกว่าเดิม - ลดการคำนวณซับซ้อน
+    // จัดการมอนสเตอร์แบบง่ายกว่าเดิม - ลดการคำนวณซับซ้อน
         for (Enemy enemy : monsters) {
             enemy.update();
             // เพิ่มการหลบหลีกระหว่างมอนสเตอร์
@@ -1014,29 +1041,29 @@ public class GamePanel extends JPanel implements Runnable, GameState {
             Boss boss = it.next();
             boss.update();
 
-        // ตรวจสอบว่าบอสมีชีวิตอยู่หรือไม่
+            // ตรวจสอบว่าบอสมีชีวิตอยู่หรือไม่
             if (!boss.isAlive()) {
                 it.remove();
                 levelManager.bossKilled();
 
-            // เพิ่มคะแนน
+                // เพิ่มคะแนน
                 player.addScore(boss.getPoints());
 
-            // เพิ่มเงื่อนไขตรวจสอบว่าเป็นบอสตัวสุดท้ายหรือไม่
+                // เพิ่มเงื่อนไขตรวจสอบว่าเป็นบอสตัวสุดท้ายหรือไม่
                 if (boss instanceof Boss5) {
-                // ถ้าเป็นบอสตัวสุดท้าย (Boss5) และตายแล้ว
-                // ตั้งค่าให้เกมอยู่ในสถานะชนะ
+                    // ถ้าเป็นบอสตัวสุดท้าย (Boss5) และตายแล้ว
+                    // ตั้งค่าให้เกมอยู่ในสถานะชนะ
                     finalScore = player.getScore();
                     gameWon = true;
                 
-                // หยุดเพลงพื้นหลังและเล่นเสียงชนะ (ถ้ามี)
+                    // หยุดเพลงพื้นหลังและเล่นเสียงชนะ (ถ้ามี)
                     SoundManager.stopBackgroundMusic();
-                    SoundManager.playSound("level_complete");  // ถ้ามีไฟล์นี้
+                    SoundManager.playSound("level_complete");
                     return;  // ออกจากเมธอดทันที
                 }
 
-            // ดรอปบัฟหลายชิ้นตามระดับของบอส
-                int dropCount = Math.min(5, boss.getLevel() * 2); // จำกัดไม่เกิน 5 ชิ้น
+                // ดรอปบัฟหลายชิ้นตามระดับของบอส
+                int dropCount = Math.min(7, boss.getLevel() * 2 + 1); // เพิ่มจำนวนบัฟ
                 for (int i = 0; i < dropCount; i++) {
                     int offsetX = random.nextInt(boss.getWidth()) - boss.getWidth() / 2;
                     int offsetY = random.nextInt(boss.getHeight()) - boss.getHeight() / 2;
@@ -1046,8 +1073,8 @@ public class GamePanel extends JPanel implements Runnable, GameState {
                 continue;
             }
 
-            // บอสโจมตีปกติ
-            if (random.nextInt(100) < 5) { // โอกาส 5%
+            // บอสโจมตีปกติถี่ขึ้น
+            if (random.nextInt(100) < 8) { // เพิ่มโอกาสจาก 5% เป็น 8%
                 EnemyBullet bullet = boss.attack();
                 if (bullet != null) {
                     enemyBullets.add(bullet);
@@ -1055,12 +1082,24 @@ public class GamePanel extends JPanel implements Runnable, GameState {
             }
 
             // บอสโจมตีพิเศษ
-            if (random.nextInt(100) < 1) { // โอกาส 1%
+            if (random.nextInt(100) < 2) { // เพิ่มโอกาสจาก 1% เป็น 2%
                 List<EnemyBullet> bullets = boss.attackSpecial();
                 if (bullets != null) {
                     enemyBullets.addAll(bullets);
                 }
             }
+            // เพิ่มเงื่อนไขการโจมตีพิเศษสำหรับบอสด่าน 5
+             if (boss instanceof Boss5) {
+                 Boss5 finalBoss = (Boss5) boss;
+ 
+                 // เรียกใช้การโจมตีสุดท้ายเมื่อสุ่มได้
+                 if (finalBoss.isInPhase2() && !finalBoss.isTransforming() && random.nextInt(600) == 0) {
+                     List<EnemyBullet> ultimateAttack = finalBoss.executeUltimateAttack();
+                     if (ultimateAttack != null && !ultimateAttack.isEmpty()) {
+                         enemyBullets.addAll(ultimateAttack);
+                     }
+                 }
+             }
         }
     }
 
@@ -1370,9 +1409,9 @@ public class GamePanel extends JPanel implements Runnable, GameState {
             for (Boss boss : bosses) {
                 boss.render(g);
             }
-
             // วาดผู้เล่น
             player.render(g);
+            // วาด hotbar
         }
 
         // คืนค่าการแปลงเดิม
@@ -1384,6 +1423,11 @@ public class GamePanel extends JPanel implements Runnable, GameState {
         if (gameOver) {
             // เรียกใช้เมธอดใหม่ที่รองรับ scaling
             drawGameOverWithScaling(g);
+        }
+        // เพิ่มเงื่อนไขสำหรับ gameWon ตรงนี้
+        if (gameWon) {
+            // เรียกใช้เมธอดสำหรับวาดหน้าจอชนะ
+            drawGameWonWithScaling(g);
         }
 
         if (gamePaused) {
@@ -1397,25 +1441,22 @@ public class GamePanel extends JPanel implements Runnable, GameState {
         
         drawUIWithScaling(g);
 
-        if (gameOver) {
-        // เรียกใช้เมธอดใหม่ที่รองรับ scaling
-            drawGameOverWithScaling(g);
-        }
-
-    // เพิ่มเงื่อนไขสำหรับ gameWon ตรงนี้
-        if (gameWon) {
-        // เรียกใช้เมธอดสำหรับวาดหน้าจอชนะ
-            drawGameWonWithScaling(g);
-        }
-
-        if (gamePaused) {
-            drawPausedWithScaling(g);
-        }
-        if (levelManager.isTransitioning()) {
-        // แสดงผลภาพหน้าจอเปลี่ยนด่าน
-            drawLevelTransition(g);
-            return; // หยุดการวาดองค์ประกอบอื่นๆ
-        }
+//        if (gameOver) {
+//            // เรียกใช้เมธอดใหม่ที่รองรับ scaling
+//            drawGameOverWithScaling(g);
+//        }
+//
+//        
+//        if (gamePaused) {
+//            drawPausedWithScaling(g);
+//        }
+//        if (levelManager.isTransitioning()) {
+//            // แสดงผลภาพหน้าจอเปลี่ยนด่าน
+//            drawLevelTransition(g);
+//            return; // หยุดการวาดองค์ประกอบอื่นๆ
+//        }
+        weaponManager.render(g);
+        hotbarUI.render(g);
     }
 
     private void drawBackground(Graphics g) {
@@ -1537,8 +1578,8 @@ public class GamePanel extends JPanel implements Runnable, GameState {
         if (gameOver) {
             handleGameOverButtons(scaledX, scaledY);
         } else if (gameWon) {
-        // เพิ่มโค้ดสำหรับจัดการคลิกเมื่ออยู่ในหน้า Game Won
-        // สร้างพื้นที่ปุ่ม "กลับเมนูหลัก"
+            // เพิ่มโค้ดสำหรับจัดการคลิกเมื่ออยู่ในหน้า Game Won
+            // สร้างพื้นที่ปุ่ม "กลับเมนูหลัก"
             Rectangle menuButton = new Rectangle(WIDTH / 2 - 100, HEIGHT / 2 + 140, 200, 40);
 
             if (menuButton.contains(scaledX, scaledY)) {
@@ -1597,4 +1638,49 @@ public class GamePanel extends JPanel implements Runnable, GameState {
         pauseButtons.add(new SoundControlButton(120, HEIGHT - 60, false)); // ปุ่มลดเสียง
         pauseButtons.add(new SoundControlButton(170, HEIGHT - 60, true));  // ปุ่มเพิ่มเสียง
     }
+    
+    public void placeTurret() {
+        // หาตำแหน่งปัจจุบันผู้เล่น
+        int playerX = (int)player.getX();
+        int playerY = (int)player.getY();
+        weaponManager.deployWeapon(WeaponType.TURRET, playerX, playerY);
+    }
+    
+    public void selectWeapon(int index) {
+        WeaponType selectedType = null;
+        try {
+            selectedType = weaponManager.getWeaponByIndex(index);
+        }
+        catch (IndexOutOfBoundsException ex) {
+            System.out.println("ช่องที่เลือกเป็นช่องว่าง");
+            return;
+        }
+        if (selectedType != null && !gameOver && !gamePaused) {
+            if (weaponManager.hasWeapon(selectedType)) {
+                if (selectedType == WeaponType.TURRET) {
+                    placeTurret();
+                } else {
+                    if (weaponManager.getActiveWeaponType() == selectedType) {
+                        // ถ้ากดใช้อาวุธเดิม จะเป็นการเลิกใช้
+                        weaponManager.activateWeapon(selectedType);
+                    } else {
+                        weaponManager.activateWeapon(selectedType);
+                    }
+                }
+            }
+        }
+    }
+    
+    public static WeaponManager getWeaponManager() {
+        return weaponManager;
+    }
+    
+    public void setSelectedWeaponIndex(int index) {
+        selectedWeaponIndex = index;
+    }
+    
+    public static int getSelectedWeaponIndex() {
+        return selectedWeaponIndex;
+    }
+    
 }

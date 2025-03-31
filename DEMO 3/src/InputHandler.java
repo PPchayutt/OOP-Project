@@ -33,6 +33,10 @@ public class InputHandler implements KeyListener, MouseListener, MouseMotionList
         if (key == KeyEvent.VK_D) {
             right = true;
         }
+        if (key >= KeyEvent.VK_1 && key <= KeyEvent.VK_9) {
+            int weaponIndex = key - KeyEvent.VK_1;
+            gamePanel.selectWeapon(weaponIndex);
+        }
         if (key == KeyEvent.VK_I && !isGameOver) {
             Player player = gamePanel.getPlayer();
             player.toggleImmortalMode();

@@ -22,7 +22,7 @@ public class Player extends Entity {
 
     // ช่วงเวลาระหว่างการยิง
     private long lastShotTime = 0;
-    private final long shootCooldown = 200;  // มิลลิวินาที (เปลี่ยนเป็น non-final เพื่อให้บัฟปรับได้)
+    private long shootCooldown = 200;  // มิลลิวินาที
     private long currentCooldown = 0;  // เวลาคูลดาวน์ปัจจุบัน
 
     // ช่วงเวลาที่ได้รับอมตะหลังโดนโจมตี
@@ -39,7 +39,7 @@ public class Player extends Entity {
     private int shootAnimationTime = 0;
     private final int SHOOT_ANIMATION_DURATION = 10; // 10 เฟรม
     private int gunDirection = 1; // 1 = ขวา, -1 = ซ้าย
-
+    
     // ข้อมูลเกี่ยวกับบัฟ
     private final List<Powerup> activeBuffs = new ArrayList<>();
     private boolean crazyShootingMode = false;
@@ -48,11 +48,14 @@ public class Player extends Entity {
     private int extraBullets = 0;
     private long shootCooldownReduction = 0; // ลดเวลาคูลดาวน์การยิง (ms)
     
+    private WeaponManager weaponManager;
+    
     private boolean immortalMode = false;
 
     public Player(float x, float y, int width, int height, int health, int speed) {
         super(x, y, width, height, health, speed);
         this.maxHealth = 100;
+        weaponManager = GamePanel.getWeaponManager();
     }
 
     public int getScore() {
@@ -128,7 +131,6 @@ public class Player extends Entity {
         // จำกัดให้อยู่ในหน้าจอ
         x = Math.max(0, Math.min(x, GamePanel.WIDTH - width - 20));
         y = Math.max(0, Math.min(y, GamePanel.HEIGHT - height - 50));
-
         // อัพเดทกระสุน
         updateBullets();
 
@@ -448,6 +450,12 @@ public class Player extends Entity {
         }
     }
 
+    public void addBullets(List<PlayerBullet> newBullets) {
+        if (newBullets != null && !newBullets.isEmpty()) {
+            bullets.addAll(newBullets);
+        }
+    }
+    
     /**
      * ยิงกระสุน
      *
@@ -456,7 +464,11 @@ public class Player extends Entity {
      */
     public void shoot(int targetX, int targetY) {
         long currentTime = System.currentTimeMillis();
-
+        
+        if (currentTime - lastShotTime < getShootCooldown()) {
+            return; // ยังไม่ถึงเวลายิง
+        }
+        
         // คำนวณทิศทางการยิง
         double angle = Math.atan2(targetY - (y + height / 2), targetX - (x + width / 2));
 
@@ -466,69 +478,59 @@ public class Player extends Entity {
         } else {
             gunDirection = 1;  // เมื่อเป้าหมายอยู่ทางขวา ให้หันปืนไปทางขวา
         }
+        
 
+        WeaponType activeWeapon = weaponManager.getActiveWeaponType();
+        System.out.println("equip : " + activeWeapon);
+        
+        shootCooldown = 200;
+        int effectiveDamage = bulletDamage;
+        int bulletCount = 1;
+        int bulletSpeed = 10;
+        double spread = 0; // ค่าเริ่มต้นสำหรับการกระจาย 0
+        boolean useKnockback = knockbackEnabled;
+        int knockbackValue = knockbackPower;
+
+        if (activeWeapon != null) {
+            Weapon weapon = weaponManager.createWeapon(activeWeapon, (int)x, (int)y);
+            switch (activeWeapon) {
+                case AK47 -> {
+                    effectiveDamage = weapon.getDamage();
+                    bulletSpeed = 15;
+                    spread = 0.07;
+                    shootCooldown = 120;
+                }
+                case GATLING_GUN -> {
+                    effectiveDamage = weapon.getDamage();
+                    bulletCount = 4;
+                    bulletSpeed = 25;
+                    spread = 0.12;
+                    shootCooldown = 90;
+                }
+            }
+        }
+        
         // บัฟยิงบ้าคลั่ง (Crazy Shooting)
         if (crazyShootingMode) {
-            for (int i = 0; i < 5; i++) {
-                double spread = (Math.random() - 0.5) * 0.5; // ความกระจายของกระสุน
-                double shootAngle = angle + spread;
-
-                PlayerBullet bullet = new PlayerBullet((int) (x + width / 2), (int) (y + height / 2), 8, 8, shootAngle);
-                bullet.setDamage(bulletDamage * 2); // เพิ่มความเสียหายเป็น 2 เท่า
-                bullet.setSpeed(15); // เพิ่มความเร็วกระสุน
-
-                // เพิ่ม knockback ถ้ามีการเปิดใช้งาน
-                if (knockbackEnabled) {
-                    bullet.setKnockback(true);
-                    bullet.setKnockbackPower(knockbackPower);
-                }
-
-                bullets.add(bullet);
-            }
+            effectiveDamage = bulletDamage * 2;
+            bulletCount = 5;
+            bulletSpeed = (int)(bulletSpeed * 1.5);
+            shootCooldown = (int)(shootCooldown/1.5);
         } // บัฟยิงหลายนัด (Multiple Bullets)
-        else if (extraBullets > 0) {
-            // ยิงกระสุนหลัก (ตรงกลาง)
-            PlayerBullet mainBullet = new PlayerBullet((int) (x + width / 2), (int) (y + height / 2), 8, 8, angle);
-            mainBullet.setDamage(bulletDamage);
-
-            // เพิ่ม knockback ถ้ามีการเปิดใช้งาน
-            if (knockbackEnabled) {
-                mainBullet.setKnockback(true);
-                mainBullet.setKnockbackPower(knockbackPower);
-            }
-
-            bullets.add(mainBullet);
-
-            // ยิงกระสุนเพิ่มเติม
-            for (int i = 0; i < extraBullets; i++) {
-                double spread = (i % 2 == 0 ? 1 : -1) * (i + 1) * 0.1; // กระจายสลับซ้ายขวา
-                double shootAngle = angle + spread;
-
-                PlayerBullet extraBullet = new PlayerBullet((int) (x + width / 2), (int) (y + height / 2), 8, 8, shootAngle);
-                extraBullet.setDamage(bulletDamage);
-
-                // เพิ่ม knockback ถ้ามีการเปิดใช้งาน
-                if (knockbackEnabled) {
-                    extraBullet.setKnockback(true);
-                    extraBullet.setKnockbackPower(knockbackPower);
-                }
-
-                bullets.add(extraBullet);
-            }
-        } // ยิงปกติ
-        else {
-            PlayerBullet bullet = new PlayerBullet((int) (x + width / 2), (int) (y + height / 2), 8, 8, angle);
-            bullet.setDamage(bulletDamage);
-
-            // เพิ่ม knockback ถ้ามีการเปิดใช้งาน
-            if (knockbackEnabled) {
-                bullet.setKnockback(true);
-                bullet.setKnockbackPower(knockbackPower);
-            }
-
-            bullets.add(bullet);
+        if (extraBullets > 0) {
+            // ยิงแบบกระจายหลายนัดพร้อมกัน (เหมือนเดิม)
+            bulletCount = 1 + extraBullets;
         }
-
+        System.out.println("bulletCount : " + bulletCount);
+        if (crazyShootingMode || activeWeapon != null) {
+            for (int i = 0; i < bulletCount; i++) {
+                System.out.println(bulletCount);
+            createSingleBullet(angle, effectiveDamage, bulletSpeed, spread, useKnockback, knockbackValue);
+            }
+        } else {
+            System.out.println("piston");
+            createBullets(angle, effectiveDamage, bulletCount, bulletSpeed, true, useKnockback, knockbackValue);
+        }
         // เริ่มแอนิเมชันการยิง
         isShooting = true;
         shootAnimationTime = SHOOT_ANIMATION_DURATION;
@@ -538,6 +540,57 @@ public class Player extends Entity {
 
         // บันทึกเวลาที่ยิง
         lastShotTime = currentTime;
+    }
+    
+    private void createSingleBullet(double angle, int damage, int speed, double spread, boolean knockback, int knockbackPower) {
+        // เพิ่มการกระจายเล็กน้อยทุกครั้งที่ยิง (คล้าย spray ในเกมยิงปืน)
+        double randomSpread = (Math.random() * 2 - 1) * spread;
+        double finalAngle = angle + randomSpread;
+
+        PlayerBullet bullet = new PlayerBullet((int) (x + width / 2), (int) (y + height / 2), 8, 8, finalAngle);
+        bullet.setDamage(damage);
+        bullet.setSpeed(speed);
+
+        if (knockback) {
+            bullet.setKnockback(true);
+            bullet.setKnockbackPower(knockbackPower);
+        }
+
+        bullets.add(bullet);
+    }
+    
+    private void createBullets(double angle, int damage, int count, int speed, boolean spread, boolean knockback, int knockbackPower) {
+        // สร้างกระสุนหลัก (ตรงกลาง)
+        PlayerBullet firstBullet = new PlayerBullet((int) (x + width / 2), (int) (y + height / 2), 8, 8, angle);
+        firstBullet.setDamage(damage);
+        firstBullet.setSpeed(speed);
+
+        if (knockback) {
+            firstBullet.setKnockback(true);
+            firstBullet.setKnockbackPower(knockbackPower);
+        }
+        
+        bullets.add(firstBullet);
+        
+        if (spread && count > 1) {
+            for (int i = 0; i < count; i++) {
+                System.out.println(i);
+                double spreadAngle;
+                double amount = (i % 2 == 0 ? 1 : -1) * (i + 1) * 0.1;
+                spreadAngle = angle + amount;
+                
+                PlayerBullet bullet = new PlayerBullet((int) (x + width / 2), (int) (y + height / 2), 8, 8, spreadAngle);
+                bullet.setDamage(damage);
+                bullet.setSpeed(speed);
+                
+                if (knockback) {
+                    bullet.setKnockback(true);
+                    bullet.setKnockbackPower(knockbackPower);
+                }
+                
+                bullets.add(bullet);
+            }
+        }
     }
 
     /**
@@ -638,7 +691,7 @@ public class Player extends Entity {
         // คำนวณเวลาคูลดาวน์หลังหักลบด้วยบัฟต่างๆ (ต่ำสุด 50ms)
         return Math.max(50, shootCooldown - shootCooldownReduction);
     }
-
+    
     /**
      * ดึงค่าเวลาคูลดาวน์ปัจจุบัน
      *
@@ -672,5 +725,13 @@ public class Player extends Entity {
             }
         }
         return false;
+    }
+    
+    public void setWeaponManager(WeaponManager weaponManager) {
+        this.weaponManager = weaponManager;
+    }
+    
+    public WeaponType getSelectedWeaponType() {
+        return weaponManager.getSelectedWeaponType();
     }
 }

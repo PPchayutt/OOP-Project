@@ -14,10 +14,14 @@ public class Boss extends Enemy {
     final int level;
 
     public Boss(int x, int y, int level) {
-        super(x, y, 80, 80, 300 * level, 1, 20, 1000 * level);
+        // เพิ่มพลังชีวิตจาก 300*level เป็น 400*level
+        super(x, y, 80, 80, 400 * level, 1, 20, 1000 * level);
         this.level = level;
     }
 
+    /**
+     *
+     */
     @Override
     public void update() {
         updateCooldowns();
@@ -59,12 +63,16 @@ public class Boss extends Enemy {
         if (bossImage != null) {
             g.drawImage(bossImage, (int) x, (int) y, width, height, null);
 
-            // วาดแถบพลังชีวิตเหนือบอส
+            // วาดแถบพลังชีวิตเหนือบอส - แก้ไขส่วนนี้
             g.setColor(Color.RED);
-            g.fillRect((int) x, (int) y - 10, width, 5);
+            g.fillRect((int) x, (int) y - 25, width, 20);
             g.setColor(Color.GREEN);
-            int healthBarWidth = (int) ((double) health / (200 * level) * width);
-            g.fillRect((int) x, (int) y - 10, healthBarWidth, 5);
+            int healthBarWidth = (int) ((double) health / (400 * level) * width);
+            g.fillRect((int) x, (int) y - 25, healthBarWidth, 20);
+
+            // กรอบแถบพลังชีวิต - เพิ่มส่วนนี้
+            g.setColor(Color.WHITE);
+            g.drawRect((int) x, (int) y - 25, width, 20);
         } else {
             // ถ้าไม่มีรูปภาพให้วาดรูปทรงพื้นฐานแทน
             g.setColor(new Color(180, 0, 0));
@@ -80,15 +88,20 @@ public class Boss extends Enemy {
             g.fillRect((int) x + width / 4, (int) y + height * 2 / 3, width / 2, height / 8);
 
             // แถบพลังชีวิต
+            g.setColor(Color.RED);
+            g.fillRect((int) x, (int) y - 25, width, 20);
             g.setColor(Color.GREEN);
-            int healthBarWidth = (int) ((double) health / (200 * level) * width);
-            g.fillRect((int) x, (int) y - 10, healthBarWidth, 5);
+            int healthBarWidth = (int) ((double) health / (400 * level) * width);
+            g.fillRect((int) x, (int) y - 25, healthBarWidth, 20);
+
+            // กรอบแถบพลังชีวิต
+            g.setColor(Color.WHITE);
+            g.drawRect((int) x, (int) y - 25, width, 20);
         }
 
-        // พิมพ์ข้อความแสดงสถานะใต้บอส (เพื่อการดีบัก)
         g.setColor(Color.WHITE);
-        g.setFont(new Font("Arial", Font.PLAIN, 10));
-        g.drawString("Stage " + level + " Boss HP:" + health, (int) x, (int) y + height + 15);
+        g.setFont(new Font("Arial", Font.BOLD, 12)); // เพิ่มขนาดฟอนต์และทำเป็นตัวหนา
+        g.drawString("Boss Lv." + level + " HP:" + health, (int) x, (int) y + height + 15);
     }
 
     @Override
@@ -98,46 +111,43 @@ public class Boss extends Enemy {
         }
 
         switch (attackPattern) {
-            case 0 -> {
-                // ยิงตรงลงมา
-                resetShootCooldown(30);
+            case 0:
+                // ลด cooldown จาก 30 เป็น 20
+                resetShootCooldown(20);
                 return new EnemyBullet((int) x + width / 2 - 4, (int) y + height, 8, 8, Math.PI / 2, 3, damage);
-            }
-            case 1 -> {
-                // ยิงทแยงมุม
-                resetShootCooldown(60);
-
+            case 1:
+                // ลด cooldown จาก 60 เป็น 45
+                resetShootCooldown(45);
                 double angle = Math.PI / 3 + random.nextDouble() * Math.PI / 3;
                 return new EnemyBullet((int) x + width / 2 - 4, (int) y + height, 8, 8, angle, 2, damage);
-            }
-            default -> {
-                // ยิงตรงไปที่ผู้เล่น (ต้องปรับให้เหมาะสมหลังจากเพิ่ม Player)
-                resetShootCooldown(15);
-
+            default:
+                // ลด cooldown จาก 15 เป็น 10
+                resetShootCooldown(10);
                 int targetX = GamePanel.WIDTH / 2;
                 int targetY = GamePanel.HEIGHT - 100;
-
                 double dx = targetX - (x + width / 2);
                 double dy = targetY - (y + height / 2);
-                double angle = Math.atan2(dy, dx);
-
-                return new EnemyBullet((int) x + width / 2 - 4, (int) y + height / 2, 8, 8, angle, 3, damage);
-            }
+                double targetAngle = Math.atan2(dy, dx);
+                return new EnemyBullet((int) x + width / 2 - 4, (int) y + height / 2, 8, 8, targetAngle, 3, damage);
         }
     }
 
+    /**
+     *
+     * @return
+     */
     public List<EnemyBullet> attackSpecial() {
         if (!canAttack()) {
             return null;
         }
 
-        resetShootCooldown(120);
-
+        // ลด cooldown จาก 120 เป็น 100
+        resetShootCooldown(100);
         List<EnemyBullet> bullets = new ArrayList<>();
 
-        // ยิงรอบตัว
-        for (int i = 0; i < 8; i++) {
-            double angle = Math.PI * i / 4;
+        // เพิ่มจำนวนกระสุนจาก 8 เป็น 12
+        for (int i = 0; i < 12; i++) {
+            double angle = Math.PI * i / 6;
             bullets.add(new EnemyBullet((int) x + width / 2 - 4, (int) y + height / 2, 8, 8, angle, 2, damage));
         }
 
@@ -148,15 +158,28 @@ public class Boss extends Enemy {
     public void takeDamage(int damage) {
         super.takeDamage(damage);
 
-        // เมื่อพลังชีวิตเหลือครึ่งเดียว ให้บอสเร็วขึ้นและโจมตีแรงขึ้น
-        if (health <= 150 * level && speed == 1) {
-            speed = 3; // เพิ่มความเร็วจาก 2 เป็น 3
+        // เปลี่ยนเงื่อนไขจาก 150*level เป็น 200*level และเพิ่มความเร็วมากขึ้น
+        if (health <= 200 * level && speed == 1) {
+            speed = 3; // เพิ่มจาก 2 เป็น 3
             this.damage = this.damage * 2;
         }
     }
 
     public int getLevel() {
         return level;
+    }
+
+    @Override
+    public Rectangle getBounds() {
+        // ลดขนาด hitbox ให้เล็กลงประมาณ 80% ของขนาดจริง
+        int hitboxWidth = (int) (width * 0.8);
+        int hitboxHeight = (int) (height * 0.8);
+
+        // ปรับตำแหน่งให้ hitbox อยู่ตรงกลางของตัวละคร
+        int hitboxX = (int) (x + (width - hitboxWidth) / 2);
+        int hitboxY = (int) (y + (height - hitboxHeight) / 2);
+
+        return new Rectangle(hitboxX, hitboxY, hitboxWidth, hitboxHeight);
     }
 
 }
