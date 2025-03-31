@@ -39,13 +39,12 @@ public class Boss5 extends Boss {
      */
     public Boss5(int x, int y, int level) {
         super(x, y, level);
-
-        // ปรับให้บอสสุดท้ายแข็งแกร่งที่สุด
+        // ตัวเดิมมีพลังชีวิต 600*level เพิ่มเป็น 1000*level
         this.width = 140;
         this.height = 140;
-        this.health = 600 * level; // เพิ่มพลังชีวิตให้มากขึ้น
-        this.maxHealth = 600 * level;
-        this.damage = 35;
+        this.health = 1000 * level;
+        this.maxHealth = 1000 * level;
+        this.damage = 40; // เพิ่มจาก 35
 
         // โหลดรูปภาพทั้งสองเฟส
         this.phase1Image = ImageManager.getImage("L5_Boss_Phase1");
@@ -74,15 +73,20 @@ public class Boss5 extends Boss {
         updateGlowEffect();
 
         phaseCounter++;
-        if (phaseCounter >= (isPhase2 ? 120 : 180)) { // เฟส 2 เปลี่ยนเร็วขึ้น
+        if (phaseCounter >= (isPhase2 ? 90 : 150)) { // ลดเวลาลงจาก 120 และ 180
             phaseCounter = 0;
-            phase = (phase + 1) % (isPhase2 ? 5 : 4); // เฟส 2 มีรูปแบบเพิ่มขึ้น
-            attackPattern = random.nextInt(isPhase2 ? 5 : 4); // เฟส 2 มีการโจมตีเพิ่มขึ้น
+            phase = (phase + 1) % (isPhase2 ? 5 : 4);
+            attackPattern = random.nextInt(isPhase2 ? 5 : 4);
         }
 
         // อัพเดตหน่วยเวลาพิเศษ
         specialAttackTimer++;
         phase2AttackTimer++;
+
+        // เพิ่มการฟื้นพลังชีวิตในบางกรณี - สุ่มเรียกเมื่ออยู่ในเฟส 2
+        if (isPhase2 && random.nextInt(300) == 0) { // โอกาส 1/300 ต่อเฟรม
+            heal();
+        }
 
         // การเคลื่อนที่แตกต่างกันตามเฟส
         if (isPhase2) {
@@ -91,7 +95,7 @@ public class Boss5 extends Boss {
             updatePhase1Movement();
         }
 
-        // จำกัดตำแหน่งไม่ให้ออกนอกจอ (เฟส 2 สามารถไปได้สูงกว่า)
+        // จำกัดตำแหน่งไม่ให้ออกนอกจอ
         x = Math.max(0, Math.min(x, GamePanel.WIDTH - width - 10));
         y = Math.max(30, Math.min(y, isPhase2 ? 400 : 300));
     }
@@ -143,35 +147,34 @@ public class Boss5 extends Boss {
     private void updatePhase2Movement() {
         switch (phase) {
             case 0:
-                // เคลื่อนที่จากซ้ายไปขวาเร็วมาก
-                x += speed * 2.5f * moveDirection;
+                // เคลื่อนที่จากซ้ายไปขวาเร็วขึ้นมาก
+                x += speed * 3.0f * moveDirection; // เพิ่มจาก 2.5f เป็น 3.0f
                 if (x <= 0 || x >= GamePanel.WIDTH - width) {
                     moveDirection *= -1;
                 }
                 break;
             case 1:
-                // เคลื่อนที่วนเป็น 8
-                float t = phaseCounter * 0.05f;
-                x = GamePanel.WIDTH / 2 - width / 2 + (float) (Math.sin(t) * 200);
-                y = 200 + (float) (Math.sin(2 * t) * 100);
+                // เคลื่อนที่วนเป็น 8 เร็วขึ้น
+                float t = phaseCounter * 0.08f; // เพิ่มจาก 0.05f เป็น 0.08f
+                x = GamePanel.WIDTH / 2 - width / 2 + (float) (Math.sin(t) * 250); // เพิ่มรัศมีจาก 200 เป็น 250
+                y = 200 + (float) (Math.sin(2 * t) * 120); // เพิ่มรัศมีจาก 100 เป็น 120
                 break;
             case 2:
-                // เคลื่อนที่แบบซิกแซก
-                x += Math.cos(phaseCounter * 0.1) * speed * 2.5f;
-                y += Math.abs(Math.sin(phaseCounter * 0.2)) * speed * 2.0f;
+                // เคลื่อนที่แบบซิกแซกซับซ้อนยิ่งขึ้น
+                x += Math.cos(phaseCounter * 0.15) * speed * 3.0f; // เพิ่มจาก 0.1 และ 2.5f
+                y += Math.abs(Math.sin(phaseCounter * 0.3)) * speed * 2.5f; // เพิ่มจาก 0.2 และ 2.0f
                 break;
             case 3:
-                // วาร์ปรอบๆ จอ
-                if (phaseCounter % 40 == 0) {
+                // วาร์ปรอบๆ จอถี่ขึ้น
+                if (phaseCounter % 25 == 0) { // ลดจาก 40 เป็น 25
                     // สุ่มตำแหน่งใหม่
                     x = random.nextInt(GamePanel.WIDTH - width - 20) + 10;
                     y = random.nextInt(300) + 50;
                 }
                 break;
             case 4:
-                // หยุดนิ่ง (เตรียมโจมตีท้ายสุด)
-                // ไม่มีการเคลื่อนที่
-                if (phase2AttackTimer >= 300) { // ทุก 5 วินาที
+                // เพิ่มความถี่ในการโจมตีครั้งสุดท้าย
+                if (phase2AttackTimer >= 240) { // ลดจาก 300 เป็น 240 (4 วินาที)
                     phase2AttackTimer = 0;
                     prepareUltimateAttack(); // เตรียมการโจมตีสุดท้าย
                 }
@@ -358,11 +361,11 @@ public class Boss5 extends Boss {
         int healthBarWidth = (int) ((double) health / (isPhase2 ? 300 * level : 600 * level) * width);
         g2d.fillRect((int) x, (int) y - 25, healthBarWidth, 20);
 
-    // กรอบแถบพลังชีวิต
+        // กรอบแถบพลังชีวิต
         g2d.setColor(Color.WHITE);
         g2d.drawRect((int) x, (int) y - 25, width, 20);
 
-    // พิมพ์ข้อความแสดงสถานะ - เปลี่ยนเป็น Boss Lv.5 แทนที่จะใช้ค่า level
+        // พิมพ์ข้อความแสดงสถานะ - เปลี่ยนเป็น Boss Lv.5 แทนที่จะใช้ค่า level
         g2d.setColor(Color.WHITE);
         g2d.setFont(new Font("Arial", Font.BOLD, 16));
         String statusText = "FINAL BOSS Lv.5 HP:" + health;
@@ -447,42 +450,35 @@ public class Boss5 extends Boss {
     private EnemyBullet attackPhase2() {
         switch (attackPattern) {
             case 0:
-                // ยิงกระสุนพลังงานขนาดใหญ่
-                resetShootCooldown(10);
-                return new EnemyBullet((int) x + width / 2 - 15, (int) y + height, 30, 30, Math.PI / 2, 8, damage * 2);
+                // ยิงกระสุนพลังงานขนาดใหญ่เร็วขึ้น
+                resetShootCooldown(7); // ลดจาก 10
+                return new EnemyBullet((int) x + width / 2 - 15, (int) y + height, 35, 35, Math.PI / 2, 9, damage * 2);
             case 1:
-                // ยิงแบบพัดกระจาย 3 นัด
-                resetShootCooldown(20);
-
-                // ยิงนัดกลาง
+                // ยิงแบบพัดกระจาย 3 นัด เร็วขึ้น
+                resetShootCooldown(15); // ลดจาก 20
                 double baseAngle = Math.PI / 2;
-                return new EnemyBullet((int) x + width / 2 - 10, (int) y + height / 2, 20, 20, baseAngle, 6, (int) (damage * 1.5));
-
+                return new EnemyBullet((int) x + width / 2 - 10, (int) y + height / 2, 25, 25, baseAngle, 7, (int) (damage * 2.0));
             case 2:
-                // ยิงล็อคเป้าผู้เล่น
-                resetShootCooldown(7); // เร็วมาก
-                int targetX = GamePanel.WIDTH / 2; // ในเกมจริงควรรับตำแหน่งผู้เล่น
+                // ยิงล็อคเป้าผู้เล่นเร็วขึ้นมาก
+                resetShootCooldown(5); // ลดจาก 7
+                int targetX = GamePanel.WIDTH / 2;
                 int targetY = GamePanel.HEIGHT - 100;
                 double dx = targetX - (x + width / 2);
                 double dy = targetY - (y + height / 2);
                 double targetAngle = Math.atan2(dy, dx);
-                return new EnemyBullet((int) x + width / 2 - 12, (int) y + height / 2, 24, 24, targetAngle, 10, (int) (damage * 1.5));
-
+                return new EnemyBullet((int) x + width / 2 - 12, (int) y + height / 2, 24, 24, targetAngle, 11, (int) (damage * 2.0));
             case 3:
-                // กระสุนแตกกระจาย
-                resetShootCooldown(25);
-                return new EnemyBullet((int) x + width / 2 - 20, (int) y + height / 2, 40, 40, Math.PI / 2, 5, damage * 3);
-
+                // กระสุนแตกกระจายเร็วขึ้น
+                resetShootCooldown(20); // ลดจาก 25
+                return new EnemyBullet((int) x + width / 2 - 20, (int) y + height / 2, 45, 45, Math.PI / 2, 6, damage * 3);
             case 4:
                 // กระสุนดูดเข้าตัวผู้เล่น
-                resetShootCooldown(30);
-                // ยิงไปทิศทางสุ่ม
+                resetShootCooldown(25); // ลดจาก 30
                 double randomAngle = Math.random() * Math.PI * 2;
-                return new EnemyBullet((int) x + width / 2 - 8, (int) y + height / 2, 16, 16, randomAngle, 3, damage * 2);
-
+                return new EnemyBullet((int) x + width / 2 - 8, (int) y + height / 2, 16, 16, randomAngle, 4, damage * 2);
             default:
-                resetShootCooldown(15);
-                return new EnemyBullet((int) x + width / 2 - 10, (int) y + height, 20, 20, Math.PI / 2, 6, damage);
+                resetShootCooldown(10); // ลดจาก 15
+                return new EnemyBullet((int) x + width / 2 - 10, (int) y + height, 20, 20, Math.PI / 2, 7, damage);
         }
     }
 
@@ -556,78 +552,94 @@ public class Boss5 extends Boss {
      * การโจมตีพิเศษในเฟส 2 (สุดโหด)
      */
     private void specialAttackPhase2(List<EnemyBullet> bullets) {
-        resetShootCooldown(40); // คูลดาวน์สั้นกว่า
+        resetShootCooldown(30); // ลดจาก 40
 
+        // เลือกการโจมตีพิเศษตามความเหมาะสม
         int specialAttackType = random.nextInt(4);
 
         switch (specialAttackType) {
             case 0:
                 // "ราวกระสุนแห่งความมืด" - ยิงเป็นวงกลม 2 ชั้น
-                for (int i = 0; i < 36; i++) {
-                    double angle = Math.PI * 2 * i / 36;
-                    bullets.add(new EnemyBullet((int) x + width / 2 - 6, (int) y + height / 2, 12, 12, angle, 6, damage));
+                for (int i = 0; i < 42; i++) { // เพิ่มจาก 36
+                    double angle = Math.PI * 2 * i / 42;
+                    bullets.add(new EnemyBullet((int) x + width / 2 - 6, (int) y + height / 2, 12, 12, angle, 7, damage));
+                    // เพิ่มความเร็ว
 
                     // ชั้นนอก ช้ากว่า
-                    bullets.add(new EnemyBullet((int) x + width / 2 - 8, (int) y + height / 2, 16, 16, angle, 4, damage * 2));
+                    bullets.add(new EnemyBullet((int) x + width / 2 - 8, (int) y + height / 2, 16, 16, angle, 5, damage * 2));
                 }
                 break;
-
             case 1:
                 // "พายุเชิงซ้อน" - วงกลมซ้อนกับกากบาท
                 // วงกลม
-                for (int i = 0; i < 24; i++) {
-                    double angle = Math.PI * 2 * i / 24;
-                    bullets.add(new EnemyBullet((int) x + width / 2 - 6, (int) y + height / 2, 12, 12, angle, 5, damage));
+                for (int i = 0; i < 30; i++) { // เพิ่มจาก 24
+                    double angle = Math.PI * 2 * i / 30;
+                    bullets.add(new EnemyBullet((int) x + width / 2 - 6, (int) y + height / 2, 12, 12, angle, 6, damage));
                 }
 
                 // กากบาท - ใหญ่และเร็วกว่า
-                for (int i = 0; i < 4; i++) {
-                    double angle = Math.PI * i / 2;
-                    bullets.add(new EnemyBullet((int) x + width / 2 - 15, (int) y + height / 2, 30, 30, angle, 8, damage * 3));
+                for (int i = 0; i < 8; i++) { // เพิ่มจาก 4
+                    double angle = Math.PI * i / 4;
+                    bullets.add(new EnemyBullet((int) x + width / 2 - 15, (int) y + height / 2, 30, 30, angle, 9, damage * 3));
                 }
                 break;
-
             case 2:
                 // "ตาข่ายเพชร" - รูปแบบตาข่ายสี่เหลี่ยมข้าวหลามตัด
                 for (int i = 0; i < 4; i++) {
                     double baseAngle = Math.PI * i / 2;
                     // แต่ละเส้นมีหลายกระสุน
-                    for (int j = 1; j <= 10; j++) {
+                    for (int j = 1; j <= 15; j++) { // เพิ่มจาก 10
                         bullets.add(new EnemyBullet(
                                 (int) (x + width / 2 - 8 + Math.cos(baseAngle) * j * 20),
                                 (int) (y + height / 2 - 8 + Math.sin(baseAngle) * j * 20),
-                                16, 16, baseAngle + Math.PI, 7, (int) (damage * 1.5)));
+                                16, 16, baseAngle + Math.PI, 8, (int) (damage * 1.5)));
                     }
                 }
 
                 // เส้นตรงกลาง
                 for (int i = 0; i < 4; i++) {
                     double baseAngle = Math.PI * i / 2 + Math.PI / 4;
-                    for (int j = 1; j <= 6; j++) {
+                    for (int j = 1; j <= 8; j++) { // เพิ่มจาก 6
                         bullets.add(new EnemyBullet(
                                 (int) (x + width / 2 - 8 + Math.cos(baseAngle) * j * 30),
                                 (int) (y + height / 2 - 8 + Math.sin(baseAngle) * j * 30),
-                                16, 16, baseAngle + Math.PI, 6, damage
+                                16, 16, baseAngle + Math.PI, 7, damage
                         ));
                     }
                 }
                 break;
-
             case 3:
-                // "การพิพากษาครั้งสุดท้าย" - ล็อคเป้าผู้เล่น 5 กระสุนขนาดใหญ่
+                // "การพิพากษาครั้งสุดท้าย" - ล็อคเป้าผู้เล่น 7 กระสุนขนาดใหญ่
                 double playerAngle = Math.PI / 2; // ในเกมจริงควรคำนวณจากตำแหน่งผู้เล่น
 
                 // กระสุนกลาง - ใหญ่และเร็วมาก
-                bullets.add(new EnemyBullet((int) x + width / 2 - 20, (int) y + height / 2, 40, 40, playerAngle, 9, damage * 3));
+                bullets.add(new EnemyBullet((int) x + width / 2 - 25, (int) y + height / 2, 50, 50, playerAngle, 10, damage * 4));
 
                 // กระสุนซ้าย-ขวา - เล็กกว่าแต่เร็ว
-                bullets.add(new EnemyBullet((int) x + width / 2 - 12, (int) y + height / 2, 24, 24, playerAngle - 0.2, 10, damage * 2));
-                bullets.add(new EnemyBullet((int) x + width / 2 - 12, (int) y + height / 2, 24, 24, playerAngle + 0.2, 10, damage * 2));
+                bullets.add(new EnemyBullet((int) x + width / 2 - 15, (int) y + height / 2, 30, 30, playerAngle - 0.2, 11, damage * 3));
+                bullets.add(new EnemyBullet((int) x + width / 2 - 15, (int) y + height / 2, 30, 30, playerAngle + 0.2, 11, damage * 3));
 
                 // กระสุนซ้าย-ขวาสุด - เล็กและเร็ว
-                bullets.add(new EnemyBullet((int) x + width / 2 - 8, (int) y + height / 2, 16, 16, playerAngle - 0.4, 11, damage));
-                bullets.add(new EnemyBullet((int) x + width / 2 - 8, (int) y + height / 2, 16, 16, playerAngle + 0.4, 11, damage));
+                bullets.add(new EnemyBullet((int) x + width / 2 - 10, (int) y + height / 2, 20, 20, playerAngle - 0.4, 12, damage * 2));
+                bullets.add(new EnemyBullet((int) x + width / 2 - 10, (int) y + height / 2, 20, 20, playerAngle + 0.4, 12, damage * 2));
+
+                // เพิ่มกระสุนใหม่
+                bullets.add(new EnemyBullet((int) x + width / 2 - 8, (int) y + height / 2, 16, 16, playerAngle - 0.6, 13, damage));
+                bullets.add(new EnemyBullet((int) x + width / 2 - 8, (int) y + height / 2, 16, 16, playerAngle + 0.6, 13, damage));
                 break;
+        }
+    }
+
+    public void heal() {
+        // ฟื้นพลังชีวิตเฉพาะเมื่ออยู่ในเฟส 2 และเลือดเหลือน้อยกว่า 40%
+        if (isPhase2 && health < maxHealth * 0.4) {
+            // ฟื้น 10% ของพลังชีวิตสูงสุด
+            int healAmount = (int) (maxHealth * 0.1);
+            health = Math.min(health + healAmount, maxHealth);
+
+            // เพิ่มเอฟเฟกต์แสงสว่างรอบตัวเมื่อฟื้นพลังชีวิต
+            glowEffect = 1.0f;
+            glowIncreasing = false;
         }
     }
 
@@ -774,7 +786,7 @@ public class Boss5 extends Boss {
 
     @Override
     public void takeDamage(int damage) {
-        // ถ้ากำลังเปลี่ยนเฟส จะไม่รับความเสียหาย
+        // หากกำลังเปลี่ยนเฟส จะไม่รับความเสียหาย
         if (isTransforming) {
             return;
         }
@@ -783,14 +795,14 @@ public class Boss5 extends Boss {
         super.takeDamage(damage);
 
         // เมื่อพลังชีวิตเหลือน้อยกว่า 60% ให้บอสเร็วขึ้นและโจมตีแรงขึ้น (เฟส 1)
-        if (health <= 360 * level && !isEnraged && !isPhase2) {
+        if (health <= 600 * level && !isEnraged && !isPhase2) {
             speed = 2;
             this.damage = this.damage * 2;
             isEnraged = true; // เข้าสู่โหมดคลั่ง
         }
 
-        // เมื่อพลังชีวิตเหลือน้อยกว่า 30% และยังไม่เปลี่ยนเป็นเฟส 2
-        if (health <= 180 * level && !isPhase2) {
+        // เมื่อพลังชีวิตเหลือน้อยกว่า 35% (เดิม 30%) และยังไม่เปลี่ยนเป็นเฟส 2
+        if (health <= 350 * level && !isPhase2) {
             // เข้าสู่เฟส 2
             isPhase2 = true;
             isTransforming = true;
@@ -799,8 +811,8 @@ public class Boss5 extends Boss {
             // หยุดการโจมตีชั่วคราวระหว่างเปลี่ยนเฟส
             resetShootCooldown(TRANSFORM_DURATION + 30);
 
-            // รีเซ็ตเลือดให้เต็มครึ่งหนึ่งของเลือดตั้งต้น
-            health = 300 * level;
+            // ให้เลือดเฟส 2 เต็มขึ้นมากกว่าเดิมเป็น 400*level (เดิม 300*level)
+            health = 400 * level;
 
             // เล่นเสียงเมื่อเริ่มเปลี่ยนเฟส
             SoundManager.playSound("boss_transform_start");
