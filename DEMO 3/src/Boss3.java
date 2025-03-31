@@ -107,11 +107,15 @@ public class Boss3 extends Boss {
         }
 
         // แถบพลังชีวิต
-        g.setColor(Color.GREEN);
-        int healthBarWidth = (int) ((double) health / (300 * level) * width);
-        g.fillRect((int) x, (int) y - 15, healthBarWidth, 10);
         g.setColor(Color.RED);
-        g.drawRect((int) x, (int) y - 15, width, 10);
+        g.fillRect((int) x, (int) y - 25, width, 20);
+        g.setColor(Color.GREEN);
+        int healthBarWidth = (int) ((double) health / (700 * level) * width);
+        g.fillRect((int) x, (int) y - 25, healthBarWidth, 20);
+
+// กรอบแถบพลังชีวิต
+        g.setColor(Color.WHITE);
+        g.drawRect((int) x, (int) y - 25, width, 20);
 
         // พิมพ์ข้อความแสดงสถานะใต้บอส - เปลี่ยนเป็นเลข 3 เลย
         g.setColor(Color.WHITE);

@@ -104,18 +104,18 @@ public class Boss4 extends Boss {
 
         // แถบพลังชีวิต
         g.setColor(Color.RED);
-        g.fillRect((int) x, (int) y - 20, width, 15);
+        g.fillRect((int) x, (int) y - 25, width, 20);
         g.setColor(Color.GREEN);
-        int healthBarWidth = (int) ((double) health / (400 * level) * width);
-        g.fillRect((int) x, (int) y - 20, healthBarWidth, 15);
+        int healthBarWidth = (int) ((double) health / (850 * level) * width);
+        g.fillRect((int) x, (int) y - 25, healthBarWidth, 20);
 
-        // กรอบแถบพลังชีวิต
+// กรอบแถบพลังชีวิต
         g.setColor(Color.WHITE);
-        g.drawRect((int) x, (int) y - 20, width, 15);
+        g.drawRect((int) x, (int) y - 25, width, 20);
 
         // พิมพ์ข้อความแสดงสถานะใต้บอส - เปลี่ยนเป็นเลข 4 เลย
         g.setColor(Color.WHITE);
-        g.setFont(new Font("Arial", Font.BOLD, 14));
+        g.setFont(new Font("Arial", Font.BOLD, 12));
         g.drawString("Boss Lv.4 HP:" + health, (int) x, (int) y + height + 15);
     }
 

@@ -358,23 +358,28 @@ public class Boss5 extends Boss {
         g2d.setColor(Color.RED);
         g2d.fillRect((int) x, (int) y - 25, width, 20);
         g2d.setColor(isPhase2 ? Color.ORANGE : (isEnraged ? Color.YELLOW : Color.GREEN));
-        int healthBarWidth = (int) ((double) health / (isPhase2 ? 300 * level : 600 * level) * width);
+        int healthBarWidth = (int) ((double) health / (isPhase2 ? 400 * level : 1000 * level) * width);
         g2d.fillRect((int) x, (int) y - 25, healthBarWidth, 20);
 
         // กรอบแถบพลังชีวิต
         g2d.setColor(Color.WHITE);
         g2d.drawRect((int) x, (int) y - 25, width, 20);
 
-        // พิมพ์ข้อความแสดงสถานะ - เปลี่ยนเป็น Boss Lv.5 แทนที่จะใช้ค่า level
+        // พิมพ์ข้อความแสดงสถานะ - แก้ไขใหม่ให้กระชับเหมือนบอสด่านอื่นๆ
         g2d.setColor(Color.WHITE);
-        g2d.setFont(new Font("Arial", Font.BOLD, 16));
-        String statusText = "FINAL BOSS Lv.5 HP:" + health;
+        g2d.setFont(new Font("Arial", Font.BOLD, 12)); // ลดขนาดฟอนต์ลงจาก 16 เป็น 12
+
+        // ปรับรูปแบบข้อความให้กระชับ
+        String statusText = "Boss Lv.5 HP:" + health;
+
+        // เพิ่มข้อความระบุเฟสแบบสั้นๆ
         if (isPhase2) {
-            statusText += " [PHASE 2]";
-        } else if (isEnraged) {
-            statusText += " [ENRAGED]";
+            statusText += " P2"; // เปลี่ยนจาก [PHASE 2 - ENRAGED] เป็น P2
+        } else {
+            statusText += " P1"; // เปลี่ยนจาก [PHASE 1] หรือ [PHASE 1 - ENRAGED] เป็น P1
         }
-        g2d.drawString(statusText, (int) x, (int) y + height + 25);
+
+        g2d.drawString(statusText, (int) x, (int) y + height + 15); // ปรับตำแหน่ง Y จาก +25 เป็น +15
     }
 
     /**

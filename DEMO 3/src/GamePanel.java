@@ -42,7 +42,7 @@ public class GamePanel extends JPanel implements Runnable, GameState {
     private int gameOverEffectTimer = 0;
     private float gameOverPulseValue = 0.0f;
     private boolean gameOverPulseDirection = true;
-    
+
     private boolean gameWon = false;
     private int gameWonEffectTimer = 0;
     private float gameWonPulseValue = 0.0f;
@@ -474,7 +474,7 @@ public class GamePanel extends JPanel implements Runnable, GameState {
 
         g2d.drawString(menuText, textX, textY);
     }
-    
+
     private void drawGameWonWithScaling(Graphics g) {
         // สร้าง Graphics2D เพื่อใช้เอฟเฟกต์ขั้นสูง
         Graphics2D g2d = (Graphics2D) g;
@@ -515,14 +515,14 @@ public class GamePanel extends JPanel implements Runnable, GameState {
                 (int) (20 * scaleX),
                 (int) (20 * scaleY)
         );
-        
+
         // เพิ่มเอฟเฟกต์เรืองแสงรอบกรอบ
         float glowSize = 10.0f * (1.0f + gameWonPulseValue * 0.5f);
         g2d.setStroke(new BasicStroke(glowSize * scaleX));
         g2d.setColor(new Color(100, 255, 100, 50));
         g2d.drawRoundRect(
-                (int) ((WIDTH / 2 - 200 - glowSize/2) * scaleX),
-                (int) ((HEIGHT / 2 - 150 - glowSize/2) * scaleY),
+                (int) ((WIDTH / 2 - 200 - glowSize / 2) * scaleX),
+                (int) ((HEIGHT / 2 - 150 - glowSize / 2) * scaleY),
                 (int) ((400 + glowSize) * scaleX),
                 (int) ((300 + glowSize) * scaleY),
                 (int) (25 * scaleX),
@@ -551,7 +551,7 @@ public class GamePanel extends JPanel implements Runnable, GameState {
         Font congratsFont = new Font("Arial", Font.BOLD, (int) (20 * scaleX));
         g2d.setFont(congratsFont);
         g2d.setColor(Color.WHITE);
-    
+
         String congratsText = "คุณได้เอาชนะเกมนี้แล้ว!";
         FontMetrics congratsMetrics = g2d.getFontMetrics(congratsFont);
         int congratsWidth = congratsMetrics.stringWidth(congratsText);
@@ -819,6 +819,7 @@ public class GamePanel extends JPanel implements Runnable, GameState {
 
         // อัพเดตผู้เล่น (รวมถึงบัฟด้วย)
         player.update();
+
         // อัพเดท transition ระหว่างด่าน
         levelManager.updateTransition();
 
@@ -828,7 +829,7 @@ public class GamePanel extends JPanel implements Runnable, GameState {
             monsters.clear();
             enemyBullets.clear();
             return; // ข้ามการอัพเดทอื่นๆ
-        }   
+        }
 
         // ตรวจสอบว่าเพิ่งเปลี่ยนเลเวลหรือไม่
         if (levelManager.isLevelJustChanged()) {
@@ -901,14 +902,14 @@ public class GamePanel extends JPanel implements Runnable, GameState {
         // บังคับใช้ handleShooting
         if (levelManager.isLevelReadyToPlay()) {
             System.out.println("เริ่มเล่นด่าน " + levelManager.getCurrentLevel() + " แล้ว!");
-        // รีเซ็ตสถานะควบคุมตัวละคร
+            // รีเซ็ตสถานะควบคุมตัวละคร
             if (inputHandler != null) {
-            // รีเซ็ตสถานะการกดปุ่มที่อาจค้างอยู่
+                // รีเซ็ตสถานะการกดปุ่มที่อาจค้างอยู่
                 inputHandler.resetAllInputs();
             }
             player.setVelX(0);
             player.setVelY(0);
-        
+
             // บังคับให้เริ่มสปอนมอนสเตอร์ทันที
             monsterSpawnTimer = levelManager.getMonsterSpawnRate();
             player.setX(WIDTH / 2 - player.getWidth() / 2);
@@ -1055,7 +1056,7 @@ public class GamePanel extends JPanel implements Runnable, GameState {
                     // ตั้งค่าให้เกมอยู่ในสถานะชนะ
                     finalScore = player.getScore();
                     gameWon = true;
-                
+
                     // หยุดเพลงพื้นหลังและเล่นเสียงชนะ (ถ้ามี)
                     SoundManager.stopBackgroundMusic();
                     SoundManager.playSound("level_complete");
@@ -1081,25 +1082,27 @@ public class GamePanel extends JPanel implements Runnable, GameState {
                 }
             }
 
-            // บอสโจมตีพิเศษ
+            // บอสโจมตีพิเศษถี่ขึ้น
+
             if (random.nextInt(100) < 2) { // เพิ่มโอกาสจาก 1% เป็น 2%
                 List<EnemyBullet> bullets = boss.attackSpecial();
                 if (bullets != null) {
                     enemyBullets.addAll(bullets);
                 }
             }
+
             // เพิ่มเงื่อนไขการโจมตีพิเศษสำหรับบอสด่าน 5
-             if (boss instanceof Boss5) {
-                 Boss5 finalBoss = (Boss5) boss;
- 
-                 // เรียกใช้การโจมตีสุดท้ายเมื่อสุ่มได้
-                 if (finalBoss.isInPhase2() && !finalBoss.isTransforming() && random.nextInt(600) == 0) {
-                     List<EnemyBullet> ultimateAttack = finalBoss.executeUltimateAttack();
-                     if (ultimateAttack != null && !ultimateAttack.isEmpty()) {
-                         enemyBullets.addAll(ultimateAttack);
-                     }
-                 }
-             }
+            if (boss instanceof Boss5) {
+                Boss5 finalBoss = (Boss5) boss;
+
+                // เรียกใช้การโจมตีสุดท้ายเมื่อสุ่มได้
+                if (finalBoss.isInPhase2() && !finalBoss.isTransforming() && random.nextInt(600) == 0) {
+                    List<EnemyBullet> ultimateAttack = finalBoss.executeUltimateAttack();
+                    if (ultimateAttack != null && !ultimateAttack.isEmpty()) {
+                        enemyBullets.addAll(ultimateAttack);
+                    }
+                }
+            }
         }
     }
 
@@ -1438,25 +1441,31 @@ public class GamePanel extends JPanel implements Runnable, GameState {
             drawLevelTransition(g);
             return; // หยุดการวาดองค์ประกอบอื่นๆ
         }
-        
+
         drawUIWithScaling(g);
 
-//        if (gameOver) {
-//            // เรียกใช้เมธอดใหม่ที่รองรับ scaling
-//            drawGameOverWithScaling(g);
-//        }
-//
-//        
-//        if (gamePaused) {
-//            drawPausedWithScaling(g);
-//        }
-//        if (levelManager.isTransitioning()) {
-//            // แสดงผลภาพหน้าจอเปลี่ยนด่าน
-//            drawLevelTransition(g);
-//            return; // หยุดการวาดองค์ประกอบอื่นๆ
-//        }
         weaponManager.render(g);
         hotbarUI.render(g);
+
+        if (gameOver) {
+            // เรียกใช้เมธอดใหม่ที่รองรับ scaling
+            drawGameOverWithScaling(g);
+        }
+
+        // เพิ่มเงื่อนไขสำหรับ gameWon ตรงนี้
+        if (gameWon) {
+            // เรียกใช้เมธอดสำหรับวาดหน้าจอชนะ
+            drawGameWonWithScaling(g);
+        }
+
+        if (gamePaused) {
+            drawPausedWithScaling(g);
+        }
+        if (levelManager.isTransitioning()) {
+            // แสดงผลภาพหน้าจอเปลี่ยนด่าน
+            drawLevelTransition(g);
+            return; // หยุดการวาดองค์ประกอบอื่นๆ
+        }
     }
 
     private void drawBackground(Graphics g) {
