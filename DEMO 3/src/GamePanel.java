@@ -489,7 +489,7 @@ public class GamePanel extends JPanel implements Runnable, GameState {
         g2d.fillRect(0, 0, (int) (WIDTH * scaleX), (int) (HEIGHT * scaleY));
         g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1.0f));
 
-        // วาดกรอบหน้า "You Won" พร้อมไล่เฉดสี (คงสีเดิม)
+        // วาดกรอบหน้า "You Won" พร้อมไล่เฉดสี
         GradientPaint gradient = new GradientPaint(
                 (int) ((WIDTH / 2 - 200) * scaleX), (int) ((HEIGHT / 2 - 150) * scaleY), new Color(20, 60, 20),
                 (int) ((WIDTH / 2 + 200) * scaleX), (int) ((HEIGHT / 2 + 150) * scaleY), new Color(20, 150, 20)
@@ -516,34 +516,52 @@ public class GamePanel extends JPanel implements Runnable, GameState {
                 (int) (20 * scaleY)
         );
 
-        // เพิ่มเงาให้ข้อความ YOU WON!
+        // สร้างฟอนต์สำหรับข้อความ YOU WON!
         Font gameWonFont = new Font("Arial", Font.BOLD, (int) (50 * scaleX));
         g2d.setFont(gameWonFont);
-        g2d.setColor(new Color(0, 50, 0));
 
-        // คำนวณตำแหน่งเพื่อให้ข้อความ YOU WON! อยู่ตรงกลาง
+        // ข้อความหลัก "YOU WON!"
         String gameWonText = "YOU WON!";
-        FontMetrics gameWonMetrics = g2d.getFontMetrics(gameWonFont);
+        FontMetrics gameWonMetrics = g2d.getFontMetrics();
+
+        // คำนวณตำแหน่ง X เพื่อให้ข้อความอยู่ตรงกลาง (แบบใหม่)
+        int centerX = (int) (WIDTH * scaleX) / 2;
         int gameWonWidth = gameWonMetrics.stringWidth(gameWonText);
-        int gameWonX = (int) ((WIDTH / 2) * scaleX - gameWonWidth / 2);
+        int gameWonX = centerX - gameWonWidth / 2;
+        int gameWonY = (int) ((HEIGHT / 2 - 73) * scaleY);
 
-        // วาดเงา YOU WON!
-        g2d.drawString(gameWonText, gameWonX + (int) (3 * scaleX), (int) ((HEIGHT / 2 - 70) * scaleY) + (int) (3 * scaleX));
+        // วาดเงา "YOU WON!"
+        g2d.setColor(new Color(0, 50, 0));
+        g2d.drawString(gameWonText, gameWonX + (int) (3 * scaleX), gameWonY + (int) (3 * scaleY));
 
-        // วาดข้อความ YOU WON! หลัก
+        // วาดข้อความหลัก "YOU WON!"
         g2d.setColor(new Color(50, 255, 50));
-        g2d.drawString(gameWonText, gameWonX, (int) ((HEIGHT / 2 - 73) * scaleY));
+        g2d.drawString(gameWonText, gameWonX, gameWonY);
 
         // วาดสถิติผู้เล่น
         Font statsFont = new Font("Arial", Font.BOLD, (int) (24 * scaleX));
         g2d.setFont(statsFont);
         g2d.setColor(Color.WHITE);
 
-        // ตั้งค่าและวาดข้อความสถิติ โดยจัดให้อยู่ในแนวเดียวกัน
-        int statsX = (int) ((WIDTH / 2 - 80) * scaleX);
-        g2d.drawString("Final Score: " + finalScore, statsX, (int) ((HEIGHT / 2 - 15) * scaleY));
-        g2d.drawString("Level Completed: 5", statsX, (int) ((HEIGHT / 2 + 20) * scaleY));
-        g2d.drawString("All Bosses Defeated!", statsX, (int) ((HEIGHT / 2 + 55) * scaleY));
+        // คำนวณตำแหน่งสำหรับข้อความสถิติให้อยู่ตรงกลาง
+        FontMetrics statsMetrics = g2d.getFontMetrics();
+
+        // ข้อความสถิติ - ปรับให้อยู่ตรงกลาง
+        String scoreText = "Final Score: " + finalScore;
+        String levelText = "Level Completed: 5";
+        String bossText = "All Bosses Defeated!";
+
+        int scoreWidth = statsMetrics.stringWidth(scoreText);
+        int levelWidth = statsMetrics.stringWidth(levelText);
+        int bossWidth = statsMetrics.stringWidth(bossText);
+
+        int scoreX = centerX - scoreWidth / 2;
+        int levelX = centerX - levelWidth / 2;
+        int bossX = centerX - bossWidth / 2;
+
+        g2d.drawString(scoreText, scoreX, (int) ((HEIGHT / 2 - 15) * scaleY));
+        g2d.drawString(levelText, levelX, (int) ((HEIGHT / 2 + 20) * scaleY));
+        g2d.drawString(bossText, bossX, (int) ((HEIGHT / 2 + 55) * scaleY));
 
         // วาดปุ่ม "กลับเมนูหลัก"
         GradientPaint menuGradient = new GradientPaint(
@@ -571,20 +589,14 @@ public class GamePanel extends JPanel implements Runnable, GameState {
                 (int) (15 * scaleY)
         );
 
-        // ข้อความสำหรับปุ่ม "กลับเมนูหลัก"
+        // ข้อความสำหรับปุ่ม "กลับเมนูหลัก" - ปรับให้อยู่ตรงกลาง
         g2d.setColor(Color.WHITE);
         String menuText = "Main Menu";
-        FontMetrics metrics = g2d.getFontMetrics(statsFont);
-        int textWidth = metrics.stringWidth(menuText);
-        int buttonCenterX = (int) ((WIDTH / 2) * scaleX);
-        int textX = buttonCenterX - textWidth / 2;
+        int menuWidth = statsMetrics.stringWidth(menuText);
+        int menuX = centerX - menuWidth / 2;
+        int menuY = (int) ((HEIGHT / 2 + 165) * scaleY);
 
-        // ปรับความสูงสำหรับปุ่มเมนู
-        int buttonCenterY = (int) ((HEIGHT / 2 + 140 + 20) * scaleY);
-        int textHeight = metrics.getHeight();
-        int textY = buttonCenterY + (textHeight / 4);
-
-        g2d.drawString(menuText, textX, textY);
+        g2d.drawString(menuText, menuX, menuY);
     }
 
     // เพิ่มเมธอดสำหรับวาดบัฟแบบมี scaling

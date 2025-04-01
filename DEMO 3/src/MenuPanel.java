@@ -48,7 +48,7 @@ public class MenuPanel extends JPanel implements MouseListener, GameState {
         // ปุ่มคำอธิบายทักษะ - ตรงกลางล่าง
         int skillButtonX = WIDTH / 2 - 100;
         int skillButtonY = HEIGHT / 2 + 30;
-        buttons.add(new SkillButton(skillButtonX, skillButtonY, this));
+        buttons.add(new SkillButton(skillButtonX, skillButtonY, this) {});
 
         // เริ่มเล่นเพลง
         loadAndPlayMusic();
