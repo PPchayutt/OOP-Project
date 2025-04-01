@@ -37,6 +37,12 @@ public class MenuPanel extends JPanel implements MouseListener, GameState {
         int playButtonY = HEIGHT / 2 - 50;
         buttons.add(new PlayButton(playButtonX, playButtonY, game));
 
+        // ปุ่มเปิด/ปิดเสียง - มุมขวาล่าง
+        int soundButtonX = WIDTH - 60;
+        int soundButtonY = HEIGHT - 0;
+        buttons.add(new SoundButton(soundButtonX, soundButtonY, this));
+
+
         // ปุ่มคำอธิบายทักษะ - ตรงกลางล่าง
         int skillButtonX = WIDTH / 2 - 100;
         int skillButtonY = HEIGHT / 2 + 30;
