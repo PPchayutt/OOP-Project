@@ -1,3 +1,4 @@
+
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -40,21 +41,21 @@ public class Player extends Entity {
     private int shootAnimationTime = 0;
     private final int SHOOT_ANIMATION_DURATION = 10; // 10 เฟรม
     private int gunDirection = 1; // 1 = ขวา, -1 = ซ้าย
-    
+
     // ข้อมูลเกี่ยวกับบัฟ
     private final List<Powerup> activeBuffs = new ArrayList<>();
-    
+
     // เพิ่มแฮชแมพเพื่อเก็บจำนวนบัฟถาวรที่ซ้ำกัน
     private final Map<String, Integer> permanentBuffCounts = new HashMap<>();
-    
+
     private boolean crazyShootingMode = false;
     private boolean knockbackEnabled = false;
     private int knockbackPower = 1;
     private int extraBullets = 0;
     private long shootCooldownReduction = 0; // ลดเวลาคูลดาวน์การยิง (ms)
-     
+
     private WeaponManager weaponManager;
-    
+
     private boolean immortalMode = false;
 
     public Player(float x, float y, int width, int height, int health, int speed) {
@@ -74,7 +75,7 @@ public class Player extends Entity {
     public long getLastShotTime() {
         return lastShotTime;
     }
-    
+
     // สร้างคีย์สำหรับแฮชแมพจากบัฟถาวร
     private String getPermanentBuffKey(Powerup buff) {
         return buff.getCategory() + "_" + buff.getType();
@@ -210,27 +211,46 @@ public class Player extends Entity {
         // เปลี่ยนสถานะของบัฟเป็นเก็บแล้ว
         buff.setActive(false);
 
-        // ตรวจสอบว่าเป็นบัฟถาวรหรือไม่
+        // ว้าว! แก้ส่วนนี้ให้ตรวจสอบบัฟซ้ำทุกประเภท ไม่ใช่แค่ประเภทถาวร
+        boolean hasExisting = false;
+        Powerup existingBuff = null;
+
+        // ตรวจสอบว่ามีบัฟประเภทเดียวกันอยู่แล้วหรือไม่
+        for (Powerup activeBuff : activeBuffs) {
+            if (activeBuff.getCategory() == buff.getCategory()
+                    && activeBuff.getType() == buff.getType()) {
+                hasExisting = true;
+                existingBuff = activeBuff;
+                break;
+            }
+        }
+
+        // ตรวจสอบว่าเป็นบัฟประเภทไหน และจัดการตามประเภท
         if (buff.getCategory() == Powerup.CATEGORY_PERMANENT) {
-            // ใช้บัฟโดยไม่ต้องเพิ่มเข้า activeBuffs ถ้ามีอยู่แล้ว แต่เพิ่มค่าในแฮชแมพแทน
+            // สำหรับบัฟถาวร ใช้โค้ดเดิม
             String buffKey = getPermanentBuffKey(buff);
             int count = permanentBuffCounts.getOrDefault(buffKey, 0) + 1;
             permanentBuffCounts.put(buffKey, count);
-            
-            // เพิ่มไว้ในรายการ activeBuffs เฉพาะถ้ายังไม่มีบัฟประเภทนี้
-            boolean hasExisting = false;
-            for (Powerup existingBuff : activeBuffs) {
-                if (existingBuff.getCategory() == buff.getCategory() && 
-                    existingBuff.getType() == buff.getType()) {
-                    hasExisting = true;
-                    break;
-                }
-            }
+
+            // เพิ่มเข้ารายการเฉพาะถ้ายังไม่มี
             if (!hasExisting) {
                 activeBuffs.add(buff);
             }
+        } else if (hasExisting) {
+            // ถ้าเป็นบัฟชั่วคราวหรือบัฟสุดโหด และมีบัฟนี้อยู่แล้ว
+            // ให้รีเซ็ตเวลานับถอยหลังแทนการเพิ่มบัฟใหม่
+            if (existingBuff != null) {
+                // รีเซ็ตเวลานับถอยหลังของบัฟที่มีอยู่แล้ว
+                if (buff.getCategory() == Powerup.CATEGORY_TEMPORARY) {
+                    // บัฟชั่วคราวมีเวลา 10 วินาที (600 เฟรม)
+                    existingBuff.setDuration(600);
+                } else if (buff.getCategory() == Powerup.CATEGORY_CRAZY) {
+                    // บัฟสุดโหดมีเวลา 5 วินาที (300 เฟรม)
+                    existingBuff.setDuration(300);
+                }
+            }
         } else {
-            // บัฟไม่ใช่ถาวร ใช้ลอจิกเดิม
+            // ถ้ายังไม่มีบัฟนี้ ให้เพิ่มเข้ารายการ
             activeBuffs.add(buff);
         }
 
@@ -407,8 +427,16 @@ public class Player extends Entity {
     public void render(Graphics g) {
         // ถ้าอยู่ในช่วงอมตะให้กะพริบ
         if (invincibleTime <= 0 || invincibleTime % 10 < 5) {
-            // วาดรูปภาพผู้เล่น - ใช้ขนาดปกติ (ไม่ต้องคูณด้วย 2)
-            g.drawImage(ImageManager.getImage("player"), (int) x, (int) y, width, height, null);
+// แก้เป็นแบบนี้ - เพิ่มขนาดเป็น 2 เท่า
+            int displayWidth = width * 2;  // ขนาดกว้างใหม่
+            int displayHeight = height * 2; // ขนาดสูงใหม่
+
+// ปรับตำแหน่งเพื่อให้ตัวละครอยู่ตรงกลางและไม่เลื่อนไปมา
+            int displayX = (int) x - (displayWidth - width) / 2;
+            int displayY = (int) y - (displayHeight - height) / 2;
+
+// วาดรูปภาพผู้เล่นขนาดใหญ่ขึ้น
+            g.drawImage(ImageManager.getImage("player"), displayX, displayY, displayWidth, displayHeight, null);
 
             // แสดงแถบพลังชีวิต
             g.setColor(Color.RED);
@@ -482,7 +510,7 @@ public class Player extends Entity {
             bullets.addAll(newBullets);
         }
     }
-    
+
     /**
      * ยิงกระสุน
      *
@@ -491,11 +519,11 @@ public class Player extends Entity {
      */
     public void shoot(int targetX, int targetY) {
         long currentTime = System.currentTimeMillis();
-        
+
         if (currentTime - lastShotTime < getShootCooldown()) {
             return; // ยังไม่ถึงเวลายิง
         }
-        
+
         // คำนวณทิศทางการยิง
         double angle = Math.atan2(targetY - (y + height / 2), targetX - (x + width / 2));
 
@@ -505,11 +533,10 @@ public class Player extends Entity {
         } else {
             gunDirection = 1;  // เมื่อเป้าหมายอยู่ทางขวา ให้หันปืนไปทางขวา
         }
-        
 
         WeaponType activeWeapon = weaponManager.getActiveWeaponType();
         System.out.println("equip : " + activeWeapon);
-        
+
         shootCooldown = 200;
         int effectiveDamage = bulletDamage;
         int bulletCount = 1;
@@ -519,7 +546,7 @@ public class Player extends Entity {
         int knockbackValue = knockbackPower;
 
         if (activeWeapon != null) {
-            Weapon weapon = weaponManager.createWeapon(activeWeapon, (int)x, (int)y);
+            Weapon weapon = weaponManager.createWeapon(activeWeapon, (int) x, (int) y);
             switch (activeWeapon) {
                 case AK47 -> {
                     effectiveDamage = weapon.getDamage();
@@ -536,13 +563,13 @@ public class Player extends Entity {
                 }
             }
         }
-        
+
         // บัฟยิงบ้าคลั่ง (Crazy Shooting)
         if (crazyShootingMode) {
             effectiveDamage = bulletDamage * 2;
             bulletCount = 5;
-            bulletSpeed = (int)(bulletSpeed * 1.5);
-            shootCooldown = (int)(shootCooldown/1.5);
+            bulletSpeed = (int) (bulletSpeed * 1.5);
+            shootCooldown = (int) (shootCooldown / 1.5);
         } // บัฟยิงหลายนัด (Multiple Bullets)
         if (extraBullets > 0) {
             // ยิงแบบกระจายหลายนัดพร้อมกัน (เหมือนเดิม)
@@ -552,7 +579,7 @@ public class Player extends Entity {
         if (crazyShootingMode || activeWeapon != null) {
             for (int i = 0; i < bulletCount; i++) {
                 System.out.println(bulletCount);
-            createSingleBullet(angle, effectiveDamage, bulletSpeed, spread, useKnockback, knockbackValue);
+                createSingleBullet(angle, effectiveDamage, bulletSpeed, spread, useKnockback, knockbackValue);
             }
         } else {
             System.out.println("piston");
@@ -568,7 +595,7 @@ public class Player extends Entity {
         // บันทึกเวลาที่ยิง
         lastShotTime = currentTime;
     }
-    
+
     private void createSingleBullet(double angle, int damage, int speed, double spread, boolean knockback, int knockbackPower) {
         // เพิ่มการกระจายเล็กน้อยทุกครั้งที่ยิง (คล้าย spray ในเกมยิงปืน)
         double randomSpread = (Math.random() * 2 - 1) * spread;
@@ -585,7 +612,7 @@ public class Player extends Entity {
 
         bullets.add(bullet);
     }
-    
+
     private void createBullets(double angle, int damage, int count, int speed, boolean spread, boolean knockback, int knockbackPower) {
         // สร้างกระสุนหลัก (ตรงกลาง)
         PlayerBullet firstBullet = new PlayerBullet((int) (x + width / 2), (int) (y + height / 2), 8, 8, angle);
@@ -596,25 +623,25 @@ public class Player extends Entity {
             firstBullet.setKnockback(true);
             firstBullet.setKnockbackPower(knockbackPower);
         }
-        
+
         bullets.add(firstBullet);
-        
+
         if (spread && count > 1) {
             for (int i = 0; i < count; i++) {
                 System.out.println(i);
                 double spreadAngle;
                 double amount = (i % 2 == 0 ? 1 : -1) * (i + 1) * 0.1;
                 spreadAngle = angle + amount;
-                
+
                 PlayerBullet bullet = new PlayerBullet((int) (x + width / 2), (int) (y + height / 2), 8, 8, spreadAngle);
                 bullet.setDamage(damage);
                 bullet.setSpeed(speed);
-                
+
                 if (knockback) {
                     bullet.setKnockback(true);
                     bullet.setKnockbackPower(knockbackPower);
                 }
-                
+
                 bullets.add(bullet);
             }
         }
@@ -637,40 +664,40 @@ public class Player extends Entity {
      */
     @Override
     public void takeDamage(int damage) {
-    // ถ้าอยู่ในโหมดอมตะหรือช่วงเวลาอมตะหลังโดนโจมตี ให้ไม่รับความเสียหาย
-    if (immortalMode || invincibleTime > 0) {
-        return;
-    }
-
-    health -= damage;
-    if (health <= 0) {
-        health = 0;
-        lives--;
-
-        if (lives > 0) {
-            // ยังมีชีวิตเหลือ ฟื้นฟูพลังชีวิต
-            health = maxHealth;
-            invincibleTime = maxInvincibleTime;
-        } else {
-            // หมดชีวิต
-            alive = false;
-
-            // เคลียร์บัฟทั้งหมดเมื่อตาย
-            activeBuffs.clear();
-            permanentBuffCounts.clear(); // เคลียร์จำนวนบัฟถาวร
-            crazyShootingMode = false;
-            knockbackEnabled = false;
-            knockbackPower = 1;
-            extraBullets = 0;
-            shootCooldownReduction = 0;
-            bulletDamage = 25; // รีเซ็ตค่าพื้นฐาน
-            speed = 5; // รีเซ็ตค่าพื้นฐาน
+        // ถ้าอยู่ในโหมดอมตะหรือช่วงเวลาอมตะหลังโดนโจมตี ให้ไม่รับความเสียหาย
+        if (immortalMode || invincibleTime > 0) {
+            return;
         }
-    } else {
-        // ได้รับความเสียหายแต่ยังไม่ตาย ให้อมตะชั่วคราว
-        invincibleTime = maxInvincibleTime / 2;
+
+        health -= damage;
+        if (health <= 0) {
+            health = 0;
+            lives--;
+
+            if (lives > 0) {
+                // ยังมีชีวิตเหลือ ฟื้นฟูพลังชีวิต
+                health = maxHealth;
+                invincibleTime = maxInvincibleTime;
+            } else {
+                // หมดชีวิต
+                alive = false;
+
+                // เคลียร์บัฟทั้งหมดเมื่อตาย
+                activeBuffs.clear();
+                permanentBuffCounts.clear(); // เคลียร์จำนวนบัฟถาวร
+                crazyShootingMode = false;
+                knockbackEnabled = false;
+                knockbackPower = 1;
+                extraBullets = 0;
+                shootCooldownReduction = 0;
+                bulletDamage = 25; // รีเซ็ตค่าพื้นฐาน
+                speed = 5; // รีเซ็ตค่าพื้นฐาน
+            }
+        } else {
+            // ได้รับความเสียหายแต่ยังไม่ตาย ให้อมตะชั่วคราว
+            invincibleTime = maxInvincibleTime / 2;
+        }
     }
-}
 
     /**
      * ดึงค่ารายการกระสุนทั้งหมด
@@ -689,7 +716,7 @@ public class Player extends Entity {
     public List<Powerup> getActiveBuffs() {
         return activeBuffs;
     }
-    
+
     /**
      * ดึงค่าจำนวนบัฟถาวรแต่ละชนิด
      *
@@ -698,7 +725,7 @@ public class Player extends Entity {
     public Map<String, Integer> getPermanentBuffCounts() {
         return permanentBuffCounts;
     }
-    
+
     /**
      * ดึงค่าจำนวนบัฟถาวรตามชนิด
      *
@@ -737,7 +764,7 @@ public class Player extends Entity {
         // คำนวณเวลาคูลดาวน์หลังหักลบด้วยบัฟต่างๆ (ต่ำสุด 50ms)
         return Math.max(50, shootCooldown - shootCooldownReduction);
     }
-    
+
     /**
      * ดึงค่าเวลาคูลดาวน์ปัจจุบัน
      *
@@ -746,15 +773,14 @@ public class Player extends Entity {
     public long getCurrentCooldown() {
         return currentCooldown;
     }
-    
+
     public boolean isImmortalMode() {
         return immortalMode;
-    }   
+    }
 
     public void toggleImmortalMode() {
         immortalMode = !immortalMode;
     }
-
 
     /**
      * ตรวจสอบว่ามีบัฟ Stop Time ทำงานอยู่หรือไม่
@@ -772,11 +798,11 @@ public class Player extends Entity {
         }
         return false;
     }
-    
+
     public void setWeaponManager(WeaponManager weaponManager) {
         this.weaponManager = weaponManager;
     }
-    
+
     public WeaponType getSelectedWeaponType() {
         return weaponManager.getSelectedWeaponType();
     }

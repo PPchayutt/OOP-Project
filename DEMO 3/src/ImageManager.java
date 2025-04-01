@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Random;
 import javax.imageio.ImageIO;
+import javax.swing.ImageIcon;
 
 /*
  * คลาสจัดการรูปภาพในเกมทั้งหมด
@@ -36,10 +37,11 @@ public class ImageManager {
             // โหลดรูปภาพพื้นหลังด่าน 2
 
             try {
-                File playerFile = new File("resources/images/player.png");
+                File playerFile = new File("resources/images/player.gif");
                 if (playerFile.exists()) {
-                    images.put("player", ImageIO.read(playerFile));
-                    System.out.println("โหลดรูปภาพผู้เล่นสำเร็จ");
+                    ImageIcon playerIcon = new ImageIcon(playerFile.getPath());
+                    images.put("player", playerIcon.getImage());
+                    System.out.println("โหลดรูปภาพ GIF ผู้เล่นสำเร็จ");
                 } else {
                     // สร้างภาพแทนถ้าไม่มีไฟล์
                     createDefaultPlayerImage();
@@ -231,7 +233,7 @@ public class ImageManager {
                         createDefaultBoss5Phase2Image();
                     }
                 }
-                
+
                 // โหลดรูปภาพ hotbar
                 File hotbarUIFile = new File("resources/images/weapon bar.png");
                 if (hotbarUIFile.exists()) {
@@ -239,7 +241,7 @@ public class ImageManager {
                 } else {
                     createDefaultHotbarImage();
                 }
-                
+
                 File activeFrameFile = new File("resources/images/Weapon selection framework.png");
                 if (activeFrameFile.exists()) {
                     images.put("activeFrame", ImageIO.read(activeFrameFile));
@@ -247,12 +249,12 @@ public class ImageManager {
                 } else {
                     createDefaultActiveFrame();
                 }
-                
+
                 File turretHeadFile = new File("resources/images/Turret Head.png");
                 if (turretHeadFile.exists()) {
                     images.put("turretHead", ImageIO.read(turretHeadFile));
                 }
-                
+
                 File turretBaseFile = new File("resources/images/Turret base.png");
                 if (turretHeadFile.exists()) {
                     images.put("turretBase", ImageIO.read(turretBaseFile));
@@ -398,7 +400,7 @@ public class ImageManager {
         g2d.dispose();
         images.put("muzzle_flash", flashImg);
     }
-    
+
     // สร้าง hotbar พื้นฐาน
     private static void createDefaultHotbarImage() {
         BufferedImage hotbarBg = new BufferedImage(400, 60, BufferedImage.TYPE_INT_ARGB);
@@ -410,7 +412,7 @@ public class ImageManager {
         g2d.dispose();
         images.put("hotbar", hotbarBg);
     }
-    
+
     private static void createDefaultActiveFrame() {
         BufferedImage frameImg = new BufferedImage(50, 50, BufferedImage.TYPE_INT_ARGB);
         java.awt.Graphics2D g2d = frameImg.createGraphics();
