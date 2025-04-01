@@ -311,6 +311,9 @@ public class Powerup implements GameObject {
         } // บัฟชั่วคราว (Temporary) - ดรอปเยอะสุด
         else if (randomValue < 0.70) {
             int type = random.nextInt(7);
+            while (type == 4) {
+                type = random.nextInt(7);
+            }
             return new Powerup(x, y, CATEGORY_TEMPORARY, type);
         }
         return null; // ไม่ดรอปอะไร

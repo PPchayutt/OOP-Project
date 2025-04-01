@@ -87,10 +87,10 @@ public class GamePanel extends JPanel implements Runnable, GameState {
 
         // แสดงแถบพลังชีวิต
         g.setColor(Color.RED);
-        g.fillRect((int) (80 * scaleX), (int) (20 * scaleY),
+        g.fillRect((int) (95 * scaleX), (int) (18 * scaleY),
                 (int) (player.getHealth() * 2 * scaleX), (int) (15 * scaleY));
         g.setColor(Color.WHITE);
-        g.drawRect((int) (80 * scaleX), (int) (20 * scaleY),
+        g.drawRect((int) (95 * scaleX), (int) (18 * scaleY),
                 (int) (200 * scaleX), (int) (15 * scaleY));
 
         // แสดงจำนวนชีวิตด้วยไอคอนหัวใจ

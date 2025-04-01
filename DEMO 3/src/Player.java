@@ -427,15 +427,15 @@ public class Player extends Entity {
     public void render(Graphics g) {
         // ถ้าอยู่ในช่วงอมตะให้กะพริบ
         if (invincibleTime <= 0 || invincibleTime % 10 < 5) {
-// แก้เป็นแบบนี้ - เพิ่มขนาดเป็น 2 เท่า
+            // แก้เป็นแบบนี้ - เพิ่มขนาดเป็น 2 เท่า
             int displayWidth = width * 2;  // ขนาดกว้างใหม่
             int displayHeight = height * 2; // ขนาดสูงใหม่
 
-// ปรับตำแหน่งเพื่อให้ตัวละครอยู่ตรงกลางและไม่เลื่อนไปมา
+            // ปรับตำแหน่งเพื่อให้ตัวละครอยู่ตรงกลางและไม่เลื่อนไปมา
             int displayX = (int) x - (displayWidth - width) / 2;
             int displayY = (int) y - (displayHeight - height) / 2;
 
-// วาดรูปภาพผู้เล่นขนาดใหญ่ขึ้น
+            // วาดรูปภาพผู้เล่นขนาดใหญ่ขึ้น
             g.drawImage(ImageManager.getImage("player"), displayX, displayY, displayWidth, displayHeight, null);
 
             // แสดงแถบพลังชีวิต
