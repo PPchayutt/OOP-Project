@@ -44,13 +44,8 @@ public abstract class AbstractMenuButton implements MenuButton {
 
     @Override
     public boolean isClicked(int mouseX, int mouseY) {
-        // คำนวณพื้นที่คลิกให้ตรงกับการแสดงผลที่ขยาย 2 เท่า
-        int displayWidth = width * 2;  // ขยายความกว้าง 2 เท่า
-        int displayHeight = height * 2; // ขยายความสูง 2 เท่า
-
-        // คำนวณพื้นที่คลิกเพิ่มขึ้นอีกนิดเพื่อความสะดวกในการคลิก
-        int extraWidth = (int) (displayWidth * 0.1);
-        int extraHeight = (int) (displayHeight * 0.1);
+        int displayWidth = width * 2;
+        int displayHeight = height * 2;
 
         return mouseX >= x && mouseX <= (x + displayWidth)
                 && mouseY >= y && mouseY <= (y + displayHeight);

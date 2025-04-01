@@ -2,9 +2,6 @@
 import java.awt.*;
 import java.util.Random;
 
-/*
- * Monster5 คือมอนสเตอร์ประจำด่านสุดท้าย มีลักษณะเป็นมอนสเตอร์มืดหรือปีศาจ
- */
 public class Monster5 extends Monster {
 
     private int patternCounter = 0;
@@ -12,17 +9,9 @@ public class Monster5 extends Monster {
     private float speedMultiplier = 0.6f;
     private int spawnTime = 0;
 
-    /*
-     * สร้างมอนสเตอร์ด่าน 5 ใหม่
-     *
-     * @param x      ตำแหน่ง x
-     * @param y      ตำแหน่ง y
-     * @param player ผู้เล่นที่เป็นเป้าหมาย
-     */
     public Monster5(int x, int y, Player player) {
         super(x, y, player); // เรียก constructor ของ Monster
 
-        // ปรับค่าพารามิเตอร์ให้แข็งแกร่งที่สุด
         this.width = 45;
         this.height = 45;
         this.health = 100;
@@ -60,37 +49,37 @@ public class Monster5 extends Monster {
             dy = dy / distance;
         }
 
-        // รูปแบบการเคลื่อนที่ที่ซับซ้อนและคาดเดายาก
+        // รูปแบบการเคลื่อนที่
         patternCounter++;
         int pattern = (patternCounter / 90) % 4; // เปลี่ยนรูปแบบเร็วขึ้น มี 4 รูปแบบ
 
         switch (pattern) {
-            case 0:
+            case 0 -> {
                 // ตรงไปหาผู้เล่นด้วยความเร็วสูง
                 x += dx * speed * speedMultiplier * 1.2f;
                 y += dy * speed * speedMultiplier * 1.2f;
-                break;
-            case 1:
-                // วนเป็นวงกลมด้วยรัศมีใหญ่มาก
+            }
+            case 1 -> {
+                // วนเป็นวงกลม
                 x += dx * speed * speedMultiplier + Math.cos(patternCounter * 0.04) * 3.5f;
                 y += dy * speed * speedMultiplier + Math.sin(patternCounter * 0.04) * 3.5f;
-                break;
-            case 2:
-                // เคลื่อนที่แบบซิกแซกวูบวาบ
+            }
+            case 2 -> {
+                // เคลื่อนที่แบบซิกแซก
                 x += dx * speed * speedMultiplier + Math.sin(patternCounter * 0.2) * 2.5f;
                 y += dy * speed * speedMultiplier + Math.cos(patternCounter * 0.2) * 2.5f;
-                break;
-            case 3:
+            }
+            case 3 -> {
                 // บางครั้งจะพุ่งตรงเข้าใส่ผู้เล่นอย่างเร็ว
                 if (patternCounter % 30 < 15) {
                     x += dx * speed * speedMultiplier * 1.5f;
                     y += dy * speed * speedMultiplier * 1.5f;
                 } else {
-                    // แล้วก็หยุดชั่วขณะ
+                    // หยุดชั่วขณะ
                     x += dx * speed * speedMultiplier * 0.3f;
                     y += dy * speed * speedMultiplier * 0.3f;
                 }
-                break;
+            }
         }
 
         // ดูแลไม่ให้ออกนอกจอ
@@ -105,15 +94,12 @@ public class Monster5 extends Monster {
         if (monster5Image != null) {
             g.drawImage(monster5Image, (int) x, (int) y, width, height, null);
         } else {
-            // ถ้าไม่มีรูปภาพให้วาดรูปทรงพื้นฐานแทน - เป็นปีศาจมืด
-            g.setColor(new Color(30, 0, 50)); // สีม่วงเข้มเกือบดำ
+            g.setColor(new Color(30, 0, 50));
             g.fillOval((int) x, (int) y, width, height);
 
-            // เอฟเฟกต์คล้ายเปลวไฟสีม่วงรอบตัว
-            g.setColor(new Color(120, 0, 200, 100)); // สีม่วงโปร่งใส
+            g.setColor(new Color(120, 0, 200, 100));
             g.fillOval((int) (x - 5), (int) (y - 5), width + 10, height + 10);
 
-            // ตาสีแดงเรืองแสง
             g.setColor(Color.RED);
             g.fillOval((int) (x + width / 4), (int) (y + height / 3), width / 5, height / 5);
             g.fillOval((int) (x + width * 3 / 5), (int) (y + height / 3), width / 5, height / 5);
@@ -138,7 +124,7 @@ public class Monster5 extends Monster {
             return null; // ไม่ยิงถ้าอยู่นอกจอ
         }
 
-        // คูลดาวน์สั้นมาก (ยิงถี่มาก)
+        // คูลดาวน์สั้นมาก
         resetShootCooldown(25);
 
         // คำนวณทิศทางการยิงไปหาผู้เล่น
@@ -149,7 +135,7 @@ public class Monster5 extends Monster {
         float dy = targetY - (y + height / 2);
         double angle = Math.atan2(dy, dx);
 
-        // ใส่ความไม่แน่นอนในการยิงบ้าง (ยิงไม่แม่นเสมอไป)
+        // ใส่ความไม่แน่นอนในการยิงบ้าง
         double randomAngle = angle + (random.nextDouble() - 0.5) * 0.2;
 
         // สร้างกระสุนที่เร็วและแรงที่สุด

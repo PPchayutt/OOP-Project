@@ -1,13 +1,8 @@
 
 import java.awt.*;
 
-/**
- * Entity เป็น abstract class พื้นฐานสำหรับวัตถุที่มีชีวิตในเกม
- * ทั้งผู้เล่นและศัตรูสืบทอดจากคลาสนี้
- */
 public abstract class Entity implements GameObject, Damageable {
 
-    // คุณสมบัติพื้นฐาน - ใช้ protected เพื่อให้คลาสลูกเข้าถึงได้
     protected float x, y;              // ตำแหน่ง
     protected float velX, velY;        // ความเร็วในแกน X และ Y
     protected int width, height;       // ขนาด
@@ -16,16 +11,6 @@ public abstract class Entity implements GameObject, Damageable {
     protected int speed;               // ความเร็วการเคลื่อนที่พื้นฐาน
     protected boolean alive = true;    // สถานะการมีชีวิต
 
-    /**
-     * สร้าง Entity ใหม่
-     *
-     * @param x ตำแหน่ง x เริ่มต้น
-     * @param y ตำแหน่ง y เริ่มต้น
-     * @param width ความกว้าง
-     * @param height ความสูง
-     * @param health พลังชีวิตเริ่มต้น
-     * @param speed ความเร็วพื้นฐาน
-     */
     public Entity(float x, float y, int width, int height, int health, int speed) {
         this.x = x;
         this.y = y;
@@ -60,17 +45,10 @@ public abstract class Entity implements GameObject, Damageable {
         return new Rectangle((int) x, (int) y, width, height);
     }
 
-    /**
-     * ตรวจสอบการชนกับวัตถุอื่น
-     *
-     * @param other วัตถุที่ต้องการตรวจสอบการชน
-     * @return true ถ้าชนกัน, false ถ้าไม่ชนกัน
-     */
     public boolean collidesWith(GameObject other) {
         return getBounds().intersects(other.getBounds());
     }
 
-    // Getters และ Setters
     public float getX() {
         return x;
     }

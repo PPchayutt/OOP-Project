@@ -4,7 +4,7 @@ import java.awt.event.*;
 public class InputHandler implements KeyListener, MouseListener, MouseMotionListener {
 
     private final GamePanel gamePanel;
-    private boolean up, down, left, right; // เพิ่มตัวแปรที่ขาดหายไป
+    private boolean up, down, left, right;
     private int mouseX, mouseY;
     private boolean isLeftHold = false;
     private long lastShootTime = 0;
@@ -40,7 +40,6 @@ public class InputHandler implements KeyListener, MouseListener, MouseMotionList
         if (key == KeyEvent.VK_I && !isGameOver) {
             Player player = gamePanel.getPlayer();
             player.toggleImmortalMode();
-        // เล่นเสียงเมื่อเปิด/ปิดโหมดอมตะ (ถ้ามี)
             SoundManager.playSound("get_skill");
         }
 
@@ -82,7 +81,6 @@ public class InputHandler implements KeyListener, MouseListener, MouseMotionList
         }
     }
 
-    // แก้ไขเมธอด handleShooting ให้สมบูรณ์
     public void handleShooting() {
         if (isLeftHold) {
             long currentTime = System.currentTimeMillis();
@@ -93,7 +91,7 @@ public class InputHandler implements KeyListener, MouseListener, MouseMotionList
             if (timeSinceLastShot >= playerCooldown) {
                 System.out.println("ยิงที่พิกัด: " + mouseX + ", " + mouseY);
 
-                // ส่งพิกัดเมาส์ที่แท้จริงไปให้ gamePanel (ไม่ต้องแปลงที่นี่)
+                // ส่งพิกัดเมาส์ที่แท้จริงไปให้ gamePanel
                 gamePanel.playerShoot(mouseX, mouseY);
                 lastShootTime = currentTime;
             }
@@ -104,7 +102,6 @@ public class InputHandler implements KeyListener, MouseListener, MouseMotionList
     public void mouseReleased(MouseEvent e) {
         if (e.getButton() == MouseEvent.BUTTON1) {
             isLeftHold = false;
-            // เพิ่มบรรทัดนี้เพื่อส่งการคลิกไปที่ GamePanel
             gamePanel.handleMouseClick(e.getX(), e.getY());
         }
     }

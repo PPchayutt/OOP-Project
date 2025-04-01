@@ -42,16 +42,15 @@ public class MenuPanel extends JPanel implements MouseListener, GameState {
         int soundButtonY = HEIGHT - 0;
         buttons.add(new SoundButton(soundButtonX, soundButtonY, this));
 
-
         // ปุ่มคำอธิบายทักษะ - ตรงกลางล่าง
         int skillButtonX = WIDTH / 2 - 100;
         int skillButtonY = HEIGHT / 2 + 30;
-        buttons.add(new SkillButton(skillButtonX, skillButtonY, this) {});
+        buttons.add(new SkillButton(skillButtonX, skillButtonY, this) {
+        });
 
         // เริ่มเล่นเพลง
         loadAndPlayMusic();
 
-        // เพิ่ม ComponentListener เพื่อรู้เมื่อขนาดพาเนลเปลี่ยน
         this.addComponentListener(new ComponentAdapter() {
             @Override
             public void componentResized(ComponentEvent e) {
@@ -104,7 +103,6 @@ public class MenuPanel extends JPanel implements MouseListener, GameState {
             menuMusic.open(audioInput);
             menuMusic.loop(Clip.LOOP_CONTINUOUSLY);
         } catch (UnsupportedAudioFileException | IOException | LineUnavailableException e) {
-            // จัดการกรณีโหลดไฟล์เพลงไม่สำเร็จ
             System.err.println("ไม่สามารถโหลดไฟล์เพลงได้: " + e.getMessage());
         }
     }
@@ -165,8 +163,8 @@ public class MenuPanel extends JPanel implements MouseListener, GameState {
 
         // วาดปุ่มโดยใช้ scaling
         for (MenuButton button : buttons) {
-            if (button instanceof AbstractMenuButton) {
-                ((AbstractMenuButton) button).render(g, scaleX, scaleY);
+            if (button instanceof AbstractMenuButton abstractMenuButton) {
+                abstractMenuButton.render(g, scaleX, scaleY);
             } else {
                 button.render(g);
             }

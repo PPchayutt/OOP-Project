@@ -1,6 +1,5 @@
 
 import java.awt.Graphics;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 
 public class SkillButton extends AbstractMenuButton {
@@ -25,7 +24,7 @@ public class SkillButton extends AbstractMenuButton {
         int scaledWidth = (int) (width * scaleX);
         int scaledHeight = (int) (height * scaleY);
 
-        // วาดปุ่มขนาดใหญ่กว่าภาพต้นฉบับ (ขยาย 2 เท่า)
+        // วาดปุ่ม
         g.drawImage(buttonImage, scaledX, scaledY, scaledWidth * 2, scaledHeight * 2, null);
     }
 

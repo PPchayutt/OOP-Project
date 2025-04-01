@@ -6,16 +6,12 @@ import java.util.HashMap;
 
 public class SoundManager {
 
-    // ตัวแปรสำหรับเก็บเสียงและสถานะต่างๆ
     private static final HashMap<String, Clip> sounds = new HashMap<>();
     private static Clip backgroundMusic = null;
     private static boolean soundsLoaded = false;
     private static boolean musicMuted = false;
     private static float effectVolume = 0.5f;
 
-    /**
-     * โหลดไฟล์เสียงทั้งหมดที่จำเป็นสำหรับเกม
-     */
     public static void loadSounds() {
         try {
             // ตรวจสอบว่าโฟลเดอร์ resources/sounds/ มีหรือไม่
@@ -43,7 +39,7 @@ public class SoundManager {
             // โหลดเพลงสำหรับด่าน 4
             loadMusic("level4_music", "resources/sounds/level4_music.wav");
 
-// โหลดเพลงสำหรับด่าน 5
+            // โหลดเพลงสำหรับด่าน 5
             loadMusic("level5_music", "resources/sounds/level5_music.wav");
 
             soundsLoaded = true;
@@ -53,12 +49,6 @@ public class SoundManager {
         }
     }
 
-    /**
-     * โหลดไฟล์เสียงเอฟเฟค
-     *
-     * @param key ชื่อสำหรับอ้างอิงเสียง
-     * @param filePath ที่อยู่ของไฟล์เสียง
-     */
     private static void loadSound(String key, String filePath) {
         try {
             File soundFile = new File(filePath);
@@ -76,12 +66,6 @@ public class SoundManager {
         }
     }
 
-    /**
-     * โหลดไฟล์เพลงประกอบ
-     *
-     * @param key ชื่อสำหรับอ้างอิงเพลง
-     * @param filePath ที่อยู่ของไฟล์เพลง
-     */
     private static void loadMusic(String key, String filePath) {
         try {
             File musicFile = new File(filePath);
@@ -93,9 +77,7 @@ public class SoundManager {
                 System.out.println("โหลดไฟล์เพลง " + key + " สำเร็จ");
             } else {
                 System.out.println("ไม่พบไฟล์เพลง: " + filePath);
-                // สร้าง clip ว่าง ๆ เพื่อป้องกัน NullPointerException
                 if (key.equals("level2_music")) {
-                    // ใช้เพลงด่าน 1 แทนหากไม่พบเพลงด่าน 2
                     sounds.put(key, sounds.get("level1_music"));
                     System.out.println("ใช้เพลงด่าน 1 แทนเพลงด่าน 2");
                 }
@@ -105,11 +87,6 @@ public class SoundManager {
         }
     }
 
-    /**
-     * เริ่มเล่นเพลงประกอบ
-     *
-     * @param key ชื่อของเพลงที่ต้องการเล่น
-     */
     public static void playBackgroundMusic(String key) {
         if (musicMuted) {
             return;
@@ -119,10 +96,9 @@ public class SoundManager {
         Clip clip = sounds.get(key);
         if (clip == null) {
             System.out.println("ไม่พบเพลง " + key + " จะใช้เพลงเริ่มต้นแทน");
-            // ใช้เพลงด่าน 1 เป็นเพลงเริ่มต้น
             clip = sounds.get("level1_music");
             if (clip == null) {
-                return; // ถ้าไม่มีเพลงเริ่มต้นให้ยกเลิก
+                return;
             }
         }
 
@@ -135,19 +111,14 @@ public class SoundManager {
         clip.loop(Clip.LOOP_CONTINUOUSLY);
     }
 
-    /**
-     * หยุดเพลงประกอบที่กำลังเล่นอยู่
-     */
     public static void stopBackgroundMusic() {
         if (backgroundMusic != null) {
             if (backgroundMusic.isRunning()) {
                 backgroundMusic.stop();
             }
-            // เพิ่มบรรทัดนี้เพื่อรีเซ็ตตำแหน่งการเล่น
             backgroundMusic.setFramePosition(0);
         }
 
-        // เพิ่มการเช็คและทำความสะอาดทุก clip ที่อาจยังเล่นอยู่
         for (Clip clip : sounds.values()) {
             if (clip != null && clip.isRunning()) {
                 clip.stop();
@@ -156,9 +127,6 @@ public class SoundManager {
         }
     }
 
-    /**
-     * สลับสถานะเปิด/ปิดเสียงดนตรี
-     */
     public static void toggleMusic() {
         musicMuted = !musicMuted;
         if (musicMuted) {
@@ -170,11 +138,6 @@ public class SoundManager {
         return effectVolume;
     }
 
-    /**
-     * เล่นเสียงเอฟเฟค
-     *
-     * @param key ชื่อของเสียงที่ต้องการเล่น
-     */
     public static void playSound(String key) {
         if (!soundsLoaded) {
             loadSounds();
@@ -183,17 +146,12 @@ public class SoundManager {
         try {
             Clip clip = sounds.get(key);
             if (clip != null) {
-                // สร้าง clip ใหม่ทุกครั้งที่เล่น
                 AudioInputStream audioIn = AudioSystem.getAudioInputStream(new File("resources/sounds/" + key + ".wav"));
                 Clip newClip = AudioSystem.getClip();
                 newClip.open(audioIn);
 
-                // ปรับความดังของเสียงให้เบาลง (ค่าระหว่าง -80.0f ถึง 6.0f โดย 0.0f คือปกติ)
                 if (newClip.isControlSupported(FloatControl.Type.MASTER_GAIN)) {
                     FloatControl gainControl = (FloatControl) newClip.getControl(FloatControl.Type.MASTER_GAIN);
-                    // แปลงค่า 0.0-1.0 เป็นค่า dB (-80.0 ถึง 6.0)
-                    // สูตร: dB = 20 * log10(volume)
-                    // เมื่อ volume = 0 จะได้ -Infinity dB ซึ่งเป็นการปิดเสียง
                     float dB;
                     if (effectVolume > 0.0f) {
                         dB = (float) (20.0f * Math.log10(effectVolume));
@@ -203,7 +161,6 @@ public class SoundManager {
 
                 newClip.start();
 
-                // ลบ clip เก่าเมื่อเล่นจบ
                 newClip.addLineListener(event -> {
                     if (event.getType() == LineEvent.Type.STOP) {
                         newClip.close();
@@ -211,7 +168,6 @@ public class SoundManager {
                 });
             }
         } catch (IOException | LineUnavailableException | UnsupportedAudioFileException e) {
-            // จัดการข้อผิดพลาดแบบเงียบๆ เพื่อไม่ให้เกมค้าง
             System.err.println("ไม่สามารถเล่นเสียง " + key + ": " + e.getMessage());
         }
     }
@@ -230,8 +186,6 @@ public class SoundManager {
     }
 
     public static void stopAllEffects() {
-        // วนลูปผ่านทุก clip และหยุดการเล่นถ้ากำลังเล่นอยู่
-        // ยกเว้น backgroundMusic ซึ่งจัดการแยกต่างหาก
         for (String key : sounds.keySet()) {
             Clip clip = sounds.get(key);
             if (clip != null && clip != backgroundMusic && clip.isRunning()) {

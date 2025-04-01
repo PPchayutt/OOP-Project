@@ -10,12 +10,6 @@ public class PlayButton extends AbstractMenuButton {
         this.game = game;
     }
 
-    /**
-     *
-     * @param g
-     * @param scaleX
-     * @param scaleY
-     */
     @Override
     public void render(Graphics g, float scaleX, float scaleY) {
         int scaledX = (int) (x * scaleX);
@@ -23,7 +17,6 @@ public class PlayButton extends AbstractMenuButton {
         int scaledWidth = (int) (width * scaleX);
         int scaledHeight = (int) (height * scaleY);
 
-        // วาดปุ่มขนาดใหญ่กว่าภาพต้นฉบับ (ขยาย 2 เท่า)
         g.drawImage(buttonImage, scaledX, scaledY, scaledWidth * 2, scaledHeight * 2, null);
     }
 

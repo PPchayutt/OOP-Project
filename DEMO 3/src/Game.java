@@ -4,14 +4,13 @@ import java.awt.*;
 
 public class Game {
 
-    // ตัวแปรเดิมที่มีอยู่แล้ว
     private final JFrame window;
     private final MenuPanel menuPanel;
     private GamePanel gamePanel;
     private final CardLayout cardLayout;
     private final JPanel mainPanel;
 
-    // ตั้งค่าขนาดพื้นฐานที่ไม่สามารถเปลี่ยนแปลงได้
+    // ตั้งค่าขนาดพื้นฐาน
     private static final int BASE_WIDTH = 800;
     private static final int BASE_HEIGHT = 600;
 
@@ -21,7 +20,6 @@ public class Game {
         window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         window.setResizable(false); // ล็อคไม่ให้ปรับขนาดได้
 
-        // สร้าง CardLayout เพื่อสลับระหว่างหน้าต่างๆ
         cardLayout = new CardLayout();
         mainPanel = new JPanel(cardLayout);
 
@@ -33,10 +31,10 @@ public class Game {
         menuPanel = new MenuPanel(this);
         mainPanel.add(menuPanel, "Menu");
 
-        // เพิ่มพาเนลหลักเข้าไปในหน้าต่าง
+        // เพิ่มพาแนล
         window.add(mainPanel);
 
-        // ตั้งขนาดหน้าต่างเป็นค่าคงที่ 800x600
+        // ตั้งขนาดหน้าต่าง
         window.setSize(BASE_WIDTH, BASE_HEIGHT);
         window.setLocationRelativeTo(null);
 
@@ -44,7 +42,7 @@ public class Game {
         window.setVisible(true);
     }
 
-    // เพิ่มเมธอดรับค่าขนาดต่างๆ แบบคงที่
+    // เพิ่มเมธอดรับค่าขนาดต่างๆ
     public int getBaseWidth() {
         return BASE_WIDTH;
     }
@@ -53,7 +51,6 @@ public class Game {
         return BASE_HEIGHT;
     }
 
-    // คงค่า scale ไว้ที่ 1.0 เสมอ เพื่อไม่ให้มีการปรับขนาด
     public float getScaleX() {
         return 1.0f;
     }
@@ -68,7 +65,7 @@ public class Game {
             gamePanel = new GamePanel(this);
             mainPanel.add(gamePanel, "Game");
         } else {
-            gamePanel.restartGame(); // รีเซ็ตเกมหากมีอยู่แล้ว
+            gamePanel.restartGame();
         }
 
         // หยุดเพลงในเมนู
@@ -77,7 +74,7 @@ public class Game {
 
         // เปลี่ยนไปที่หน้าเกม
         cardLayout.show(mainPanel, "Game");
-        gamePanel.requestFocusInWindow(); // สำหรับรับ input
+        gamePanel.requestFocusInWindow();
         gamePanel.startGameLoop();
     }
 
@@ -97,8 +94,6 @@ public class Game {
 
         // รอให้ UI อัพเดทก่อนค่อยเล่นเพลงเมนู
         SwingUtilities.invokeLater(() -> {
-            // ไม่ต้องชะลอเวลาด้วย Thread.sleep อีกต่อไป
-            // เนื่องจาก invokeLater จะทำงานหลังจาก UI อัพเดทแล้ว
             menuPanel.playMusic();
         });
     }

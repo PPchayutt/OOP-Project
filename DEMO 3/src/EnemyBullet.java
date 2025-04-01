@@ -10,12 +10,9 @@ public class EnemyBullet extends Projectile {
         this.damage = damage;
     }
 
-    /**
-     *
-     */
     @Override
     public void update() {
-        // เคลื่อนที่ตามทิศทางและความเร็ว
+        // เคลื่อนที่ตามทิศทาง
         x += Math.cos(angle) * speed;
         y += Math.sin(angle) * speed;
 

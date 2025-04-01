@@ -14,7 +14,7 @@ public class Block implements GameObject {
         this.y = y;
         this.width = width;
         this.height = height;
-        this.visible = false; // ถ้า false = จะไม่แสดงภาพแต่ยังมีการชน, true = แสดงภาพ
+        this.visible = false;
     }
 
     /**
@@ -22,13 +22,12 @@ public class Block implements GameObject {
      */
     @Override
     public void update() {
-        // ไม่ต้องทำอะไร Block ไม่เคลื่อนที่
     }
 
     @Override
     public void render(Graphics g) {
         if (visible) {
-            g.setColor(new Color(255, 0, 0, 100)); // สีแดงโปร่งใส
+            g.setColor(new Color(255, 0, 0, 100));
             g.fillRect((int) x, (int) y, width, height);
         }
     }

@@ -1,11 +1,8 @@
 
 import java.awt.*;
-import java.util.List; // เพิ่ม import นี้
+import java.util.List;
 import java.util.Random;
 
-/*
- * Monster คือศัตรูธรรมดาในเกม จะเคลื่อนที่ตามรูปแบบต่างๆ และพยายามเข้าหาผู้เล่น
- */
 public class Monster extends Enemy {
 
     private final int movementPattern;
@@ -13,23 +10,14 @@ public class Monster extends Enemy {
     final Player target;
     private static final Random random = new Random();
     private float speedMultiplier = 0.15f;
-    private int spawnTime = 0; // นับเวลาตั้งแต่เกิด
+    private int spawnTime = 0;
 
-    /*
-     * สร้างมอนสเตอร์ใหม่
-     *
-     * @param x
-     * @param y
-     * @param player
-     */
     public Monster(int x, int y, Player player) {
-        // ใช้ speed เป็น 1 (จำนวนเต็ม) แทน 0.7
         super(x, y, 30, 30, 45, 1, 8, 100);
         this.target = player;
         this.movementPattern = random.nextInt(3);
         this.dropsPowerup = random.nextDouble() < 0.35;
-        // ปรับค่า speedMultiplier ให้น้อยลง
-        this.speedMultiplier = 0.2f; // จะทำให้มอนสเตอร์เคลื่อนที่ด้วยความเร็ว 20% ของค่าพื้นฐาน
+        this.speedMultiplier = 0.2f;
     }
 
     protected void avoidOtherMonsters(List<Enemy> monsters) {
@@ -47,8 +35,8 @@ public class Monster extends Enemy {
                     y += (dy / distance) * pushForce;
                 } else {
                     // ถ้าซ้อนทับพอดี ผลักในทิศทางสุ่ม
-                    x += (random.nextDouble() * 2 - 1) * 2; // ใช้ random แทน Math.random()
-                    y += (random.nextDouble() * 2 - 1) * 2; // ใช้ random แทน Math.random()
+                    x += (random.nextDouble() * 2 - 1) * 2;
+                    y += (random.nextDouble() * 2 - 1) * 2;
                 }
             }
         }
@@ -62,13 +50,13 @@ public class Monster extends Enemy {
         spawnTime++;
 
         // ค่อยๆ เพิ่มความเร็วจนถึงความเร็วปกติ แต่ใช้เวลานานขึ้น
-        if (spawnTime < 300) { // เพิ่มจาก 180 เป็น 300 (5 วินาที)
-            speedMultiplier = Math.min(0.2f + (spawnTime / 1000f), 1.0f); // ปรับสูตรให้เพิ่มช้าลง
+        if (spawnTime < 300) {
+            speedMultiplier = Math.min(0.2f + (spawnTime / 1000f), 1.0f);
         } else {
             speedMultiplier = 1.0f;
         }
 
-        // คำนวณทิศทางไปหาผู้เล่น (โค้ดเดิม)
+        // คำนวณทิศทางไปหาผู้เล่น
         float targetX = target.getX() + target.getWidth() / 2;
         float targetY = target.getY() + target.getHeight() / 2;
 
@@ -81,7 +69,7 @@ public class Monster extends Enemy {
             dy = dy / distance;
         }
 
-        // เคลื่อนที่ตามรูปแบบที่กำหนด แต่คูณด้วย speedMultiplier ให้ช้าลง
+        // เคลื่อนที่ตามรูปแบบที่กำหนด
         switch (movementPattern) {
             case 0 -> {
                 // ตรงไปหาผู้เล่น
@@ -97,7 +85,7 @@ public class Monster extends Enemy {
             case 2 -> {
                 // วนเป็นวงกลม
                 patternCounter++;
-                float circleRadius = 1.5f; // ลดรัศมีการวนลงจาก 2.0f
+                float circleRadius = 1.5f;
                 x += dx * speed * speedMultiplier + Math.cos(patternCounter * 0.03) * circleRadius;
                 y += dy * speed * speedMultiplier + Math.sin(patternCounter * 0.03) * circleRadius;
             }
@@ -106,10 +94,10 @@ public class Monster extends Enemy {
 
     @Override
     public void render(Graphics g) {
-        // วาดรูปภาพมอนสเตอร์
+        // รูปภาพมอนสเตอร์
         g.drawImage(ImageManager.getImage("monster"), (int) x, (int) y, width, height, null);
 
-        // วาดแถบพลังชีวิต
+        // แถบพลังชีวิต
         g.setColor(Color.RED);
         g.fillRect((int) x, (int) y - 5, width, 3);
         g.setColor(Color.GREEN);
@@ -123,7 +111,7 @@ public class Monster extends Enemy {
             return null;
         }
 
-        // เพิ่มเงื่อนไขตรวจสอบว่าอยู่ในจอหรือไม่
+        // ตรวจสอบว่าอยู่ในจอหรือไม่
         if (x < 0 || x > GamePanel.WIDTH || y < 0 || y > GamePanel.HEIGHT) {
             return null; // ไม่ยิงถ้าอยู่นอกจอ
         }

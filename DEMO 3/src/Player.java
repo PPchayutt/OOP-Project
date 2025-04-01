@@ -94,7 +94,7 @@ public class Player extends Entity {
 
             // ปรับความเร็วเมื่อเคลื่อนที่แนวทแยง
             if (dx != 0 && dy != 0) {
-                targetX *= 0.7071f; // ประมาณ 1/sqrt(2)
+                targetX *= 0.7071f;
                 targetY *= 0.7071f;
             }
         }
@@ -119,7 +119,6 @@ public class Player extends Entity {
 
     @Override
     public void update() {
-        // การเคลื่อนที่แบบนุ่มนวล
         // เพิ่มความเร็วเข้าหาเป้าหมาย
         if (targetVelX > velX) {
             velX = Math.min(targetVelX, velX + acceleration);
@@ -164,9 +163,6 @@ public class Player extends Entity {
         currentCooldown = currentTime - lastShotTime;
     }
 
-    /**
-     * อัพเดทกระสุนทั้งหมดของผู้เล่น
-     */
     private void updateBullets() {
         // อัพเดตแต่ละกระสุน
         for (int i = bullets.size() - 1; i >= 0; i--) {
@@ -180,9 +176,6 @@ public class Player extends Entity {
         }
     }
 
-    /**
-     * อัพเดทบัฟทั้งหมดที่ใช้งานอยู่
-     */
     public void updateBuffs() {
         Iterator<Powerup> iterator = activeBuffs.iterator();
         while (iterator.hasNext()) {
@@ -191,8 +184,6 @@ public class Player extends Entity {
 
             // ถ้าบัฟหมดเวลา ให้เอาออก
             if (buff.getDuration() == 0) {
-                // สำคัญ: ใช้ removeBuffEffect แทน removeBuff
-                // เพื่อลบเฉพาะเอฟเฟกต์ของบัฟนี้ โดยไม่กระทบบัฟอื่น
                 removeBuffEffect(buff);
                 iterator.remove();
             }
@@ -202,16 +193,10 @@ public class Player extends Entity {
         updateBuffStatus();
     }
 
-    /**
-     * เพิ่มบัฟให้กับผู้เล่น
-     *
-     * @param buff
-     */
     public void addBuff(Powerup buff) {
         // เปลี่ยนสถานะของบัฟเป็นเก็บแล้ว
         buff.setActive(false);
 
-        // ว้าว! แก้ส่วนนี้ให้ตรวจสอบบัฟซ้ำทุกประเภท ไม่ใช่แค่ประเภทถาวร
         boolean hasExisting = false;
         Powerup existingBuff = null;
 
@@ -227,7 +212,7 @@ public class Player extends Entity {
 
         // ตรวจสอบว่าเป็นบัฟประเภทไหน และจัดการตามประเภท
         if (buff.getCategory() == Powerup.CATEGORY_PERMANENT) {
-            // สำหรับบัฟถาวร ใช้โค้ดเดิม
+            // สำหรับบัฟถาวร
             String buffKey = getPermanentBuffKey(buff);
             int count = permanentBuffCounts.getOrDefault(buffKey, 0) + 1;
             permanentBuffCounts.put(buffKey, count);
@@ -237,15 +222,13 @@ public class Player extends Entity {
                 activeBuffs.add(buff);
             }
         } else if (hasExisting) {
-            // ถ้าเป็นบัฟชั่วคราวหรือบัฟสุดโหด และมีบัฟนี้อยู่แล้ว
-            // ให้รีเซ็ตเวลานับถอยหลังแทนการเพิ่มบัฟใหม่
             if (existingBuff != null) {
                 // รีเซ็ตเวลานับถอยหลังของบัฟที่มีอยู่แล้ว
                 if (buff.getCategory() == Powerup.CATEGORY_TEMPORARY) {
-                    // บัฟชั่วคราวมีเวลา 10 วินาที (600 เฟรม)
+                    // บัฟชั่วคราวมีเวลา 10 วินาที 
                     existingBuff.setDuration(600);
                 } else if (buff.getCategory() == Powerup.CATEGORY_CRAZY) {
-                    // บัฟสุดโหดมีเวลา 5 วินาที (300 เฟรม)
+                    // บัฟสุดโหดมีเวลา 5 วินาที
                     existingBuff.setDuration(300);
                 }
             }
@@ -264,9 +247,6 @@ public class Player extends Entity {
         SoundManager.playSound("get_skill");
     }
 
-    /**
-     * นำบัฟไปใช้กับผู้เล่น
-     */
     private void applyBuff(Powerup buff) {
         switch (buff.getCategory()) {
             case Powerup.CATEGORY_CRAZY -> {
@@ -332,58 +312,32 @@ public class Player extends Entity {
         }
     }
 
-    /**
-     * ลบบัฟที่หมดเวลา และอัพเดทสถานะของบัฟที่เหลือ
-     */
-    private void removeBuff(Powerup buff) {
-        // แทนที่จะรีเซ็ตค่าทั้งหมดตรงนี้ ให้เรียกใช้ removeBuffEffect แทน
-        // เพื่อลบเฉพาะเอฟเฟกต์ของบัฟนี้เท่านั้น
-        removeBuffEffect(buff);
-    }
-
-    /**
-     * ลบเฉพาะเอฟเฟกต์ของบัฟที่หมดอายุ
-     * เมธอดใหม่ที่เพิ่มเข้ามาเพื่อแก้ปัญหาบัฟหายหมด
-     */
     private void removeBuffEffect(Powerup buff) {
         // ลบเฉพาะเอฟเฟกต์ของบัฟนี้ออก
         switch (buff.getCategory()) {
-            case Powerup.CATEGORY_CRAZY:
-                // ไม่รีเซ็ตค่าสถานะที่นี่ เพราะอาจมีบัฟอื่นที่ยังทำงานอยู่
-                // สถานะจะถูกอัพเดทในเมธอด updateBuffStatus
-                break;
+            case Powerup.CATEGORY_CRAZY -> {
+            }
 
-            case Powerup.CATEGORY_TEMPORARY:
+            case Powerup.CATEGORY_TEMPORARY -> {
                 switch (buff.getType()) {
-                    case Powerup.TYPE_INCREASE_DAMAGE:
+                    case Powerup.TYPE_INCREASE_DAMAGE ->
                         bulletDamage -= buff.getValue();
-                        break;
-                    case Powerup.TYPE_INCREASE_SPEED:
+                    case Powerup.TYPE_INCREASE_SPEED ->
                         speed -= buff.getValue();
-                        break;
-                    case Powerup.TYPE_INCREASE_SHOOTING_SPEED:
+                    case Powerup.TYPE_INCREASE_SHOOTING_SPEED ->
                         shootCooldownReduction -= buff.getValue();
-                        break;
-                    case Powerup.TYPE_KNOCKBACK:
-                        // ไม่รีเซ็ตค่า knockbackEnabled ที่นี่
-                        // เพราะอาจมีบัฟ knockback อื่นที่ยังทำงานอยู่
-                        break;
-                    case Powerup.TYPE_MULTIPLE_BULLETS:
+                    case Powerup.TYPE_KNOCKBACK -> {
+                    }
+                    case Powerup.TYPE_MULTIPLE_BULLETS ->
                         extraBullets -= buff.getValue();
-                        break;
                 }
-                break;
+            }
         }
     }
 
-    /**
-     * อัพเดทสถานะบัฟทั้งหมด หลังจากลบบัฟที่หมดอายุแล้ว
-     * เมธอดใหม่ที่เพิ่มเข้ามาเพื่อแก้ปัญหาบัฟหายหมด
-     */
     private void updateBuffStatus() {
         // รีเซ็ตค่าพื้นฐานของบัฟทั้งหมด
         boolean hasCrazyShooting = false;
-        boolean hasStopTime = false;
         boolean hasKnockback = false;
         int maxKnockbackPower = 1;
 
@@ -394,7 +348,6 @@ public class Player extends Entity {
                 if (buff.getType() == Powerup.TYPE_CRAZY_SHOOTING) {
                     hasCrazyShooting = true;
                 } else if (buff.getType() == Powerup.TYPE_STOP_TIME) {
-                    hasStopTime = true;
                 }
             } // ตรวจสอบบัฟ knockback ทั้งแบบถาวรและชั่วคราว
             else if ((buff.getCategory() == Powerup.CATEGORY_PERMANENT
@@ -416,26 +369,19 @@ public class Player extends Entity {
             knockbackPower = 1;
         }
 
-        // หมายเหตุ: ไม่ต้องอัพเดท Stop Time เพราะจะถูกตรวจสอบโดยเมธอด hasStopTimeBuff
     }
 
-    /**
-     *
-     * @param g
-     */
     @Override
     public void render(Graphics g) {
         // ถ้าอยู่ในช่วงอมตะให้กะพริบ
         if (invincibleTime <= 0 || invincibleTime % 10 < 5) {
-            // แก้เป็นแบบนี้ - เพิ่มขนาดเป็น 2 เท่า
-            int displayWidth = width * 2;  // ขนาดกว้างใหม่
-            int displayHeight = height * 2; // ขนาดสูงใหม่
+            int displayWidth = width * 2;
+            int displayHeight = height * 2;
 
             // ปรับตำแหน่งเพื่อให้ตัวละครอยู่ตรงกลางและไม่เลื่อนไปมา
             int displayX = (int) x - (displayWidth - width) / 2;
             int displayY = (int) y - (displayHeight - height) / 2;
 
-            // วาดรูปภาพผู้เล่นขนาดใหญ่ขึ้น
             g.drawImage(ImageManager.getImage("player"), displayX, displayY, displayWidth, displayHeight, null);
 
             // แสดงแถบพลังชีวิต
@@ -459,11 +405,9 @@ public class Player extends Entity {
                 Image flashImage = ImageManager.getImage("muzzle_flash");
 
                 if (gunImage != null && flashImage != null) {
-                    // ลดขนาดปืนให้เล็กลงมากๆ (เหลือ 2% ของขนาดเดิม)
                     int gunWidth = Math.max(3, (int) (gunImage.getWidth(null) * 0.02));
                     int gunHeight = Math.max(2, (int) (gunImage.getHeight(null) * 0.02));
 
-                    // ลดขนาดเอฟเฟคให้เล็กลงมากๆ (เหลือ 2% ของขนาดเดิม)
                     int flashWidth = Math.max(3, (int) (flashImage.getWidth(null) * 0.02));
                     int flashHeight = Math.max(3, (int) (flashImage.getHeight(null) * 0.02));
 
@@ -478,7 +422,7 @@ public class Player extends Entity {
                         // ตำแหน่งเอฟเฟค - ตรงปากกระบอกปืนด้านขวา
                         flashX = gunX + gunWidth - 1;
                         flashY = gunY + gunHeight / 2 - flashHeight / 2 - 9;
-                        
+
                         // วาดปืน
                         if (type != null && type.equals(WeaponType.AK47)) {
                             // กรณี Ak47 ไฟล์รูปกลับด้านกับปืนอื่น
@@ -487,7 +431,7 @@ public class Player extends Entity {
                         } else {
                             g.drawImage(gunImage, gunX, gunY, gunWidth, gunHeight, null);
                         }
-                        
+
                         if (type != null && type.equals(WeaponType.GATLING_GUN)) {
                             flashY = gunY + (gunHeight - flashHeight) / 2 + 1;
                         }
@@ -504,7 +448,7 @@ public class Player extends Entity {
                         // ตำแหน่งเอฟเฟค - ตรงปากกระบอกปืนด้านซ้าย
                         flashX = gunX - flashWidth + 1;
                         flashY = gunY + (gunHeight - flashHeight) / 2 - 9;
-                        
+
                         // วาดปืนหันไปทางซ้าย
                         if (type != null && type.equals(WeaponType.AK47)) {
                             // กรณี Ak47 ไฟล์รูปกลับด้านกับปืนอื่น
@@ -513,7 +457,7 @@ public class Player extends Entity {
                         } else {
                             g.drawImage(gunImage, gunX + gunWidth, gunY, -gunWidth, gunHeight, null);
                         }
-                        
+
                         if (type != null && type.equals(WeaponType.GATLING_GUN)) {
                             flashY = gunY + (gunHeight - flashHeight) / 2 + 1;
                         }
@@ -539,12 +483,6 @@ public class Player extends Entity {
         }
     }
 
-    /**
-     * ยิงกระสุน
-     *
-     * @param targetX ตำแหน่ง x เป้าหมาย
-     * @param targetY ตำแหน่ง y เป้าหมาย
-     */
     public void shoot(int targetX, int targetY) {
         long currentTime = System.currentTimeMillis();
 
@@ -569,7 +507,7 @@ public class Player extends Entity {
         int effectiveDamage = bulletDamage;
         int bulletCount = 1;
         int bulletSpeed = 10;
-        double spread = 0; // ค่าเริ่มต้นสำหรับการกระจาย 0
+        double spread = 0;
         boolean useKnockback = knockbackEnabled;
         int knockbackValue = knockbackPower;
 
@@ -601,7 +539,7 @@ public class Player extends Entity {
             shootCooldown = (int) (shootCooldown / 1.5);
         } // บัฟยิงหลายนัด (Multiple Bullets)
         if (extraBullets > 0) {
-            // ยิงแบบกระจายหลายนัดพร้อมกัน (เหมือนเดิม)
+            // ยิงแบบกระจายหลายนัดพร้อมกัน
             System.out.println("Extra bullet : " + extraBullets);
             bulletCount += extraBullets;
         }
@@ -625,7 +563,6 @@ public class Player extends Entity {
     }
 
     private void createSingleBullet(double angle, int damage, int speed, double spread, boolean knockback, int knockbackPower) {
-        // เพิ่มการกระจายเล็กน้อยทุกครั้งที่ยิง (คล้าย spray ในเกมยิงปืน)
         double randomSpread = (Math.random() * 2 - 1) * spread;
         double finalAngle = angle + randomSpread;
 
@@ -674,21 +611,11 @@ public class Player extends Entity {
         }
     }
 
-    /**
-     * ตั้งค่าความเร็วเป้าหมายของผู้เล่น
-     *
-     * @param targetVelX ความเร็วเป้าหมายในแกน X
-     * @param targetVelY ความเร็วเป้าหมายในแกน Y
-     */
     public void setTargetVelocity(float targetVelX, float targetVelY) {
         this.targetVelX = targetVelX;
         this.targetVelY = targetVelY;
     }
 
-    /**
-     *
-     * @param damage
-     */
     @Override
     public void takeDamage(int damage) {
         // ถ้าอยู่ในโหมดอมตะหรือช่วงเวลาอมตะหลังโดนโจมตี ให้ไม่รับความเสียหาย
@@ -726,77 +653,36 @@ public class Player extends Entity {
         }
     }
 
-    /**
-     * ดึงค่ารายการกระสุนทั้งหมด
-     *
-     * @return รายการกระสุน
-     */
     public List<PlayerBullet> getBullets() {
         return bullets;
     }
 
-    /**
-     * ดึงค่ารายการบัฟที่ใช้งานอยู่
-     *
-     * @return รายการบัฟ
-     */
     public List<Powerup> getActiveBuffs() {
         return activeBuffs;
     }
 
-    /**
-     * ดึงค่าจำนวนบัฟถาวรแต่ละชนิด
-     *
-     * @return แฮชแมพเก็บจำนวนบัฟถาวร
-     */
     public Map<String, Integer> getPermanentBuffCounts() {
         return permanentBuffCounts;
     }
 
-    /**
-     * ดึงค่าจำนวนบัฟถาวรตามชนิด
-     *
-     * @param buff บัฟที่ต้องการตรวจสอบจำนวน
-     * @return จำนวนบัฟ
-     */
     public int getPermanentBuffCount(Powerup buff) {
         String key = getPermanentBuffKey(buff);
         return permanentBuffCounts.getOrDefault(key, 0);
     }
 
-    /**
-     * ดึงค่าความเร็วสูงสุด
-     *
-     * @return ความเร็วสูงสุด
-     */
     public float getMaxSpeed() {
         return maxSpeed;
     }
 
-    /**
-     * ดึงค่าจำนวนชีวิต
-     *
-     * @return จำนวนชีวิต
-     */
     public int getLives() {
         return lives;
     }
 
-    /**
-     * ดึงค่าเวลาคูลดาวน์การยิงที่แท้จริง (หลังจากลดด้วยบัฟ)
-     *
-     * @return เวลาคูลดาวน์การยิง (มิลลิวินาที)
-     */
     public long getShootCooldown() {
-        // คำนวณเวลาคูลดาวน์หลังหักลบด้วยบัฟต่างๆ (ต่ำสุด 50ms)
+        // คำนวณเวลาคูลดาวน์หลังหักลบด้วยบัฟต่างๆ
         return Math.max(50, shootCooldown - shootCooldownReduction);
     }
 
-    /**
-     * ดึงค่าเวลาคูลดาวน์ปัจจุบัน
-     *
-     * @return เวลาคูลดาวน์ปัจจุบัน (มิลลิวินาที)
-     */
     public long getCurrentCooldown() {
         return currentCooldown;
     }
@@ -809,17 +695,12 @@ public class Player extends Entity {
         immortalMode = !immortalMode;
     }
 
-    /**
-     * ตรวจสอบว่ามีบัฟ Stop Time ทำงานอยู่หรือไม่
-     *
-     * @return true ถ้ามีบัฟ Stop Time ทำงาน
-     */
     public boolean hasStopTimeBuff() {
         // ตรวจสอบในรายการบัฟที่ใช้งานอยู่
         for (Powerup buff : activeBuffs) {
             if (buff.getCategory() == Powerup.CATEGORY_CRAZY
                     && buff.getType() == Powerup.TYPE_STOP_TIME
-                    && buff.getDuration() > 0) {  // ต้องแน่ใจว่าเวลายังไม่หมด
+                    && buff.getDuration() > 0) {
                 return true;
             }
         }

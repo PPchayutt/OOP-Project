@@ -2,9 +2,6 @@
 import java.awt.*;
 import java.util.Random;
 
-/*
- * Monster4 คือมอนสเตอร์ประจำด่าน 4 มีลักษณะเป็นหุ่นยนต์
- */
 public class Monster4 extends Monster {
 
     private int patternCounter = 0;
@@ -12,13 +9,6 @@ public class Monster4 extends Monster {
     private float speedMultiplier = 0.5f;
     private int spawnTime = 0;
 
-    /*
-     * สร้างมอนสเตอร์ด่าน 4 ใหม่
-     *
-     * @param x      ตำแหน่ง x
-     * @param y      ตำแหน่ง y
-     * @param player ผู้เล่นที่เป็นเป้าหมาย
-     */
     public Monster4(int x, int y, Player player) {
         super(x, y, player); // เรียก constructor ของ Monster
 
@@ -65,21 +55,21 @@ public class Monster4 extends Monster {
         int pattern = (patternCounter / 120) % 3;
 
         switch (pattern) {
-            case 0:
+            case 0 -> {
                 // ตรงไปหาผู้เล่น
                 x += dx * speed * speedMultiplier;
                 y += dy * speed * speedMultiplier;
-                break;
-            case 1:
-                // วนเป็นวงกลมด้วยรัศมีใหญ่ขึ้น
+            }
+            case 1 -> {
+                // วนเป็นวงกลม
                 x += dx * speed * speedMultiplier + Math.cos(patternCounter * 0.03) * 2.5f;
                 y += dy * speed * speedMultiplier + Math.sin(patternCounter * 0.03) * 2.5f;
-                break;
-            case 2:
-                // เคลื่อนที่แบบซิกแซกเร็วขึ้น
+            }
+            case 2 -> {
+                // เคลื่อนที่แบบซิกแซก
                 x += dx * speed * speedMultiplier;
                 y += dy * speed * speedMultiplier + Math.sin(patternCounter * 0.1) * 3.0f;
-                break;
+            }
         }
 
         // ดูแลไม่ให้ออกนอกจอ
@@ -94,11 +84,9 @@ public class Monster4 extends Monster {
         if (monster4Image != null) {
             g.drawImage(monster4Image, (int) x, (int) y, width, height, null);
         } else {
-            // ถ้าไม่มีรูปภาพให้วาดรูปทรงพื้นฐานแทน
-            g.setColor(new Color(150, 150, 200)); // สีฟ้าเทา
+            g.setColor(new Color(150, 150, 200));
             g.fillRect((int) x, (int) y, width, height);
 
-            // วาดรายละเอียดของหุ่นยนต์
             g.setColor(Color.RED);
             g.fillOval((int) (x + width / 4), (int) (y + height / 4), width / 6, height / 6);
             g.fillOval((int) (x + width * 3 / 5), (int) (y + height / 4), width / 6, height / 6);

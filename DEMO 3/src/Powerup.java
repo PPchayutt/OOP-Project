@@ -57,7 +57,7 @@ public class Powerup implements GameObject {
     private void initializeValues() {
         switch (category) {
             case CATEGORY_CRAZY -> {
-                duration = 300; // 5 วินาที (60 FPS)
+                duration = 300; // 5 วินาที
                 switch (type) {
                     case TYPE_CRAZY_SHOOTING ->
                         value = 1; // โหมดยิงบ้าคลั่ง
@@ -83,7 +83,7 @@ public class Powerup implements GameObject {
                 }
             }
             case CATEGORY_TEMPORARY -> {
-                duration = 600; // 10 วินาที (60 FPS)
+                duration = 600; // 10 วินาที
                 switch (type) {
                     case TYPE_INCREASE_DAMAGE ->
                         value = 10; // เพิ่มความเสียหายมากกว่าถาวร
@@ -163,12 +163,10 @@ public class Powerup implements GameObject {
         }
     }
 
-    // สร้างไอคอนพื้นฐานถ้าโหลดไฟล์ไม่สำเร็จ
     private void createDefaultIcon() {
         BufferedImage defaultIcon = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
         Graphics2D g2d = defaultIcon.createGraphics();
 
-        // สีตามประเภทของบัฟ
         switch (category) {
             case CATEGORY_CRAZY ->
                 g2d.setColor(Color.RED);
@@ -296,7 +294,7 @@ public class Powerup implements GameObject {
         };
     }
 
-    // สร้างบัฟแบบสุ่ม - แก้ไขการสุ่มประเภทบัฟชั่วคราว
+    // สร้างบัฟแบบสุ่ม
     public static Powerup createRandomPowerup(int x, int y) {
         double randomValue = random.nextDouble();
 

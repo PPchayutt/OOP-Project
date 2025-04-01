@@ -33,11 +33,16 @@ public class LevelManager {
 
         // กำหนดจำนวนมอนสเตอร์ที่ต้องกำจัดในแต่ละด่าน
         monstersToKill = switch (currentLevel) {
-            case 2 -> 25; // ด่าน 2
-            case 3 -> 30; // ด่าน 3
-            case 4 -> 35; // ด่าน 4
-            case 5 -> 40; // ด่าน 5
-            default -> 20; // ด่าน 1
+            case 2 ->
+                25; // ด่าน 2
+            case 3 ->
+                30; // ด่าน 3
+            case 4 ->
+                35; // ด่าน 4
+            case 5 ->
+                40; // ด่าน 5
+            default ->
+                20; // ด่าน 1
         };
         monstersKilled = 0;
         bossSpawned = false;
@@ -69,7 +74,6 @@ public class LevelManager {
             if (transitionTimer <= 0) {
                 isTransitioning = false;
                 levelReadyToPlay = true;
-                // อาจเพิ่มการส่งสัญญาณให้ GamePanel ขอโฟกัสกลับมา
             }
         }
     }
@@ -84,32 +88,34 @@ public class LevelManager {
 
     // เพิ่มเมธอดสำหรับสปอนมอนสเตอร์ตามด่าน
     public Monster spawnMonsterForLevel(int[] pos, Player player) {
-        if (currentLevel == 1) {
-            return new Monster(pos[0], pos[1], player);
-        } else if (currentLevel == 2) {
-            return new Monster2(pos[0], pos[1], player);
-        } else if (currentLevel == 3) {
-            return new Monster3(pos[0], pos[1], player);
-        } else if (currentLevel == 4) {
-            return new Monster4(pos[0], pos[1], player);
-        } else {
-            return new Monster5(pos[0], pos[1], player);
-        }
+        return switch (currentLevel) {
+            case 1 ->
+                new Monster(pos[0], pos[1], player);
+            case 2 ->
+                new Monster2(pos[0], pos[1], player);
+            case 3 ->
+                new Monster3(pos[0], pos[1], player);
+            case 4 ->
+                new Monster4(pos[0], pos[1], player);
+            default ->
+                new Monster5(pos[0], pos[1], player);
+        };
     }
 
     // เพิ่มเมธอดสำหรับสปอนบอสตามด่าน
     public Enemy spawnBossForLevel(int[] pos) {
-        if (currentLevel == 1) {
-            return new Boss(pos[0], pos[1], currentLevel);
-        } else if (currentLevel == 2) {
-            return new Boss2(pos[0], pos[1], currentLevel - 1); // ลดระดับลง 1 เพื่อสมดุล
-        } else if (currentLevel == 3) {
-            return new Boss3(pos[0], pos[1], currentLevel - 2); // ลดระดับลง 2 เพื่อสมดุล
-        } else if (currentLevel == 4) {
-            return new Boss4(pos[0], pos[1], currentLevel - 3); // ลดระดับลง 3 เพื่อสมดุล
-        } else {
-            return new Boss5(pos[0], pos[1], currentLevel - 4); // ลดระดับลง 4 เพื่อสมดุล
-        }
+        return switch (currentLevel) {
+            case 1 ->
+                new Boss(pos[0], pos[1], currentLevel);
+            case 2 ->
+                new Boss2(pos[0], pos[1], currentLevel - 1);
+            case 3 ->
+                new Boss3(pos[0], pos[1], currentLevel - 2);
+            case 4 ->
+                new Boss4(pos[0], pos[1], currentLevel - 3);
+            default ->
+                new Boss5(pos[0], pos[1], currentLevel - 4);
+        };
     }
 
     public boolean shouldSpawnBoss() {
@@ -133,11 +139,11 @@ public class LevelManager {
             case 0 -> {
                 // ด้านซ้าย
                 x = 0;
-                y = random.nextInt(500) + 50; // ระหว่าง 50-550
+                y = random.nextInt(500) + 50;
             }
             case 1 -> {
                 // ด้านขวา
-                x = GamePanel.WIDTH - 30; // ลบด้วยความกว้างของมอนสเตอร์
+                x = GamePanel.WIDTH - 30;
                 y = random.nextInt(500) + 50;
             }
             case 2 -> {
@@ -188,6 +194,6 @@ public class LevelManager {
     }
 
     public LevelManager getLevelManager() {
-        return this; // แก้จาก return levelManager; เป็น return this;
+        return this;
     }
 }

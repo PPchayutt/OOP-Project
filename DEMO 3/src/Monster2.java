@@ -37,7 +37,7 @@ public class Monster2 extends Monster {
             speedMultiplier = 0.8f; // ไม่ต้องให้เร็วเต็มที่
         }
 
-        // คำนวณทิศทางไปหาผู้เล่น - ต้องมีส่วนนี้ก่อน!
+        // คำนวณทิศทางไปหาผู้เล่น 
         float targetX = target.getX() + target.getWidth() / 2;
         float targetY = target.getY() + target.getHeight() / 2;
 
@@ -50,37 +50,35 @@ public class Monster2 extends Monster {
             dy = dy / distance;
         }
 
-        // ลดความซับซ้อนการเคลื่อนไหว เหลือเพียง 2 รูปแบบ
+        // ลดความซับซ้อนการเคลื่อนไหว
         patternCounter++;
         boolean simpleMovement = (patternCounter % 120 < 60);
 
         if (simpleMovement) {
-            // รูปแบบง่าย: ตรงไปหาผู้เล่น
+            // ตรงไปหาผู้เล่น
             x += dx * speed * speedMultiplier;
             y += dy * speed * speedMultiplier;
         } else {
-            // รูปแบบซับซ้อน: วนเป็นวงกลม
+            // วนเป็นวงกลม
             x += dx * speed * speedMultiplier + Math.cos(patternCounter * 0.02) * 1.5f;
             y += dy * speed * speedMultiplier + Math.sin(patternCounter * 0.02) * 1.5f;
         }
 
-        // ดูแลไม่ให้ออกนอกจอ
+        // ดูไม่ให้ออกนอกจอ
         x = Math.max(10, Math.min(x, GamePanel.WIDTH - width - 10));
         y = Math.max(10, Math.min(y, GamePanel.HEIGHT - height - 10));
     }
 
     @Override
     public void render(Graphics g) {
-        // ใช้รูปภาพจาก ImageManager หากมี
+        // ใช้รูปภาพจาก ImageManager
         Image monster2Image = ImageManager.getImage("monster2");
         if (monster2Image != null) {
             g.drawImage(monster2Image, (int) x, (int) y, width, height, null);
         } else {
-            // ถ้าไม่มีรูปภาพให้วาดรูปทรงพื้นฐานแทน
-            g.setColor(new Color(50, 150, 50)); // สีเขียว
+            g.setColor(new Color(50, 150, 50));
             g.fillRect((int) x, (int) y, width, height);
 
-            // ตาของมอนสเตอร์
             g.setColor(Color.RED);
             g.fillOval((int) x + 5, (int) y + 5, 10, 10);
             g.fillOval((int) x + width - 15, (int) y + 5, 10, 10);
@@ -105,7 +103,7 @@ public class Monster2 extends Monster {
             return null; // ไม่ยิงถ้าอยู่นอกจอ
         }
 
-        // คูลดาวน์สั้นกว่า (ยิงถี่กว่า)
+        // คูลดาวน์สั้นกว่า
         resetShootCooldown(45);
 
         // คำนวณทิศทางการยิงไปหาผู้เล่น

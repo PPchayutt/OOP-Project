@@ -2,9 +2,6 @@
 import java.awt.*;
 import java.util.Random;
 
-/*
- * Monster3 คือมอนสเตอร์ประจำด่าน 3 มีลักษณะเป็นหุ่นสีฟ้า
- */
 public class Monster3 extends Monster {
 
     private int patternCounter = 0;
@@ -12,13 +9,6 @@ public class Monster3 extends Monster {
     private float speedMultiplier = 0.4f;
     private int spawnTime = 0;
 
-    /*
-     * สร้างมอนสเตอร์ด่าน 3 ใหม่
-     *
-     * @param x      ตำแหน่ง x
-     * @param y      ตำแหน่ง y
-     * @param player ผู้เล่นที่เป็นเป้าหมาย
-     */
     public Monster3(int x, int y, Player player) {
         super(x, y, player); // เรียก constructor ของ Monster
 
@@ -86,16 +76,13 @@ public class Monster3 extends Monster {
         if (monster3Image != null) {
             g.drawImage(monster3Image, (int) x, (int) y, width, height, null);
         } else {
-            // ถ้าไม่มีรูปภาพให้วาดรูปทรงพื้นฐานแทน (ตามรูปภาพที่ 2)
-            g.setColor(new Color(60, 170, 210)); // สีฟ้า
+            g.setColor(new Color(60, 170, 210));
             g.fillOval((int) x, (int) y, width, height);
 
-            // วาดตา
             g.setColor(Color.BLACK);
             g.fillOval((int) (x + width / 4), (int) (y + height / 3), width / 5, height / 5);
             g.fillOval((int) (x + width * 3 / 5), (int) (y + height / 3), width / 5, height / 5);
 
-            // วาดขอบ
             g.setColor(new Color(0, 0, 150));
             g.drawOval((int) x, (int) y, width, height);
         }
@@ -119,7 +106,7 @@ public class Monster3 extends Monster {
             return null; // ไม่ยิงถ้าอยู่นอกจอ
         }
 
-        // คูลดาวน์สั้นกว่า (ยิงถี่กว่า)
+        // คูลดาวน์สั้นกว่า
         resetShootCooldown(45);
 
         // คำนวณทิศทางการยิงไปหาผู้เล่น
