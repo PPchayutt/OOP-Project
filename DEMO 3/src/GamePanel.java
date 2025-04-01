@@ -59,9 +59,11 @@ public class GamePanel extends JPanel implements Runnable, GameState {
         setBackground(Color.BLACK);
         setFocusable(true);
 
+        weaponManager = new WeaponManager();
+        
         initGame();
         initPauseMenu();
-
+        
         hotbarUI = new HotbarUI(player);
         inputHandler = new InputHandler(this);
         addKeyListener(inputHandler);
@@ -725,7 +727,6 @@ public class GamePanel extends JPanel implements Runnable, GameState {
         enemyBullets = new ArrayList<>();
         powerups = new ArrayList<>();
 
-        weaponManager = new WeaponManager();
         player.setWeaponManager(weaponManager);
         
         levelManager = new LevelManager();

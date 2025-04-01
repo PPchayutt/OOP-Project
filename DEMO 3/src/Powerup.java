@@ -7,9 +7,9 @@ import java.util.Random;
 public class Powerup implements GameObject {
 
     // ค่าคงที่สำหรับประเภทของบัฟ
-    public static final int CATEGORY_CRAZY = 1;      // บัฟสุดโหด
-    public static final int CATEGORY_PERMANENT = 2;  // บัฟถาวร
-    public static final int CATEGORY_TEMPORARY = 3;  // บัฟชั่วคราว
+    public static final int CATEGORY_CRAZY = 1; // บัฟสุดโหด
+    public static final int CATEGORY_PERMANENT = 2; // บัฟถาวร
+    public static final int CATEGORY_TEMPORARY = 3; // บัฟชั่วคราว
 
     // ชนิดของบัฟสุดโหด
     public static final int TYPE_CRAZY_SHOOTING = 0;
@@ -29,9 +29,9 @@ public class Powerup implements GameObject {
     private final float y;
     private final int width;
     private final int height;
-    private final int category;  // ประเภทใหญ่ของบัฟ
-    private final int type;      // ประเภทย่อยของบัฟ
-    private int value;     // ค่าของบัฟ
+    private final int category; // ประเภทใหญ่ของบัฟ
+    private final int type; // ประเภทย่อยของบัฟ
+    private int value; // ค่าของบัฟ
     private boolean active = true;
     private int duration = -1; // ระยะเวลาของบัฟ (-1 = ถาวร)
     private Image icon;
@@ -62,42 +62,42 @@ public class Powerup implements GameObject {
                     case TYPE_CRAZY_SHOOTING ->
                         value = 1; // โหมดยิงบ้าคลั่ง
                     case TYPE_STOP_TIME ->
-                        value = 1;      // โหมดหยุดเวลา
+                        value = 1; // โหมดหยุดเวลา
                 }
             }
             case CATEGORY_PERMANENT -> {
                 duration = -1; // ไม่มีกำหนดเวลา (ถาวร)
                 switch (type) {
                     case TYPE_INCREASE_DAMAGE ->
-                        value = 5;         // เพิ่มความเสียหาย
+                        value = 5; // เพิ่มความเสียหาย
                     case TYPE_INCREASE_SPEED ->
-                        value = 1;          // เพิ่มความเร็ว
+                        value = 1; // เพิ่มความเร็ว
                     case TYPE_INCREASE_SHOOTING_SPEED ->
                         value = 20; // ลดเวลาคูลดาวน์ (ms)
                     case TYPE_KNOCKBACK ->
-                        value = 1;               // เปิดใช้งาน knockback
+                        value = 1; // เปิดใช้งาน knockback
                     case TYPE_MORE_HEART ->
-                        value = 1;              // เพิ่มหัวใจ
+                        value = 1; // เพิ่มหัวใจ
                     case TYPE_MULTIPLE_BULLETS ->
-                        value = 1;        // เพิ่มจำนวนกระสุน
+                        value = 1; // เพิ่มจำนวนกระสุน
                 }
             }
             case CATEGORY_TEMPORARY -> {
                 duration = 600; // 10 วินาที (60 FPS)
                 switch (type) {
                     case TYPE_INCREASE_DAMAGE ->
-                        value = 10;        // เพิ่มความเสียหายมากกว่าถาวร
+                        value = 10; // เพิ่มความเสียหายมากกว่าถาวร
                     case TYPE_INCREASE_SPEED ->
-                        value = 2;          // เพิ่มความเร็วมากกว่าถาวร
+                        value = 2; // เพิ่มความเร็วมากกว่าถาวร
                     case TYPE_INCREASE_SHOOTING_SPEED ->
                         value = 50; // ลดเวลาคูลดาวน์มากกว่าถาวร
                     case TYPE_KNOCKBACK ->
-                        value = 2;               // knockback แรงกว่าถาวร
+                        value = 2; // knockback แรงกว่าถาวร
                     case TYPE_MULTIPLE_BULLETS ->
-                        value = 2;        // กระสุนมากกว่าถาวร
+                        value = 2; // กระสุนมากกว่าถาวร
                     case TYPE_HEALING -> {
-                        value = 50;                                 // ฮีลเลือด 50 หน่วย
-                        duration = 0;                               // ใช้แล้วหมดทันที
+                        value = 50; // ฮีลเลือด 50 หน่วย
+                        duration = 0; // ใช้แล้วหมดทันที
                     }
                 }
             }
