@@ -37,14 +37,6 @@ public class MenuPanel extends JPanel implements MouseListener, GameState {
         int playButtonY = HEIGHT / 2 - 50;
         buttons.add(new PlayButton(playButtonX, playButtonY, game));
 
-        // ปุ่มเปิด/ปิดเสียง - มุมขวาล่าง
-        int soundButtonX = WIDTH - 60;
-        int soundButtonY = HEIGHT - 0;
-        buttons.add(new SoundButton(soundButtonX, soundButtonY, this));
-
-        buttons.add(new SoundControlButton(WIDTH - 160, HEIGHT - 60, false)); // ปุ่มลดเสียง
-        buttons.add(new SoundControlButton(WIDTH - 110, HEIGHT - 60, true));  // ปุ่มเพิ่มเสียง
-
         // ปุ่มคำอธิบายทักษะ - ตรงกลางล่าง
         int skillButtonX = WIDTH / 2 - 100;
         int skillButtonY = HEIGHT / 2 + 30;
@@ -85,13 +77,6 @@ public class MenuPanel extends JPanel implements MouseListener, GameState {
             } else if (button instanceof SoundButton) {
                 // ปุ่ม Sound มุมขวาล่าง
                 ((AbstractMenuButton) button).setPosition(panelWidth - 60, panelHeight - 60);
-            } else if (button instanceof VolumeButton volumeButton) {
-                boolean isIncrease = volumeButton.isIncreaseButton();
-                if (isIncrease) {
-                    ((AbstractMenuButton) button).setPosition(panelWidth - 110, panelHeight - 60);
-                } else {
-                    ((AbstractMenuButton) button).setPosition(panelWidth - 160, panelHeight - 60);
-                }
             }
         }
     }

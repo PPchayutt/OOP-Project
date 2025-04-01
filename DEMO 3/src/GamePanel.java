@@ -1684,9 +1684,6 @@ public class GamePanel extends JPanel implements Runnable, GameState {
         pauseButtons.add(new PauseButton(WIDTH / 2 - 100, HEIGHT / 2 + 70, 200, 40, "Main Menu",
                 new Color(150, 50, 50), Color.WHITE, () -> returnToMenu()));
 
-        // สร้างปุ่มปรับระดับเสียง
-        pauseButtons.add(new SoundControlButton(120, HEIGHT - 60, false)); // ปุ่มลดเสียง
-        pauseButtons.add(new SoundControlButton(170, HEIGHT - 60, true));  // ปุ่มเพิ่มเสียง
     }
 
     public void placeTurret() {
