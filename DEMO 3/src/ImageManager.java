@@ -142,7 +142,7 @@ public class ImageManager {
                     createLevel4BackgroundImage();
                 }
 
-// โหลดรูปภาพฉากด่าน 5
+                // โหลดรูปภาพฉากด่าน 5
                 File level5BgFile = new File("resources/images/level5_bg.png");
                 if (level5BgFile.exists()) {
                     images.put("level5_bg", ImageIO.read(level5BgFile));
@@ -152,7 +152,7 @@ public class ImageManager {
                     createLevel5BackgroundImage();
                 }
 
-// โหลดรูปภาพมอนสเตอร์ด่าน 4
+                // โหลดรูปภาพมอนสเตอร์ด่าน 4
                 File monster4File = new File("resources/images/L4_Enemy.png");
                 if (monster4File.exists()) {
                     images.put("monster4", ImageIO.read(monster4File));
@@ -162,7 +162,7 @@ public class ImageManager {
                     createDefaultMonster4Image();
                 }
 
-// โหลดรูปภาพบอสด่าน 4
+                // โหลดรูปภาพบอสด่าน 4
                 File boss4File = new File("resources/images/L4_Boss.png");
                 if (boss4File.exists()) {
                     images.put("boss4", ImageIO.read(boss4File));
@@ -172,7 +172,7 @@ public class ImageManager {
                     createDefaultBoss4Image();
                 }
 
-// โหลดรูปภาพมอนสเตอร์ด่าน 5
+                // โหลดรูปภาพมอนสเตอร์ด่าน 5
                 File monster5File = new File("resources/images/L5_Enemy.png");
                 if (monster5File.exists()) {
                     images.put("monster5", ImageIO.read(monster5File));
@@ -182,8 +182,8 @@ public class ImageManager {
                     createDefaultMonster5Image();
                 }
 
-// โหลดรูปภาพบอสด่าน 5
-// เพิ่มการโหลดรูปภาพสำหรับเฟส 1 และเฟส 2 ของบอสด่าน 5
+                // โหลดรูปภาพบอสด่าน 5
+                // เพิ่มการโหลดรูปภาพสำหรับเฟส 1 และเฟส 2 ของบอสด่าน 5
                 File boss5Phase1File = new File("resources/images/L5_Boss_Phase1.png");
                 if (boss5Phase1File.exists()) {
                     images.put("L5_Boss_Phase1", ImageIO.read(boss5Phase1File));
@@ -268,6 +268,18 @@ public class ImageManager {
                 } else {
                     // สร้างรูปปืนพื้นฐานถ้าไม่มีไฟล์
                     createDefaultGunImage();
+                }
+                
+                File ak47File = new File("resources/images/AK47.png");
+                if (ak47File.exists()) {
+                    images.put("ak47", ImageIO.read(ak47File));
+                    System.out.println("โหลดรูปภาพปืน Ak47 สำเร็จ");
+                }
+                
+                File gatlingGunFile = new File("resources/images/Gatling_Gun.png");
+                if (gatlingGunFile.exists()) {
+                    images.put("gatlingGun", ImageIO.read(gatlingGunFile));
+                    System.out.println("โหลดรูปภาพปืน Gatling สำเร็จ");
                 }
 
                 File muzzleFlashFile = new File("resources/images/muzzle_flash.png");

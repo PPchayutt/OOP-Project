@@ -448,6 +448,14 @@ public class Player extends Entity {
             // วาดปืนและเอฟเฟคการยิง
             if (isShooting) {
                 Image gunImage = ImageManager.getImage("gun");
+                WeaponType type = weaponManager.getActiveWeaponType();
+                if (type != null) {
+                    if (type.equals(WeaponType.AK47)) {
+                        gunImage = ImageManager.getImage("ak47");
+                    } else if (type.equals(WeaponType.GATLING_GUN)) {
+                        gunImage = ImageManager.getImage("gatlingGun");
+                    }
+                }
                 Image flashImage = ImageManager.getImage("muzzle_flash");
 
                 if (gunImage != null && flashImage != null) {
@@ -467,12 +475,22 @@ public class Player extends Entity {
                         gunX = (int) x + width;
                         gunY = (int) y + height / 2 - gunHeight / 2;
 
-                        // วาดปืน
-                        g.drawImage(gunImage, gunX, gunY, gunWidth, gunHeight, null);
-
                         // ตำแหน่งเอฟเฟค - ตรงปากกระบอกปืนด้านขวา
                         flashX = gunX + gunWidth - 1;
                         flashY = gunY + gunHeight / 2 - flashHeight / 2 - 9;
+                        
+                        // วาดปืน
+                        if (type != null && type.equals(WeaponType.AK47)) {
+                            // กรณี Ak47 ไฟล์รูปกลับด้านกับปืนอื่น
+                            g.drawImage(gunImage, gunX + gunWidth, gunY, -gunWidth, gunHeight, null);
+                            flashY = gunY + (gunHeight - flashHeight) / 2 - 3;
+                        } else {
+                            g.drawImage(gunImage, gunX, gunY, gunWidth, gunHeight, null);
+                        }
+                        
+                        if (type != null && type.equals(WeaponType.GATLING_GUN)) {
+                            flashY = gunY + (gunHeight - flashHeight) / 2 + 1;
+                        }
 
                         // วาดเอฟเฟค
                         if (shootAnimationTime > SHOOT_ANIMATION_DURATION / 2) {
@@ -483,12 +501,22 @@ public class Player extends Entity {
                         gunX = (int) x - gunWidth;
                         gunY = (int) y + height / 2 - gunHeight / 2;
 
-                        // วาดปืนหันไปทางซ้าย
-                        g.drawImage(gunImage, gunX + gunWidth, gunY, -gunWidth, gunHeight, null);
-
                         // ตำแหน่งเอฟเฟค - ตรงปากกระบอกปืนด้านซ้าย
                         flashX = gunX - flashWidth + 1;
                         flashY = gunY + (gunHeight - flashHeight) / 2 - 9;
+                        
+                        // วาดปืนหันไปทางซ้าย
+                        if (type != null && type.equals(WeaponType.AK47)) {
+                            // กรณี Ak47 ไฟล์รูปกลับด้านกับปืนอื่น
+                            g.drawImage(gunImage, gunX, gunY, gunWidth, gunHeight, null);
+                            flashY = gunY + (gunHeight - flashHeight) / 2 - 3;
+                        } else {
+                            g.drawImage(gunImage, gunX + gunWidth, gunY, -gunWidth, gunHeight, null);
+                        }
+                        
+                        if (type != null && type.equals(WeaponType.GATLING_GUN)) {
+                            flashY = gunY + (gunHeight - flashHeight) / 2 + 1;
+                        }
 
                         // วาดเอฟเฟค
                         if (shootAnimationTime > SHOOT_ANIMATION_DURATION / 2) {
@@ -569,20 +597,20 @@ public class Player extends Entity {
             effectiveDamage = bulletDamage * 2;
             bulletCount = 5;
             bulletSpeed = (int) (bulletSpeed * 1.5);
+            spread += 0.05;
             shootCooldown = (int) (shootCooldown / 1.5);
         } // บัฟยิงหลายนัด (Multiple Bullets)
         if (extraBullets > 0) {
             // ยิงแบบกระจายหลายนัดพร้อมกัน (เหมือนเดิม)
-            bulletCount = 1 + extraBullets;
+            System.out.println("Extra bullet : " + extraBullets);
+            bulletCount += extraBullets;
         }
         System.out.println("bulletCount : " + bulletCount);
         if (crazyShootingMode || activeWeapon != null) {
             for (int i = 0; i < bulletCount; i++) {
-                System.out.println(bulletCount);
                 createSingleBullet(angle, effectiveDamage, bulletSpeed, spread, useKnockback, knockbackValue);
             }
         } else {
-            System.out.println("piston");
             createBullets(angle, effectiveDamage, bulletCount, bulletSpeed, true, useKnockback, knockbackValue);
         }
         // เริ่มแอนิเมชันการยิง
@@ -627,8 +655,7 @@ public class Player extends Entity {
         bullets.add(firstBullet);
 
         if (spread && count > 1) {
-            for (int i = 0; i < count; i++) {
-                System.out.println(i);
+            for (int i = 1; i < count; i++) {
                 double spreadAngle;
                 double amount = (i % 2 == 0 ? 1 : -1) * (i + 1) * 0.1;
                 spreadAngle = angle + amount;

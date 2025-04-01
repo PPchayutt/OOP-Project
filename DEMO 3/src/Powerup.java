@@ -155,6 +155,7 @@ public class Powerup implements GameObject {
         try {
             icon = new ImageIcon(imagePath).getImage();
             if (icon == null || icon.getWidth(null) <= 0) {
+                System.out.println("type : " + type);
                 createDefaultIcon();
             }
         } catch (Exception e) {

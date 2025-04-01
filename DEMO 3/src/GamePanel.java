@@ -688,6 +688,7 @@ public class GamePanel extends JPanel implements Runnable, GameState {
         if (!levelManager.isTransitioning()) {
             return;
         }
+        weaponManager.clearDeployedWeapon();
 
         // สร้างพื้นหลังทึบ
         g.setColor(new Color(0, 0, 0, 200));
@@ -726,13 +727,7 @@ public class GamePanel extends JPanel implements Runnable, GameState {
 
         weaponManager = new WeaponManager();
         player.setWeaponManager(weaponManager);
-
-        weaponManager.addWeapon(WeaponType.TURRET);
-        weaponManager.addWeapon(WeaponType.TURRET);
-        weaponManager.addWeapon(WeaponType.GATLING_GUN);
-        weaponManager.addWeapon(WeaponType.TURRET);
-        weaponManager.addWeapon(WeaponType.AK47);
-
+        
         levelManager = new LevelManager();
         gameMap = new GameMap("level1"); // สร้างแผนที่ด่าน 1
     }
@@ -1084,6 +1079,18 @@ public class GamePanel extends JPanel implements Runnable, GameState {
                 // เพิ่มคะแนน
                 player.addScore(boss.getPoints());
 
+                // ถ้าชนะบอสด่านแรกจะได้ปืน tier 2
+                if (levelManager.getCurrentLevel() == 2) {
+                    weaponManager.addWeapon(WeaponType.AK47);
+                } else {
+                    // ด่านหลังจากนั้นให้ดรอปปืน tier 3
+                    if (Math.random() < 0.5) {
+                        weaponManager.addWeapon(WeaponType.GATLING_GUN);
+                    } else {
+                        weaponManager.addWeapon(WeaponType.TURRET);
+                    }
+                }
+                
                 // เพิ่มเงื่อนไขตรวจสอบว่าเป็นบอสตัวสุดท้ายหรือไม่
                 if (boss instanceof Boss5) {
                     // ถ้าเป็นบอสตัวสุดท้าย (Boss5) และตายแล้ว
@@ -1581,6 +1588,7 @@ public class GamePanel extends JPanel implements Runnable, GameState {
         gameOver = false;
         gamePaused = false;
         gameWon = false;
+        weaponManager.clearWeapon();
 
         // เริ่มเล่นเพลงใหม่
         SoundManager.playBackgroundMusic("level1_music");

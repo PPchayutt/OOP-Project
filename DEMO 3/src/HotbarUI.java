@@ -58,11 +58,9 @@ public class HotbarUI {
             slot.setActive(activeWeaponType == weaponType) ;
             // กำหนดเวลาที่เหลือสำหรับทุกอาวุธ
             float lifespan = weaponManager.getWeaponLifespanPercentage(weaponType);
-            System.out.println(weaponType.getName() + " lifespan: " + lifespan * 100 + "%");
             slot.setLifespan(lifespan);
             slots.add(slot);
         }
-       
     }
     
     public void render(Graphics g) {
@@ -95,49 +93,7 @@ public class HotbarUI {
             int amount = weaponManager.getWeaponCount(type);
             slot.render(g, amount);
         }
-        Map<Integer, WeaponType> weapons = weaponManager.getAvailableWeapon();
-        for (int i = 0; i < slots.size(); i++) {
-            HotbarSlot slot = (HotbarSlot) slots.get(i);
-            WeaponType type = slot.getWeaponType();
-
-            // เฉพาะอาวุธที่ไม่ใช่ถาวรและไม่ใช่ป้อมปืน
-            if (type != WeaponType.TURRET && type != WeaponType.AK47) {
-                float lifespan = weaponManager.getWeaponLifespanPercentage(type);
-                System.out.println("อาวุธ " + type.getName() + " lifespan: " + lifespan);
-
-                if (lifespan < 1.0f) {
-                    // วาดแถบเวลาด้านล่าง slot
-                    int barWidth = (int)(slot_width * 0.8);
-                    int barHeight = 5;
-                    int barX = slot.getX() + (slot_width - barWidth) / 2;
-                    int barY = slot.getY() + slot_height + 3;
-
-                    // พื้นหลัง
-                    g.setColor(Color.DARK_GRAY);
-                    g.fillRect(barX, barY, barWidth, barHeight);
-
-                    // แถบเวลา
-                    g.setColor(Color.RED);
-                    int remainingWidth = (int)(barWidth * lifespan);
-                    g.fillRect(barX, barY, remainingWidth, barHeight);
-
-                    // ขอบ
-                    g.setColor(Color.WHITE);
-                    g.drawRect(barX, barY, barWidth, barHeight);
-                }
-            }
-        }
     }
-    
-//    public WeaponType getWeaponTypeAtPosition(int mouseX, int mouseY) {
-//        for (int i = 0; i < slots.size(); i++) {
-//            HotbarSlot slot = (HotbarSlot) slots.get(i);
-//            if (slot.isClicked(mouseX, mouseY)) {
-//                return slot.getWeaponType();
-//            }
-//        }
-//        return null;
-//    }
     
     public void updateSelection(int selectedIndex) {
         if (selectedIndex >= 0 && selectedIndex < slots.size()) {

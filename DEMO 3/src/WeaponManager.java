@@ -99,11 +99,7 @@ public class WeaponManager {
         if ( availableWeapons.containsKey(type) && !availableWeapons.get(type).isEmpty()) {
             List<Weapon> weapons = availableWeapons.get(type);
             if (!weapons.isEmpty()) {
-                Weapon weapon = weapons.get(0);
-                float percentage = weapon.getLifespanPercentage();
-                System.out.println("อาวุธ " + type.getName() + " เหลือเวลา " + percentage * 100 + "%");
-                return percentage;
-                //return weapons.get(0).getLifespanPercentage();
+                return weapons.get(0).getLifespanPercentage();
             }
         }
         return 0f;
@@ -176,6 +172,17 @@ public class WeaponManager {
 //                weaponOrder.remove(entry.getKey());
 //            }
 //        }
+    }
+    
+    public void clearWeapon() {
+        deployedWeapons.clear();
+        weaponOrder.clear();
+        availableWeapons.clear();
+        activeWeaponType = null;
+    }
+    
+    public void clearDeployedWeapon() {
+        deployedWeapons.clear();
     }
     
     public void render(Graphics g) {

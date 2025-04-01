@@ -68,25 +68,25 @@ public class HotbarSlot {
                         y + height - 7);
         }
         // วาดแถบเวลาที่เหลือใต้ชื่ออาวุธ (ยกเว้นป้อมปืน, อาวุธ tier 2)
-//        if (weaponType != WeaponType.TURRET && weaponType != WeaponType.AK47) {
-//            if (lifespan < 1.0f) {
-//                // พื้นหลังแถบเวลา
-//                g.setColor(Color.DARK_GRAY);
-//                int barWidth = (int)(width * 0.8);
-//                int barHeight = (int)(height * 0.15);
-//                int barX = x + (width - barWidth) / 2;
-//                int barY = y + height - barHeight - (int)(5 * multiplier);
-//                g.fillRect(barX, barY, barWidth, barHeight);
-//
-//                // แถบเวลาที่เหลือ
-//                g.setColor(Color.RED);
-//                int remainingWidth = (int)(barWidth * lifespan);
-//                g.fillRect(barX, barY, remainingWidth, barHeight);
-//                
-//                g.setColor(Color.WHITE);
-//                g.drawRect(barX, barY, barWidth, barHeight);
-//            }
-//        }
+        if (weaponType != WeaponType.TURRET && weaponType != WeaponType.AK47) {
+            if (lifespan < 1.0f) {
+                // พื้นหลังแถบเวลา
+                g.setColor(Color.DARK_GRAY);
+                int barWidth = (int)(width * 0.7);
+                int barHeight = (int)(height * 0.13);
+                int barX = x + (width - barWidth) / 2;
+                int barY = y + height - barHeight - (int)(5 * multiplier);
+                g.fillRect(barX, barY, barWidth, barHeight);
+
+                // แถบเวลาที่เหลือ
+                g.setColor(Color.ORANGE);
+                int remainingWidth = (int)(barWidth * lifespan);
+                g.fillRect(barX, barY, remainingWidth, barHeight);
+                
+                g.setColor(Color.WHITE);
+                g.drawRect(barX, barY, barWidth, barHeight);
+            }
+        }
     }
     public void setActive(boolean isActive) {
         this.isActive = isActive;
