@@ -48,7 +48,7 @@ public class GamePanel extends JPanel implements Runnable, GameState {
     private float gameWonPulseValue = 0.0f;
     private boolean gameWonPulseDirection = true;
     private int finalScore = 0;
-    
+
     private static int selectedWeaponIndex = -1;
     private static WeaponManager weaponManager;
     private final HotbarUI hotbarUI;
@@ -61,7 +61,7 @@ public class GamePanel extends JPanel implements Runnable, GameState {
 
         initGame();
         initPauseMenu();
-        
+
         hotbarUI = new HotbarUI(player);
         inputHandler = new InputHandler(this);
         addKeyListener(inputHandler);
@@ -619,11 +619,11 @@ public class GamePanel extends JPanel implements Runnable, GameState {
             return;
         }
 
-        int x = (int) (300 * scaleX);  // ตำแหน่งเริ่มต้น
-        int y = (int) (20 * scaleY);   // ด้านบนของจอ
+        int x = (int) (300 * scaleX);  // คงตำแหน่งเดิม
+        int y = (int) (20 * scaleY);   // คงตำแหน่งเดิม
         int spacing = (int) (40 * scaleX); // ระยะห่างระหว่างไอคอน
 
-        // วาดพื้นหลังสำหรับพื้นที่แสดงบัฟ
+        // วาดพื้นหลังสำหรับพื้นที่แสดงบัฟ แบบเดิม
         g.setColor(new Color(0, 0, 0, 150)); // สีดำโปร่งใส
         int bgWidth = (int) ((activeBuffs.size() * 40 + 10) * scaleX);
         g.fillRect(x - (int) (5 * scaleX), y - (int) (5 * scaleY), bgWidth, (int) (40 * scaleY));
@@ -637,15 +637,36 @@ public class GamePanel extends JPanel implements Runnable, GameState {
 
             // ถ้าเป็นบัฟที่มีระยะเวลา ให้แสดงเวลาที่เหลือ
             if (buff.getDuration() > 0) {
-                g.setColor(Color.WHITE);
-                Font originalFont = g.getFont();
-                Font scaledFont = originalFont.deriveFont(originalFont.getSize() * 0.8f * scaleX);
-                g.setFont(scaledFont);
+                // ส่วนนี้แก้ไข - แสดงเวลาเป็นแถบสีด้านใต้ไอคอนแทนตัวเลข
+                int barWidth = iconSize;
+                int barHeight = (int) (5 * scaleY);
 
-                int seconds = buff.getDuration() / 60 + 1; // แปลงเฟรมเป็นวินาที
-                g.drawString(seconds + "s", x + (int) (10 * scaleX), y + (int) (45 * scaleY));
-            } 
-            // ถ้าเป็นบัฟถาวร ให้ตรวจสอบว่ามีจำนวนซ้ำหรือไม่
+                // วาดแถบพื้นหลังสีเทาเข้ม
+                g.setColor(new Color(60, 60, 60));
+                g.fillRect(x, y + iconSize + 2, barWidth, barHeight);
+
+                // คำนวณความยาวแถบตามเวลาที่เหลือ
+                // หาค่าเวลาสูงสุดตามประเภท
+                int maxDuration = 300; // ค่าเริ่มต้น 5 วินาที (CRAZY)
+                if (buff.getCategory() == Powerup.CATEGORY_TEMPORARY) {
+                    maxDuration = 600; // 10 วินาที (TEMPORARY)
+                }
+
+                // คำนวณความยาวแถบเทียบกับเวลาเต็ม
+                int fillWidth = (int) ((float) buff.getDuration() / maxDuration * barWidth);
+
+                // วาดแถบเวลา
+                if (buff.getCategory() == Powerup.CATEGORY_CRAZY) {
+                    g.setColor(new Color(255, 50, 50)); // สีแดงสำหรับบัฟ CRAZY
+                } else {
+                    g.setColor(new Color(255, 170, 50)); // สีส้มสำหรับบัฟ TEMPORARY
+                }
+                g.fillRect(x, y + iconSize + 2, fillWidth, barHeight);
+
+                // วาดขอบแถบเวลา
+                g.setColor(Color.WHITE);
+                g.drawRect(x, y + iconSize + 2, barWidth, barHeight);
+            } // ถ้าเป็นบัฟถาวร ให้ตรวจสอบว่ามีจำนวนซ้ำหรือไม่ (คงเดิม)
             else if (buff.getCategory() == Powerup.CATEGORY_PERMANENT) {
                 int count = player.getPermanentBuffCount(buff);
                 if (count > 1) {
@@ -653,20 +674,20 @@ public class GamePanel extends JPanel implements Runnable, GameState {
                     g.setColor(new Color(0, 0, 150, 200));
                     int badgeSize = (int) (15 * scaleX);
                     g.fillOval(x + iconSize - badgeSize, y, badgeSize, badgeSize);
-                    
+
                     // วาดตัวเลขสีขาวตรงกลางวงกลม
                     g.setColor(Color.WHITE);
                     Font originalFont = g.getFont();
                     Font scaledFont = originalFont.deriveFont(Font.BOLD, originalFont.getSize() * 0.7f * scaleX);
                     g.setFont(scaledFont);
-                    
+
                     String countText = Integer.toString(count);
                     FontMetrics fm = g.getFontMetrics();
-                    int textX = x + iconSize - badgeSize/2 - fm.stringWidth(countText)/2;
-                    int textY = y + badgeSize/2 + fm.getAscent()/2 - 1;
-                    
+                    int textX = x + iconSize - badgeSize / 2 - fm.stringWidth(countText) / 2;
+                    int textY = y + badgeSize / 2 + fm.getAscent() / 2 - 1;
+
                     g.drawString(countText, textX, textY);
-                    
+
                     // คืนค่าฟอนต์เดิม
                     g.setFont(originalFont);
                 }
@@ -714,16 +735,16 @@ public class GamePanel extends JPanel implements Runnable, GameState {
         playerBullets = new ArrayList<>();
         enemyBullets = new ArrayList<>();
         powerups = new ArrayList<>();
-        
+
         weaponManager = new WeaponManager();
         player.setWeaponManager(weaponManager);
-        
+
         weaponManager.addWeapon(WeaponType.TURRET);
         weaponManager.addWeapon(WeaponType.TURRET);
         weaponManager.addWeapon(WeaponType.GATLING_GUN);
         weaponManager.addWeapon(WeaponType.TURRET);
         weaponManager.addWeapon(WeaponType.AK47);
-        
+
         levelManager = new LevelManager();
         gameMap = new GameMap("level1"); // สร้างแผนที่ด่าน 1
     }
@@ -1003,7 +1024,7 @@ public class GamePanel extends JPanel implements Runnable, GameState {
 
     // เมธอดย่อยสำหรับอัพเดทมอนสเตอร์
     private void updateMonsters() {
-    // จัดการมอนสเตอร์แบบง่ายกว่าเดิม - ลดการคำนวณซับซ้อน
+        // จัดการมอนสเตอร์แบบง่ายกว่าเดิม - ลดการคำนวณซับซ้อน
         for (Enemy enemy : monsters) {
             enemy.update();
             // เพิ่มการหลบหลีกระหว่างมอนสเตอร์
@@ -1108,7 +1129,6 @@ public class GamePanel extends JPanel implements Runnable, GameState {
             }
 
             // บอสโจมตีพิเศษถี่ขึ้น
-
             if (random.nextInt(100) < 2) { // เพิ่มโอกาสจาก 1% เป็น 2%
                 List<EnemyBullet> bullets = boss.attackSpecial();
                 if (bullets != null) {
@@ -1672,20 +1692,19 @@ public class GamePanel extends JPanel implements Runnable, GameState {
         pauseButtons.add(new SoundControlButton(120, HEIGHT - 60, false)); // ปุ่มลดเสียง
         pauseButtons.add(new SoundControlButton(170, HEIGHT - 60, true));  // ปุ่มเพิ่มเสียง
     }
-    
+
     public void placeTurret() {
         // หาตำแหน่งปัจจุบันผู้เล่น
-        int playerX = (int)player.getX();
-        int playerY = (int)player.getY();
+        int playerX = (int) player.getX();
+        int playerY = (int) player.getY();
         weaponManager.deployWeapon(WeaponType.TURRET, playerX, playerY);
     }
-    
+
     public void selectWeapon(int index) {
         WeaponType selectedType = null;
         try {
             selectedType = weaponManager.getWeaponByIndex(index);
-        }
-        catch (IndexOutOfBoundsException ex) {
+        } catch (IndexOutOfBoundsException ex) {
             System.out.println("ช่องที่เลือกเป็นช่องว่าง");
             return;
         }
@@ -1704,17 +1723,17 @@ public class GamePanel extends JPanel implements Runnable, GameState {
             }
         }
     }
-    
+
     public static WeaponManager getWeaponManager() {
         return weaponManager;
     }
-    
+
     public void setSelectedWeaponIndex(int index) {
         selectedWeaponIndex = index;
     }
-    
+
     public static int getSelectedWeaponIndex() {
         return selectedWeaponIndex;
     }
-    
+
 }
