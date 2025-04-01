@@ -489,7 +489,7 @@ public class GamePanel extends JPanel implements Runnable, GameState {
         g2d.fillRect(0, 0, (int) (WIDTH * scaleX), (int) (HEIGHT * scaleY));
         g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1.0f));
 
-        // วาดกรอบหน้า "You Won" พร้อมไล่เฉดสี
+        // วาดกรอบหน้า "You Won" พร้อมไล่เฉดสี (คงสีเดิม)
         GradientPaint gradient = new GradientPaint(
                 (int) ((WIDTH / 2 - 200) * scaleX), (int) ((HEIGHT / 2 - 150) * scaleY), new Color(20, 60, 20),
                 (int) ((WIDTH / 2 + 200) * scaleX), (int) ((HEIGHT / 2 + 150) * scaleY), new Color(20, 150, 20)
@@ -516,19 +516,6 @@ public class GamePanel extends JPanel implements Runnable, GameState {
                 (int) (20 * scaleY)
         );
 
-        // เพิ่มเอฟเฟกต์เรืองแสงรอบกรอบ
-        float glowSize = 10.0f * (1.0f + gameWonPulseValue * 0.5f);
-        g2d.setStroke(new BasicStroke(glowSize * scaleX));
-        g2d.setColor(new Color(100, 255, 100, 50));
-        g2d.drawRoundRect(
-                (int) ((WIDTH / 2 - 200 - glowSize / 2) * scaleX),
-                (int) ((HEIGHT / 2 - 150 - glowSize / 2) * scaleY),
-                (int) ((400 + glowSize) * scaleX),
-                (int) ((300 + glowSize) * scaleY),
-                (int) (25 * scaleX),
-                (int) (25 * scaleY)
-        );
-
         // เพิ่มเงาให้ข้อความ YOU WON!
         Font gameWonFont = new Font("Arial", Font.BOLD, (int) (50 * scaleX));
         g2d.setFont(gameWonFont);
@@ -547,17 +534,6 @@ public class GamePanel extends JPanel implements Runnable, GameState {
         g2d.setColor(new Color(50, 255, 50));
         g2d.drawString(gameWonText, gameWonX, (int) ((HEIGHT / 2 - 73) * scaleY));
 
-        // วาดข้อความแสดงความยินดี
-        Font congratsFont = new Font("Arial", Font.BOLD, (int) (20 * scaleX));
-        g2d.setFont(congratsFont);
-        g2d.setColor(Color.WHITE);
-
-        String congratsText = "คุณได้เอาชนะเกมนี้แล้ว!";
-        FontMetrics congratsMetrics = g2d.getFontMetrics(congratsFont);
-        int congratsWidth = congratsMetrics.stringWidth(congratsText);
-        int congratsX = (int) ((WIDTH / 2) * scaleX - congratsWidth / 2);
-        g2d.drawString(congratsText, congratsX, (int) ((HEIGHT / 2 - 15) * scaleY));
-
         // วาดสถิติผู้เล่น
         Font statsFont = new Font("Arial", Font.BOLD, (int) (24 * scaleX));
         g2d.setFont(statsFont);
@@ -565,9 +541,9 @@ public class GamePanel extends JPanel implements Runnable, GameState {
 
         // ตั้งค่าและวาดข้อความสถิติ โดยจัดให้อยู่ในแนวเดียวกัน
         int statsX = (int) ((WIDTH / 2 - 80) * scaleX);
-        g2d.drawString("Final Score: " + finalScore, statsX, (int) ((HEIGHT / 2 + 30) * scaleY));
-        g2d.drawString("Level Completed: 5", statsX, (int) ((HEIGHT / 2 + 65) * scaleY));
-        g2d.drawString("All Bosses Defeated!", statsX, (int) ((HEIGHT / 2 + 100) * scaleY));
+        g2d.drawString("Final Score: " + finalScore, statsX, (int) ((HEIGHT / 2 - 15) * scaleY));
+        g2d.drawString("Level Completed: 5", statsX, (int) ((HEIGHT / 2 + 20) * scaleY));
+        g2d.drawString("All Bosses Defeated!", statsX, (int) ((HEIGHT / 2 + 55) * scaleY));
 
         // วาดปุ่ม "กลับเมนูหลัก"
         GradientPaint menuGradient = new GradientPaint(
