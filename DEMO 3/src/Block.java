@@ -17,12 +17,8 @@ public class Block implements GameObject {
         this.visible = false;
     }
 
-    /**
-     *
-     */
     @Override
-    public void update() {
-    }
+    public void update() { }
 
     @Override
     public void render(Graphics g) {
@@ -32,10 +28,6 @@ public class Block implements GameObject {
         }
     }
 
-    /**
-     *
-     * @return
-     */
     @Override
     public Rectangle getBounds() {
         return new Rectangle((int) x, (int) y, width, height);

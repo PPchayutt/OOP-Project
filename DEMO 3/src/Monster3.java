@@ -10,9 +10,7 @@ public class Monster3 extends Monster {
     private int spawnTime = 0;
 
     public Monster3(int x, int y, Player player) {
-        super(x, y, player); // เรียก constructor ของ Monster
-
-        // ปรับค่าพารามิเตอร์
+        super(x, y, player);
         this.width = 35;
         this.height = 35;
         this.health = 70;

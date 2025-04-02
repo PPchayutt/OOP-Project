@@ -61,7 +61,7 @@ public class HotbarSlot {
         // วาดจำนวนอาวุธ
         if (amount > 1) {
             String amountText = "x" + amount;
-            g.setColor(Color.YELLOW);  // ใช้สีเหลืองเพื่อให้เด่นชัด
+            g.setColor(Color.YELLOW);
             g.setFont(new Font("Arial", Font.BOLD, fontSize));
 
             // วาดจำนวนที่มุมขวาล่าง
@@ -95,7 +95,6 @@ public class HotbarSlot {
         this.isActive = isActive;
     }
 
-    // เพิ่มเมธอดสำหรับกำหนดเวลาที่เหลือของอาวุธ
     public void setLifespan(float lifespan) {
         this.lifespan = lifespan;
     }

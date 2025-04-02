@@ -137,9 +137,7 @@ public class MenuPanel extends JPanel implements MouseListener, GameState {
     }
 
     @Override
-    public void update() {
-        // อัพเดตสถานะต่างๆ ในเมนู (ถ้ามี)
-    }
+    public void update() { }
 
     @Override
     public void paintComponent(Graphics g) {

@@ -91,7 +91,7 @@ public class InputHandler implements KeyListener, MouseListener, MouseMotionList
             if (timeSinceLastShot >= playerCooldown) {
                 System.out.println("ยิงที่พิกัด: " + mouseX + ", " + mouseY);
 
-                // ส่งพิกัดเมาส์ที่แท้จริงไปให้ gamePanel
+                // ส่งพิกัดเมาส์จริงไปให้ gamePanel
                 gamePanel.playerShoot(mouseX, mouseY);
                 lastShootTime = currentTime;
             }

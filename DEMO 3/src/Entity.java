@@ -3,13 +3,13 @@ import java.awt.*;
 
 public abstract class Entity implements GameObject, Damageable {
 
-    protected float x, y;              // ตำแหน่ง
-    protected float velX, velY;        // ความเร็วในแกน X และ Y
-    protected int width, height;       // ขนาด
-    protected int health;              // พลังชีวิต
-    protected int maxHealth;           // พลังชีวิตสูงสุด
-    protected int speed;               // ความเร็วการเคลื่อนที่พื้นฐาน
-    protected boolean alive = true;    // สถานะการมีชีวิต
+    protected float x, y;
+    protected float velX, velY;
+    protected int width, height;
+    protected int health;
+    protected int maxHealth;
+    protected int speed;
+    protected boolean alive = true; // สถานะการมีชีวิต
 
     public Entity(float x, float y, int width, int height, int health, int speed) {
         this.x = x;

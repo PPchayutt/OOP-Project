@@ -3,10 +3,10 @@ import java.awt.*;
 
 public abstract class Projectile implements GameObject {
 
-    protected float x, y;          // ตำแหน่ง
-    protected int width, height;    // ขนาด
-    protected double angle;         // มุมการเคลื่อนที่ (เรเดียน)
-    protected int speed;            // ความเร็ว
+    protected float x, y; // ตำแหน่ง
+    protected int width, height; // ขนาด
+    protected double angle; // มุมการเคลื่อนที่ (เรเดียน)
+    protected int speed; // ความเร็ว
     protected boolean active = true; // สถานะการทำงาน
 
     public Projectile(int x, int y, int width, int height, double angle, int speed) {

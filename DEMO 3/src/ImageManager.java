@@ -218,6 +218,7 @@ public class ImageManager {
                 File hotbarUIFile = new File("resources/images/weapon bar.png");
                 if (hotbarUIFile.exists()) {
                     images.put("hotbar", ImageIO.read(hotbarUIFile));
+                    System.out.println("โหลดรูปภาพแถบอาวุธสำเร็จ");
                 } else {
                     createDefaultHotbarImage();
                 }
@@ -225,7 +226,7 @@ public class ImageManager {
                 File activeFrameFile = new File("resources/images/Weapon selection framework.png");
                 if (activeFrameFile.exists()) {
                     images.put("activeFrame", ImageIO.read(activeFrameFile));
-                    System.out.println("โหลดรูปภาพกรอบอาวุธสำเร็จ YES");
+                    System.out.println("โหลดรูปภาพกรอบอาวุธสำเร็จ");
                 } else {
                     createDefaultActiveFrame();
                 }
@@ -233,11 +234,13 @@ public class ImageManager {
                 File turretHeadFile = new File("resources/images/Turret Head.png");
                 if (turretHeadFile.exists()) {
                     images.put("turretHead", ImageIO.read(turretHeadFile));
+                    System.out.println("โหลดรูปภาพหัวป้อมปืนสำเร็จ");
                 }
 
                 File turretBaseFile = new File("resources/images/Turret base.png");
                 if (turretHeadFile.exists()) {
                     images.put("turretBase", ImageIO.read(turretBaseFile));
+                    System.out.println("โหลดรูปภาพฐานป้อมปืนสำเร็จ");
                 }
 
                 // โหลดรูปภาพปืนและเอฟเฟค

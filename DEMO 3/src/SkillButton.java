@@ -11,12 +11,6 @@ public class SkillButton extends AbstractMenuButton {
         this.parent = parent;
     }
 
-    /**
-     *
-     * @param g
-     * @param scaleX
-     * @param scaleY
-     */
     @Override
     public void render(Graphics g, float scaleX, float scaleY) {
         int scaledX = (int) (x * scaleX);

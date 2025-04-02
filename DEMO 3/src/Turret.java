@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Turret extends Weapon implements GameObject {
-
+    
     private final Image turretHead, turretBase;
     private int turretDirection;
 
@@ -100,7 +100,7 @@ public class Turret extends Weapon implements GameObject {
             if (targetX < x + width / 2) {
                 turretDirection = -1; // เมื่อเป้าหมายอยู่ทางซ้าย ให้หันปืนไปทางซ้าย
             } else {
-                turretDirection = 1;  // เมื่อเป้าหมายอยู่ทางขวา ให้หันปืนไปทางขวา
+                turretDirection = 1; // เมื่อเป้าหมายอยู่ทางขวา ให้หันปืนไปทางขวา
             }
         }
 
