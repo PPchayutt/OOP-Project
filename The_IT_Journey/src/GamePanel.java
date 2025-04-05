@@ -52,6 +52,8 @@ public class GamePanel extends JPanel implements Runnable, GameState {
     private static int selectedWeaponIndex = -1;
     private static WeaponManager weaponManager;
     private final HotbarUI hotbarUI;
+    
+    private final GameUIManager uiManager;
 
     public GamePanel(Game game) {
         this.game = game;
@@ -63,7 +65,8 @@ public class GamePanel extends JPanel implements Runnable, GameState {
 
         initGame();
         initPauseMenu();
-
+        
+        uiManager = new GameUIManager(this, player, levelManager, 0);
         hotbarUI = new HotbarUI(player);
         inputHandler = new InputHandler(this);
         addKeyListener(inputHandler);
@@ -809,6 +812,26 @@ public class GamePanel extends JPanel implements Runnable, GameState {
                 enemyBullets.remove(0);
             }
         }
+        
+        uiManager.updateEffects();
+
+        // อัพเดทสถานะของ uiManager ตามสถานะเกมปัจจุบัน
+        if (gameOver) {
+            uiManager.setState(GameUIManager.GameState.GAME_OVER);
+            return; // ออกจากเมธอดเพราะเกมจบแล้ว
+        } else if (gameWon) {
+            uiManager.setState(GameUIManager.GameState.GAME_WON);
+            // อัพเดท finalScore ใน GameWonScreen
+            uiManager.updateFinalScore(finalScore);
+            return; // ออกจากเมธอดเพราะเกมจบแล้ว
+        } else if (gamePaused) {
+            uiManager.setState(GameUIManager.GameState.PAUSED);
+            return; // ออกจากเมธอดเพราะเกมพักอยู่
+        } else if (levelManager.isTransitioning()) {
+            uiManager.setState(GameUIManager.GameState.LEVEL_TRANSITION);
+        } else {
+            uiManager.setState(GameUIManager.GameState.PLAYING);
+        }
 
         // เพิ่มการตรวจสอบการเปลี่ยนแผนที่
         if (levelManager.needsMapChange()) {
@@ -862,50 +885,6 @@ public class GamePanel extends JPanel implements Runnable, GameState {
                 SoundManager.stopBackgroundMusic();
             }
             return;
-        }
-
-        // ถ้าเกมจบแล้ว (Game Over) ให้อัพเดทเฉพาะเอฟเฟกต์หน้า Game Over
-        if (gameOver) {
-            // อัพเดทเอฟเฟกต์ของหน้า Game Over
-            gameOverEffectTimer++;
-
-            // เอฟเฟกต์กระพริบ
-            if (gameOverPulseDirection) {
-                gameOverPulseValue += 0.03f;
-                if (gameOverPulseValue >= 1.0f) {
-                    gameOverPulseValue = 1.0f;
-                    gameOverPulseDirection = false;
-                }
-            } else {
-                gameOverPulseValue -= 0.03f;
-                if (gameOverPulseValue <= 0.0f) {
-                    gameOverPulseValue = 0.0f;
-                    gameOverPulseDirection = true;
-                }
-            }
-            return; // ออกจากเมธอดเพราะเกมจบแล้ว ไม่ต้องอัพเดทสิ่งอื่น
-        }
-
-        // เพิ่มเงื่อนไขสำหรับ gameWon
-        if (gameWon) {
-            // อัพเดทเอฟเฟกต์ของหน้า Game Won
-            gameWonEffectTimer++;
-
-            // เอฟเฟกต์กระพริบ
-            if (gameWonPulseDirection) {
-                gameWonPulseValue += 0.03f;
-                if (gameWonPulseValue >= 1.0f) {
-                    gameWonPulseValue = 1.0f;
-                    gameWonPulseDirection = false;
-                }
-            } else {
-                gameWonPulseValue -= 0.03f;
-                if (gameWonPulseValue <= 0.0f) {
-                    gameWonPulseValue = 0.0f;
-                    gameWonPulseDirection = true;
-                }
-            }
-            return; // ออกจากเมธอดเพราะเกมจบแล้ว ไม่ต้องอัพเดทสิ่งอื่น
         }
 
         // ถ้าเกมหยุดชั่วคราว ให้ไม่ต้องอัพเดทสถานะเกม
@@ -1552,13 +1531,10 @@ public class GamePanel extends JPanel implements Runnable, GameState {
         int scaledX = (int) (x / scaleX);
         int scaledY = (int) (y / scaleY);
 
-        // สร้างพื้นที่ปุ่ม "เล่นใหม่"
         Rectangle restartButton = new Rectangle(WIDTH / 2 - 100, HEIGHT / 2 + 90, 200, 40);
 
-        // สร้างพื้นที่ปุ่ม "กลับเมนูหลัก"
         Rectangle menuButton = new Rectangle(WIDTH / 2 - 100, HEIGHT / 2 + 140, 200, 40);
 
-        // ตรวจสอบว่าคลิกที่ปุ่มไหน
         if (restartButton.contains(scaledX, scaledY)) {
             // เริ่มเกมใหม่
             restartGame();
@@ -1576,7 +1552,6 @@ public class GamePanel extends JPanel implements Runnable, GameState {
         if (gameOver) {
             handleGameOverButtons(scaledX, scaledY);
         } else if (gameWon) {
-            // สร้างพื้นที่ปุ่ม "กลับเมนูหลัก"
             Rectangle menuButton = new Rectangle(WIDTH / 2 - 100, HEIGHT / 2 + 140, 200, 40);
 
             if (menuButton.contains(scaledX, scaledY)) {
