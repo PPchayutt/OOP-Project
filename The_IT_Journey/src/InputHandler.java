@@ -42,7 +42,7 @@ public class InputHandler implements KeyListener, MouseListener, MouseMotionList
             player.toggleImmortalMode();
             SoundManager.playSound("get_skill");
         }
-
+        
         // กดปุ่ม P หรือ ESC เพื่อพักเกม (ทำงานเมื่อเกมไม่จบเท่านั้น)
         if ((key == KeyEvent.VK_P || key == KeyEvent.VK_ESCAPE) && !isGameOver) {
             gamePanel.togglePause();
