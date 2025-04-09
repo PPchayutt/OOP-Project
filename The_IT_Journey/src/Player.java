@@ -31,8 +31,9 @@ public class Player extends Entity {
     private int invincibleTime = 0;
     private final int maxInvincibleTime = 60;  // เฟรม
 
-    // ค่าความเสียหายของกระสุน
-    private int bulletDamage = 25;
+    // ค่าความเสียหายของกระสุนเริ่มต้น
+    private static final int baseBulletDamage = 25;
+    private static int bulletDamage = baseBulletDamage;
 
     private int score = 0;
 
@@ -393,15 +394,8 @@ public class Player extends Entity {
 
             // วาดปืนและเอฟเฟคการยิง
             if (isShooting) {
-                Image gunImage = ImageManager.getImage("gun");
                 WeaponType type = weaponManager.getActiveWeaponType();
-                if (type != null) {
-                    if (type.equals(WeaponType.AK47)) {
-                        gunImage = ImageManager.getImage("ak47");
-                    } else if (type.equals(WeaponType.GATLING_GUN)) {
-                        gunImage = ImageManager.getImage("gatlingGun");
-                    }
-                }
+                Image gunImage = getGunImage(type);
                 Image flashImage = ImageManager.getImage("muzzle_flash");
 
                 if (gunImage != null && flashImage != null) {
@@ -497,59 +491,52 @@ public class Player extends Entity {
         if (targetX < x + width / 2) {
             gunDirection = -1; // เมื่อเป้าหมายอยู่ทางซ้าย ให้หันปืนไปทางซ้าย
         } else {
-            gunDirection = 1;  // เมื่อเป้าหมายอยู่ทางขวา ให้หันปืนไปทางขวา
+            gunDirection = 1; // เมื่อเป้าหมายอยู่ทางขวา ให้หันปืนไปทางขวา
         }
 
-        WeaponType activeWeapon = weaponManager.getActiveWeaponType();
-        System.out.println("equip : " + activeWeapon);
-
-        shootCooldown = 200;
         int effectiveDamage = bulletDamage;
         int bulletCount = 1;
         int bulletSpeed = 10;
-        double spread = 0;
-        boolean useKnockback = knockbackEnabled;
-        int knockbackValue = knockbackPower;
+        boolean spread = false;
+        double spreadAmount = 0;
+        shootCooldown = 200;
 
+        WeaponType activeWeapon = weaponManager.getActiveWeaponType();
+        System.out.println("equiping : " + activeWeapon);
+        
         if (activeWeapon != null) {
-            Weapon weapon = weaponManager.createWeapon(activeWeapon, (int) x, (int) y);
-            switch (activeWeapon) {
-                case AK47 -> {
-                    effectiveDamage = weapon.getDamage();
-                    bulletSpeed = 15;
-                    spread = 0.07;
-                    shootCooldown = 120;
-                }
-                case GATLING_GUN -> {
-                    effectiveDamage = weapon.getDamage();
-                    bulletCount = 4;
-                    bulletSpeed = 25;
-                    spread = 0.12;
-                    shootCooldown = 90;
-                }
-            }
+            Weapon weapon = weaponManager.createWeapon(activeWeapon);
+            bulletSpeed = weapon.getBulletSpeed();
+            bulletCount = weapon.getBulletCount();
+            spread = weapon.getSpreadShot();
+            spreadAmount = weapon.getSpreadAmount();
+            shootCooldown = weapon.getCooldown();
         }
-
+        
         // บัฟยิงบ้าคลั่ง (Crazy Shooting)
         if (crazyShootingMode) {
             effectiveDamage = bulletDamage * 2;
             bulletCount = 5;
             bulletSpeed = (int) (bulletSpeed * 1.5);
-            spread += 0.05;
+            spreadAmount += 0.05;
             shootCooldown = (int) (shootCooldown / 1.5);
-        } // บัฟยิงหลายนัด (Multiple Bullets)
+        }
+        // บัฟยิงหลายนัด (Multiple Bullets)
         if (extraBullets > 0) {
-            // ยิงแบบกระจายหลายนัดพร้อมกัน
             System.out.println("Extra bullet : " + extraBullets);
             bulletCount += extraBullets;
         }
+        System.out.println("Damage : " + effectiveDamage);
+        System.out.println("Gun Damage : " + bulletDamage);
         System.out.println("bulletCount : " + bulletCount);
-        if (crazyShootingMode || activeWeapon != null) {
+        if (crazyShootingMode || spread) {
+            // ยิงกระจายเป็นแฉกๆ
             for (int i = 0; i < bulletCount; i++) {
-                createSingleBullet(angle, effectiveDamage, bulletSpeed, spread, useKnockback, knockbackValue);
+                createSingleBullet(angle, effectiveDamage, bulletSpeed, spreadAmount);
             }
         } else {
-            createBullets(angle, effectiveDamage, bulletCount, bulletSpeed, true, useKnockback, knockbackValue);
+            // ยิงแบบ spray
+            createBullets(angle, effectiveDamage, bulletCount, bulletSpeed, true);
         }
         // เริ่มแอนิเมชันการยิง
         isShooting = true;
@@ -562,15 +549,15 @@ public class Player extends Entity {
         lastShotTime = currentTime;
     }
 
-    private void createSingleBullet(double angle, int damage, int speed, double spread, boolean knockback, int knockbackPower) {
-        double randomSpread = (Math.random() * 2 - 1) * spread;
+    private void createSingleBullet(double angle, int damage, int speed, double spreadAmount) {
+        double randomSpread = (Math.random() * 2 - 1) * spreadAmount;
         double finalAngle = angle + randomSpread;
 
         PlayerBullet bullet = new PlayerBullet((int) (x + width / 2), (int) (y + height / 2), 8, 8, finalAngle);
         bullet.setDamage(damage);
         bullet.setSpeed(speed);
 
-        if (knockback) {
+        if (knockbackEnabled) {
             bullet.setKnockback(true);
             bullet.setKnockbackPower(knockbackPower);
         }
@@ -578,13 +565,13 @@ public class Player extends Entity {
         bullets.add(bullet);
     }
 
-    private void createBullets(double angle, int damage, int count, int speed, boolean spread, boolean knockback, int knockbackPower) {
+    private void createBullets(double angle, int damage, int count, int speed, boolean spread) {
         // สร้างกระสุนหลัก (ตรงกลาง)
         PlayerBullet firstBullet = new PlayerBullet((int) (x + width / 2), (int) (y + height / 2), 8, 8, angle);
         firstBullet.setDamage(damage);
         firstBullet.setSpeed(speed);
 
-        if (knockback) {
+        if (knockbackEnabled) {
             firstBullet.setKnockback(true);
             firstBullet.setKnockbackPower(knockbackPower);
         }
@@ -601,7 +588,7 @@ public class Player extends Entity {
                 bullet.setDamage(damage);
                 bullet.setSpeed(speed);
 
-                if (knockback) {
+                if (knockbackEnabled) {
                     bullet.setKnockback(true);
                     bullet.setKnockbackPower(knockbackPower);
                 }
@@ -651,6 +638,14 @@ public class Player extends Entity {
             // ได้รับความเสียหายแต่ยังไม่ตาย ให้อมตะชั่วคราว
             invincibleTime = maxInvincibleTime / 2;
         }
+    }
+    
+    public static void setBulletDamage(int damage) {
+        bulletDamage = damage;
+    }
+    
+    public static void resetBulletDamage() {
+        bulletDamage = baseBulletDamage;
     }
 
     public List<PlayerBullet> getBullets() {
@@ -713,5 +708,26 @@ public class Player extends Entity {
 
     public WeaponType getSelectedWeaponType() {
         return weaponManager.getSelectedWeaponType();
+    }
+    
+    public Image getGunImage(WeaponType type) {
+        String gunType = "pistol";
+        if (type != null) {
+            switch (type) {
+                case AK47:
+                    gunType = "ak47";
+                    break;
+                case GATLING_GUN:
+                    gunType = "gatlingGun";
+                    break;
+                case SHOTGUN:
+                    gunType = "shotgun";
+                    break;
+                case SHURIKEN:
+                    gunType = "shuriken";
+                    break;
+            }
+        }
+        return ImageManager.getImage(gunType);
     }
 }

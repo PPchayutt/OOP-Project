@@ -8,6 +8,9 @@ public class WeaponManager {
     private final Map<WeaponType, List<Weapon>> availableWeapons;
     private final List<WeaponType> weaponOrder; // เก็บลำดับการได้รับอาวุธ
     private WeaponType activeWeaponType = null;  // ประเภทอาวุธที่กำลังใช้งาน
+    
+    public final List<WeaponType> tier2Weapon = Arrays.asList(WeaponType.AK47, WeaponType.SHOTGUN);
+    public final List<WeaponType> tier3Weapon = Arrays.asList(WeaponType.GATLING_GUN, WeaponType.TURRET, WeaponType.SHURIKEN);
 
     public WeaponManager() {
         deployedWeapons = new ArrayList<>();
@@ -16,7 +19,7 @@ public class WeaponManager {
     }
 
     public void addWeapon(WeaponType type) {
-        Weapon weapon = createWeapon(type, 0, 0);
+        Weapon weapon = createWeapon(type);
         if (weapon != null) {
             if (!availableWeapons.containsKey(type)) {
                 // ถ้ายังไม่มีให้เพิ่มอาวุธใหม่
@@ -44,6 +47,7 @@ public class WeaponManager {
                 availableWeapons.get(activeWeaponType).get(0).setUsing(false);
             }
             activeWeaponType = null;
+            Player.resetBulletDamage();
             return; // ออกจากเมธอดเลย ไม่ต้องทำส่วนที่เหลือ
         }
 
@@ -59,8 +63,10 @@ public class WeaponManager {
         if (availableWeapons.containsKey(type) && !availableWeapons.get(type).isEmpty()) {
             availableWeapons.get(type).get(0).setUsing(true);
             activeWeaponType = type;
+            Player.setBulletDamage(createWeapon(type).getDamage());
         } else {
             activeWeaponType = null;
+            Player.resetBulletDamage();
         }
     }
 
@@ -70,9 +76,9 @@ public class WeaponManager {
             List<Weapon> weapons = availableWeapons.get(type);
             if (!weapons.isEmpty() && weapons.get(0).isDeployable()) {
                 // สร้างอาวุธใหม่เพื่อวาง
-                Weapon weapon = createWeapon(type, x, y);
+                Weapon weapon = createWeapon(type);
+                ((Turret)weapon).setLocation(x, y);
                 if (weapon != null) {
-                    weapon.setLocation(x, y);
                     weapon.setDeployed(true);
                     deployedWeapons.add(weapon);
 
@@ -93,7 +99,7 @@ public class WeaponManager {
     }
 
     public float getWeaponLifespanPercentage(WeaponType type) {
-        if (type == WeaponType.AK47) {
+        if (createWeapon(type).isPermanent()) {
             return 1.0f;
         }
         if (availableWeapons.containsKey(type) && !availableWeapons.get(type).isEmpty()) {
@@ -105,22 +111,20 @@ public class WeaponManager {
         return 0f;
     }
 
-    public Weapon createWeapon(WeaponType type, int x, int y) {
+    public Weapon createWeapon(WeaponType type) {
         return switch (type) {
+            // tier 2
             case AK47 ->
-                new Weapon(0, 0, 40, 40, 20, 15, 480, type, false, true) {
-                    @Override
-                    public void render(Graphics g) {
-                    }
-                };
+                new Weapon(20, 15, 3, true, 0.07, 140, 100, type, false, true); 
+            case SHOTGUN ->
+                new Weapon(30, 20, 5, false, 0.25, 450, 100, type, false, true);
+            // tier 3
             case TURRET ->
-                new Turret(x, y);
+                new Turret();
             case GATLING_GUN ->
-                new Weapon(0, 0, 40, 40, 35, 25, 300, type, false, false) {
-                    @Override
-                    public void render(Graphics g) {
-                    }
-                };
+                new Weapon(35, 25, 4, true, 0.12, 90, 300, type, false, false);
+            case SHURIKEN ->
+                new Weapon(35, 27, 3, false, 0.01, 300, 100, type, false, true);
             default ->
                 null;
         };
@@ -217,12 +221,16 @@ public class WeaponManager {
         return result;
     }
 
-    public WeaponType getWeaponByIndex(int index) {
-        return weaponOrder.get(index);
+    public Weapon getWeaponByIndex(int index) {
+        return availableWeapons.get(weaponOrder.get(index)).get(0);
     }
 
     public WeaponType getActiveWeaponType() {
         return activeWeaponType;
+    }
+    
+    public List<Weapon> getDeployedWeapon() {
+        return deployedWeapons;
     }
 
 }

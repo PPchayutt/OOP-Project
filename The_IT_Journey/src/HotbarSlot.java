@@ -38,14 +38,14 @@ public class HotbarSlot {
         }
 
         String weaponName = weaponType.getName();
-        int maxChars = 8; // กำหนดจำนวนตัวอักษรสูงสุดที่จะแสดง
+        int maxChars = 6; // กำหนดจำนวนตัวอักษรสูงสุดที่จะแสดง
         if (weaponName.length() > maxChars) {
-            weaponName = weaponName.substring(0, maxChars - 2) + "..";
+            weaponName = weaponName.substring(0, maxChars) + "..";
         }
         g.setColor(Color.WHITE);
 
         // ปรับขนาดฟอนต์ตามสัดส่วน
-        int fontSize = Math.min((int) (7 * multiplier), height / 3);
+        int fontSize = (int)(height / 4.5);
         g.setFont(new Font("Arial", Font.BOLD, fontSize));
 
         // คำนวณตำแหน่งเพื่อให้ข้อความอยู่ตรงกลาง

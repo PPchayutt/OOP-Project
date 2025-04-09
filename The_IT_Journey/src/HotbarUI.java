@@ -7,13 +7,13 @@ public final class HotbarUI {
     private final int original_width = 240;
     private final int original_height = 40;
 
-    private final double multiplier = 1.7; // << ถ้าจะปรับขนาดให้ปรับตรงนี้
+    private final double multiplier = 1.9; // << ถ้าจะปรับขนาดให้ปรับตรงนี้
     // ขนาดบนจอ
     private final int width = (int) (original_width * multiplier);
     private final int height = (int) (original_height * multiplier);
     // ตำแหน่งบนจอ (กลาง ล่าง)
     private final int x = GamePanel.WIDTH / 2 - (width / 2);
-    private final int y = GamePanel.HEIGHT - (height + (int) (25 * multiplier));
+    private final int y = GamePanel.HEIGHT - (height + (int) (20 * multiplier));
     private final int MAX_SLOTS = 8;
     // ขนาดช่อง สำหรับ class HotbarSlot
     private final int margin_x = (int) (10 * multiplier); // เว้นขอบซ้าย/ขวา

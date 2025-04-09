@@ -1,8 +1,10 @@
 
 public enum WeaponType {
     AK47(1, "Ak47"),
-    TURRET(2, "Turret"),
-    GATLING_GUN(3, "Gatling Gun");
+    SHOTGUN(2, "Shotgun"),
+    TURRET(3, "Turret"),
+    GATLING_GUN(4, "Gatling Gun"),
+    SHURIKEN(5, "Shuriken");
 
     private final int id;
     private final String name;

@@ -5,23 +5,62 @@ import java.util.List;
 
 public class Turret extends Weapon implements GameObject {
     
-    private final Image turretHead, turretBase;
+    private int x;
+    private int y;
+    private final int width = 45;
+    private final int height = 45;
+    private int currentCooldown;
     private int turretDirection;
+    private final Image turretHead, turretBase, flashImage;
+    private boolean isShooting = false;
+    private int flashWidth;
+    private int flashHeight;
 
-    public Turret(int x, int y) {
-        super(x, y, 45, 45, 25, 15, 600, WeaponType.TURRET, true, false);
-        turretHead = ImageManager.getImage("turretHead");
-        turretBase = ImageManager.getImage("turretBase");
+    public Turret() {
+        super(25, 10, 1, false, 0, 15, 600, WeaponType.TURRET, true, false);
+        this.currentCooldown = 0;
+        this.turretHead = ImageManager.getImage("turretHead");
+        this.turretBase = ImageManager.getImage("turretBase");
+        this.flashImage = ImageManager.getImage("muzzle_flash");
+    }
+    
+    @Override
+    public void update() {
+        if (!isPermanent() && (isDeployed() || isUsing())) {
+            lifespan--;
+            if (lifespan <= 0) {
+                active = false;
+            }
+            if (currentCooldown > 0) {
+                currentCooldown--;
+                isShooting = false;
+            }
+        }
     }
 
     @Override
     public void render(Graphics g) {
         // วาดป้อมปืน
         g.drawImage(turretBase, x, y, width, height, null);
+                
+        flashWidth = Math.max(3, (int) (flashImage.getWidth(null) * 0.03));
+        flashHeight = Math.max(3, (int) (flashImage.getHeight(null) * 0.03));
+        
         if (turretDirection > 0) {
+            // เมื่อเป้าหมายอยู่ทางขวา ให้หันปืนไปทางขวา
             g.drawImage(turretHead, x, y - 10, width, height, null);
         } else {
+            // เมื่อเป้าหมายอยู่ทางซ้าย ให้หันปืนไปทางซ้าย
             g.drawImage(turretHead, x + width, y - 10, -width, height, null);
+        }
+        
+        // วาดเอฟเฟกตอนยิง
+        if (isShooting) {
+            if (turretDirection > 0) {
+                g.drawImage(flashImage, x + width - 4, y, flashWidth, flashHeight, null);
+            } else {
+                g.drawImage(flashImage, x + 4, y, -flashWidth, flashHeight, null);
+            }
         }
 
         // วาดแถบเวลาที่เหลือ
@@ -70,6 +109,8 @@ public class Turret extends Weapon implements GameObject {
         if (!deployed || !canAttack()) {
             return null;
         }
+        
+        isShooting = true;
 
         List<PlayerBullet> bullets = new ArrayList<>();
 
@@ -99,17 +140,39 @@ public class Turret extends Weapon implements GameObject {
 
             if (targetX < x + width / 2) {
                 turretDirection = -1; // เมื่อเป้าหมายอยู่ทางซ้าย ให้หันปืนไปทางซ้าย
+                
             } else {
                 turretDirection = 1; // เมื่อเป้าหมายอยู่ทางขวา ให้หันปืนไปทางขวา
+
             }
         }
-
         return bullets;
     }
 
+    public boolean canAttack() {
+        return currentCooldown <= 0;
+    }
+
+    public void resetCooldown() {
+        currentCooldown = cooldown;
+    }
+    
     @Override
     public Rectangle getBounds() {
         return new Rectangle((int) x, (int) y, width, height);
+    }
+    
+    public void setX(int x) {
+        this.x = x;
+    }
+
+    public void setY(int y) {
+        this.y = y;
+    }
+
+    public void setLocation(int x, int y) {
+        setX(x);
+        setY(y);
     }
 
 }

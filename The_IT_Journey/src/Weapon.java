@@ -1,13 +1,14 @@
 
 import java.awt.*;
 
-public abstract class Weapon implements GameObject {
+public class Weapon implements GameObject {
 
-    protected int x, y;
-    protected int width, height;
     protected int damage;
+    protected int bulletSpeed;
+    protected int bulletCount;
+    protected boolean spreadShot;
+    protected double spreadAmount;
     protected int cooldown;
-    protected int currentCooldown;
     protected int lifespan;
     protected int maxLifespan;
     protected boolean active = true;
@@ -15,42 +16,39 @@ public abstract class Weapon implements GameObject {
     protected boolean deployed = false;
     protected boolean using = false;
     protected WeaponType type;
-    protected boolean isPermanent = false;
+    protected boolean isPermanent;
 
-    public Weapon(int x, int y, int width, int height, int damage, int cooldown, int lifespan, WeaponType type, boolean deployable, boolean isPermanent) {
-        this.x = x;
-        this.y = y;
-        this.width = width;
-        this.height = height;
+    public Weapon(int damage, int bulletSpeed, int bulletCount, boolean spreadShot, double spreadAmount, int cooldown, int lifespan, WeaponType type, boolean deployable, boolean isPermanent) { 
         this.damage = damage;
+        this.bulletSpeed = bulletSpeed;
+        this.bulletCount = bulletCount;
+        this.spreadShot = spreadShot;
+        this.spreadAmount = spreadAmount;
         this.cooldown = cooldown;
-        this.currentCooldown = 0;
         this.lifespan = lifespan;
         this.maxLifespan = lifespan;
         this.type = type;
         this.deployable = deployable;
         this.isPermanent = isPermanent;
     }
+    
+    @Override
+    public void render(Graphics g) { }
 
     @Override
     public void update() {
         // ลดเวลาลงทุกเฟรม
-        if (!isPermanent && (deployed || using)) {
+        if (!isPermanent() && (isDeployed() || isUsing())) {
             lifespan--;
             if (lifespan <= 0) {
                 active = false;
-            }
-
-            // ลดเวลาคูลดาวน์
-            if (currentCooldown > 0) {
-                currentCooldown--;
             }
         }
     }
 
     @Override
     public Rectangle getBounds() {
-        return new Rectangle((int) x, (int) y, width, height);
+        return null;
     }
 
     public void setUsing(boolean using) {
@@ -81,20 +79,28 @@ public abstract class Weapon implements GameObject {
         this.deployed = deployed;
     }
 
-    public boolean canAttack() {
-        return currentCooldown <= 0;
-    }
-
-    public void resetCooldown() {
-        currentCooldown = cooldown;
-    }
-
     public int getDamage() {
         return damage;
     }
-
-    public WeaponType getType() {
-        return type;
+    
+   public int getBulletSpeed() {
+       return bulletSpeed;
+   }
+    
+    public int getBulletCount() {
+        return bulletCount;
+    }
+    
+    public boolean getSpreadShot() {
+        return spreadShot;
+    }
+    
+    public double getSpreadAmount() {
+        return spreadAmount;
+    }
+    
+    public int getCooldown() {
+        return cooldown;
     }
 
     public float getLifespanPercentage() {
@@ -107,21 +113,12 @@ public abstract class Weapon implements GameObject {
     public int getRemainingLifespan() {
         return lifespan;
     }
-
+    
     public void resetLifespan() {
         lifespan = maxLifespan;
     }
-
-    public void setX(int x) {
-        this.x = x;
-    }
-
-    public void setY(int y) {
-        this.y = y;
-    }
-
-    public void setLocation(int x, int y) {
-        setX(x);
-        setY(y);
+        
+    public WeaponType getType() {
+        return type;
     }
 }

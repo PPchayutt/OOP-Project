@@ -721,6 +721,9 @@ public class GamePanel extends JPanel implements Runnable, GameState {
         powerups = new ArrayList<>();
 
         player.setWeaponManager(weaponManager);
+        weaponManager.addWeapon(WeaponType.SHURIKEN);
+        weaponManager.addWeapon(WeaponType.SHOTGUN);
+        weaponManager.addWeapon(WeaponType.GATLING_GUN);
 
         levelManager = new LevelManager();
         gameMap = new GameMap("level1"); // สร้างแผนที่ด่าน 1
@@ -1034,17 +1037,7 @@ public class GamePanel extends JPanel implements Runnable, GameState {
                 // เพิ่มคะแนน
                 player.addScore(boss.getPoints());
 
-                // ถ้าชนะบอสด่านแรกจะได้ปืน tier 2
-                if (levelManager.getCurrentLevel() == 2) {
-                    weaponManager.addWeapon(WeaponType.AK47);
-                } else {
-                    // ด่านหลังจากนั้นให้ดรอปปืน tier 3
-                    if (Math.random() < 0.5) {
-                        weaponManager.addWeapon(WeaponType.GATLING_GUN);
-                    } else {
-                        weaponManager.addWeapon(WeaponType.TURRET);
-                    }
-                }
+                dropWeapon();
 
                 // เพิ่มเงื่อนไขตรวจสอบว่าเป็นบอสตัวสุดท้ายหรือไม่
                 if (boss instanceof Boss5) {
@@ -1606,6 +1599,18 @@ public class GamePanel extends JPanel implements Runnable, GameState {
                 new Color(150, 50, 50), Color.WHITE, () -> returnToMenu()));
 
     }
+    
+    public void dropWeapon() {
+        // ถ้าชนะบอสด่านแรกจะได้ปืน tier 2
+        if (levelManager.getCurrentLevel() == 2) {
+            int randomIndex = random.nextInt(weaponManager.tier2Weapon.size());
+            weaponManager.addWeapon(weaponManager.tier2Weapon.get(randomIndex));
+        } else {
+            // ด่านหลังจากนั้นให้ดรอปปืน tier 3
+            int randomIndex = random.nextInt(weaponManager.tier3Weapon.size());
+            weaponManager.addWeapon(weaponManager.tier3Weapon.get(randomIndex));
+        }
+    }
 
     public void placeTurret() {
         // หาตำแหน่งปัจจุบันผู้เล่น
@@ -1615,24 +1620,22 @@ public class GamePanel extends JPanel implements Runnable, GameState {
     }
 
     public void selectWeapon(int index) {
-        WeaponType selectedType = null;
+        Weapon selectedWeapon = null;
         try {
-            selectedType = weaponManager.getWeaponByIndex(index);
+            selectedWeapon = weaponManager.getWeaponByIndex(index);
         } catch (IndexOutOfBoundsException ex) {
             System.out.println("ช่องที่เลือกเป็นช่องว่าง");
             return;
         }
+        System.out.println(selectedWeapon);
+        WeaponType selectedType = selectedWeapon.getType();
+        System.out.println(selectedType);
         if (selectedType != null && !gameOver && !gamePaused) {
             if (weaponManager.hasWeapon(selectedType)) {
                 if (selectedType == WeaponType.TURRET) {
                     placeTurret();
                 } else {
-                    if (weaponManager.getActiveWeaponType() == selectedType) {
-                        // ถ้ากดใช้อาวุธเดิม จะเป็นการเลิกใช้
-                        weaponManager.activateWeapon(selectedType);
-                    } else {
-                        weaponManager.activateWeapon(selectedType);
-                    }
+                    weaponManager.activateWeapon(selectedType);
                 }
             }
         }

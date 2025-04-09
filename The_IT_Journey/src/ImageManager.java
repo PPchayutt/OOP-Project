@@ -23,7 +23,6 @@ public class ImageManager {
             File resourceDir = new File("resources/images");
             if (!resourceDir.exists()) {
                 resourceDir.mkdirs(); // สร้างโฟลเดอร์ถ้ายังไม่มี
-                System.out.println("สร้างโฟลเดอร์ resources/images เรียบร้อย โปรดนำรูปภาพไปใส่ในโฟลเดอร์นี้");
             }
 
             try {
@@ -31,157 +30,128 @@ public class ImageManager {
                 if (playerFile.exists()) {
                     ImageIcon playerIcon = new ImageIcon(playerFile.getPath());
                     images.put("player", playerIcon.getImage());
-                    System.out.println("โหลดรูปภาพ GIF ผู้เล่นสำเร็จ");
                 } else {
                     createDefaultPlayerImage();
                 }
+                
+                loadPowerupImages();
+                
+                /*
+                ======โหลดรูปพื้นหลังด่าน======
+                */
+                File level1BgFile = new File("resources/images/level1_bg.png");
+                if (level1BgFile.exists()) {
+                    images.put("level1_bg", ImageIO.read(level1BgFile));
+                }
+                
+                File level2BgFile = new File("resources/images/level2_bg.png");
+                if (level2BgFile.exists()) {
+                    images.put("level2_bg", ImageIO.read(level2BgFile));
+                } else {
+                    createLevel2BackgroundImage();
+                }
 
+                File level3BgFile = new File("resources/images/level3_bg.png");
+                if (level3BgFile.exists()) {
+                    images.put("level3_bg", ImageIO.read(level3BgFile));
+                } else {
+                    createLevel3BackgroundImage();
+                }
+                
+                File level4BgFile = new File("resources/images/level4_bg.png");
+                if (level4BgFile.exists()) {
+                    images.put("level4_bg", ImageIO.read(level4BgFile));
+                } else {
+                    createLevel4BackgroundImage();
+                }
+                
+                File level5BgFile = new File("resources/images/level5_bg.png");
+                if (level5BgFile.exists()) {
+                    images.put("level5_bg", ImageIO.read(level5BgFile));
+                } else {
+                    createLevel5BackgroundImage();
+                }
+                
+                /*
+                ======โหลดรูปศัตรู======
+                */
                 File monsterFile = new File("resources/images/L1_Enemy.png");
                 if (monsterFile.exists()) {
                     images.put("monster", ImageIO.read(monsterFile));
-                    System.out.println("โหลดรูปภาพมอนสเตอร์สำเร็จ");
                 } else {
                     createDefaultMonsterImage();
                 }
-
+                
+                File monster2File = new File("resources/images/L2_Enemy.png");
+                if (monster2File.exists()) {
+                    images.put("monster2", ImageIO.read(monster2File));
+                } else {
+                    createDefaultMonster2Image();
+                }
+                
+                File monster3File = new File("resources/images/L3_Enemy.png");
+                if (monster3File.exists()) {
+                    images.put("monster3", ImageIO.read(monster3File));
+                } else {
+                    createDefaultMonster3Image();
+                }
+                
+                File monster4File = new File("resources/images/L4_Enemy.png");
+                if (monster4File.exists()) {
+                    images.put("monster4", ImageIO.read(monster4File));
+                } else {
+                    createDefaultMonster4Image();
+                }
+                
+                File monster5File = new File("resources/images/L5_Enemy.png");
+                if (monster5File.exists()) {
+                    images.put("monster5", ImageIO.read(monster5File));
+                } else {
+                    createDefaultMonster5Image();
+                }
+                
+                /*
+                ======โหลดรูปบอส======
+                */
                 File bossFile = new File("resources/images/L1_Boss.png");
                 if (bossFile.exists()) {
                     images.put("boss", ImageIO.read(bossFile));
-                    System.out.println("โหลดรูปภาพบอสสำเร็จ");
                 } else {
                     createDefaultBossImage();
                 }
 
-                // โหลดรูปภาพพื้นหลังด่าน 1
-                File level1BgFile = new File("resources/images/level1_bg.png");
-                if (level1BgFile.exists()) {
-                    images.put("level1_bg", ImageIO.read(level1BgFile));
-                    System.out.println("โหลดรูปภาพฉากด่าน 1 สำเร็จ");
-                } else {
-                    System.out.println("ไม่พบไฟล์ภาพฉากด่าน 1");
-                }
-
-                loadPowerupImages();
-
-                File level2BgFile = new File("resources/images/level2_bg.png");
-                if (level2BgFile.exists()) {
-                    images.put("level2_bg", ImageIO.read(level2BgFile));
-                    System.out.println("โหลดรูปภาพฉากด่าน 2 สำเร็จ");
-                } else {
-                    System.out.println("ไม่พบไฟล์ภาพฉากด่าน 2 จะสร้างภาพเองอัตโนมัติ");
-                    createLevel2BackgroundImage();
-                }
-                File level3BgFile = new File("resources/images/level3_bg.png");
-                if (level3BgFile.exists()) {
-                    images.put("level3_bg", ImageIO.read(level3BgFile));
-                    System.out.println("โหลดรูปภาพฉากด่าน 3 สำเร็จ");
-                } else {
-                    System.out.println("ไม่พบไฟล์ภาพฉากด่าน 3 จะสร้างภาพเองอัตโนมัติ");
-                    createLevel3BackgroundImage();
-                }
-
-                File monster2File = new File("resources/images/L2_Enemy.png");
-                if (monster2File.exists()) {
-                    images.put("monster2", ImageIO.read(monster2File));
-                    System.out.println("โหลดรูปภาพมอนสเตอร์ด่าน 2 สำเร็จ");
-                } else {
-                    System.out.println("ไม่พบไฟล์ภาพมอนสเตอร์ด่าน 2 จะใช้ภาพพื้นฐานแทน");
-                    createDefaultMonster2Image();
-                }
-
-                // โหลดรูปภาพบอสด่าน 2
                 File boss2File = new File("resources/images/L2_Boss.png");
                 if (boss2File.exists()) {
                     images.put("boss2", ImageIO.read(boss2File));
-                    System.out.println("โหลดรูปภาพบอสด่าน 2 สำเร็จ");
                 } else {
-                    System.out.println("ไม่พบไฟล์ภาพบอสด่าน 2 จะใช้ภาพพื้นฐานแทน");
                     createDefaultBoss2Image();
                 }
-                File monster3File = new File("resources/images/L3_Enemy.png");
-                if (monster3File.exists()) {
-                    images.put("monster3", ImageIO.read(monster3File));
-                    System.out.println("โหลดรูปภาพมอนสเตอร์ด่าน 3 สำเร็จ");
-                } else {
-                    System.out.println("ไม่พบไฟล์ภาพมอนสเตอร์ด่าน 3 จะใช้ภาพพื้นฐานแทน");
-                    createDefaultMonster3Image();
-                }
 
-                // โหลดรูปภาพบอสด่าน 3
                 File boss3File = new File("resources/images/L3_Boss.png");
                 if (boss3File.exists()) {
                     images.put("boss3", ImageIO.read(boss3File));
-                    System.out.println("โหลดรูปภาพบอสด่าน 3 สำเร็จ");
                 } else {
-                    System.out.println("ไม่พบไฟล์ภาพบอสด่าน 3 จะใช้ภาพพื้นฐานแทน");
                     createDefaultBoss3Image();
                 }
-                // โหลดรูปภาพฉากด่าน 4
-                File level4BgFile = new File("resources/images/level4_bg.png");
-                if (level4BgFile.exists()) {
-                    images.put("level4_bg", ImageIO.read(level4BgFile));
-                    System.out.println("โหลดรูปภาพฉากด่าน 4 สำเร็จ");
-                } else {
-                    System.out.println("ไม่พบไฟล์ภาพฉากด่าน 4 จะสร้างภาพเองอัตโนมัติ");
-                    createLevel4BackgroundImage();
-                }
-
-                // โหลดรูปภาพฉากด่าน 5
-                File level5BgFile = new File("resources/images/level5_bg.png");
-                if (level5BgFile.exists()) {
-                    images.put("level5_bg", ImageIO.read(level5BgFile));
-                    System.out.println("โหลดรูปภาพฉากด่าน 5 สำเร็จ");
-                } else {
-                    System.out.println("ไม่พบไฟล์ภาพฉากด่าน 5 จะสร้างภาพเองอัตโนมัติ");
-                    createLevel5BackgroundImage();
-                }
-
-                // โหลดรูปภาพมอนสเตอร์ด่าน 4
-                File monster4File = new File("resources/images/L4_Enemy.png");
-                if (monster4File.exists()) {
-                    images.put("monster4", ImageIO.read(monster4File));
-                    System.out.println("โหลดรูปภาพมอนสเตอร์ด่าน 4 สำเร็จ");
-                } else {
-                    System.out.println("ไม่พบไฟล์ภาพมอนสเตอร์ด่าน 4 จะใช้ภาพพื้นฐานแทน");
-                    createDefaultMonster4Image();
-                }
-
-                // โหลดรูปภาพบอสด่าน 4
+                
                 File boss4File = new File("resources/images/L4_Boss.png");
                 if (boss4File.exists()) {
                     images.put("boss4", ImageIO.read(boss4File));
-                    System.out.println("โหลดรูปภาพบอสด่าน 4 สำเร็จ");
                 } else {
-                    System.out.println("ไม่พบไฟล์ภาพบอสด่าน 4 จะใช้ภาพพื้นฐานแทน");
                     createDefaultBoss4Image();
                 }
-
-                // โหลดรูปภาพมอนสเตอร์ด่าน 5
-                File monster5File = new File("resources/images/L5_Enemy.png");
-                if (monster5File.exists()) {
-                    images.put("monster5", ImageIO.read(monster5File));
-                    System.out.println("โหลดรูปภาพมอนสเตอร์ด่าน 5 สำเร็จ");
-                } else {
-                    System.out.println("ไม่พบไฟล์ภาพมอนสเตอร์ด่าน 5 จะใช้ภาพพื้นฐานแทน");
-                    createDefaultMonster5Image();
-                }
-
-                // โหลดรูปภาพบอสด่าน 5
+                
                 File boss5Phase1File = new File("resources/images/L5_Boss_Phase1.png");
                 if (boss5Phase1File.exists()) {
                     images.put("L5_Boss_Phase1", ImageIO.read(boss5Phase1File));
-                    System.out.println("โหลดรูปภาพบอสด่าน 5 เฟส 1 สำเร็จ");
                 } else {
-                    System.out.println("ไม่พบไฟล์ภาพบอสด่าน 5 เฟส 1 จะใช้ภาพพื้นฐานแทน");
                     images.put("L5_Boss_Phase1", images.get("boss5"));
                 }
 
                 File boss5Phase2File = new File("resources/images/L5_Boss_Phase2.png");
                 if (boss5Phase2File.exists()) {
                     images.put("L5_Boss_Phase2", ImageIO.read(boss5Phase2File));
-                    System.out.println("โหลดรูปภาพบอสด่าน 5 เฟส 2 สำเร็จ");
                 } else {
-                    System.out.println("ไม่พบไฟล์ภาพบอสด่าน 5 เฟส 2 จะใช้ภาพพื้นฐานแทน");
                     try {
                         BufferedImage bossPh1 = (BufferedImage) images.get("boss5");
                         if (bossPh1 != null) {
@@ -209,16 +179,16 @@ public class ImageManager {
                             createDefaultBoss5Phase2Image();
                         }
                     } catch (Exception e) {
-                        System.out.println("เกิดข้อผิดพลาดในการสร้างรูปบอสเฟส 2: " + e.getMessage());
                         createDefaultBoss5Phase2Image();
                     }
                 }
 
-                // โหลดรูปภาพ hotbar
+                /*
+                ======โหลดรูปภาพ hotbar======
+                */
                 File hotbarUIFile = new File("resources/images/weapon bar.png");
                 if (hotbarUIFile.exists()) {
                     images.put("hotbar", ImageIO.read(hotbarUIFile));
-                    System.out.println("โหลดรูปภาพแถบอาวุธสำเร็จ");
                 } else {
                     createDefaultHotbarImage();
                 }
@@ -226,57 +196,64 @@ public class ImageManager {
                 File activeFrameFile = new File("resources/images/Weapon selection framework.png");
                 if (activeFrameFile.exists()) {
                     images.put("activeFrame", ImageIO.read(activeFrameFile));
-                    System.out.println("โหลดรูปภาพกรอบอาวุธสำเร็จ");
                 } else {
                     createDefaultActiveFrame();
                 }
-
+                
+                /*
+                ======โหลดรูปภาพอาวุธและเอฟเฟค======
+                */
+                File muzzleFlashFile = new File("resources/images/muzzle_flash.png");
+                if (muzzleFlashFile.exists()) {
+                    images.put("muzzle_flash", ImageIO.read(muzzleFlashFile));
+                } else {
+                    createDefaultMuzzleFlashImage();
+                }
+                
+                File pistolFile = new File("resources/images/Pistol.png"); //ปืนพก
+                if (pistolFile.exists()) {
+                    images.put("pistol", ImageIO.read(pistolFile));
+                } else {
+                    createDefaultGunImage();
+                }
+                
                 File turretHeadFile = new File("resources/images/Turret Head.png");
                 if (turretHeadFile.exists()) {
                     images.put("turretHead", ImageIO.read(turretHeadFile));
-                    System.out.println("โหลดรูปภาพหัวป้อมปืนสำเร็จ");
                 }
 
                 File turretBaseFile = new File("resources/images/Turret base.png");
                 if (turretHeadFile.exists()) {
                     images.put("turretBase", ImageIO.read(turretBaseFile));
-                    System.out.println("โหลดรูปภาพฐานป้อมปืนสำเร็จ");
-                }
-
-                // โหลดรูปภาพปืนและเอฟเฟค
-                File gunFile = new File("resources/images/gun.png");
-                if (gunFile.exists()) {
-                    images.put("gun", ImageIO.read(gunFile));
-                    System.out.println("โหลดรูปภาพปืนสำเร็จ");
-                } else {
-                    createDefaultGunImage();
                 }
 
                 File ak47File = new File("resources/images/AK47.png");
                 if (ak47File.exists()) {
                     images.put("ak47", ImageIO.read(ak47File));
-                    System.out.println("โหลดรูปภาพปืน Ak47 สำเร็จ");
                 }
 
                 File gatlingGunFile = new File("resources/images/Gatling_Gun.png");
                 if (gatlingGunFile.exists()) {
                     images.put("gatlingGun", ImageIO.read(gatlingGunFile));
-                    System.out.println("โหลดรูปภาพปืน Gatling สำเร็จ");
                 }
-
-                File muzzleFlashFile = new File("resources/images/muzzle_flash.png");
-                if (muzzleFlashFile.exists()) {
-                    images.put("muzzle_flash", ImageIO.read(muzzleFlashFile));
-                    System.out.println("โหลดรูปภาพเอฟเฟคปืนสำเร็จ");
-                } else {
-                    createDefaultMuzzleFlashImage();
+                
+                File ShurikenFile = new File("resources/images/Shuriken.png");
+                if (ShurikenFile.exists()) {
+                    images.put("shuriken", ImageIO.read(ShurikenFile));
+                    System.out.println("SHURIKEN");
                 }
-
-                // โหลดรูปหัวใจปกติและหัวใจแตก
+                
+                File ShotgunFile = new File("resources/images/Shotgun.png");
+                if (ShotgunFile.exists()) {
+                    images.put("shotgun", ImageIO.read(ShotgunFile));
+                }
+                
+                /*
+                ======โหลดรูปหัวใจปกติและหัวใจแตก======
+                */
                 File heartFile = new File("resources/images/heart.png");
                 if (heartFile.exists()) {
                     images.put("heart", ImageIO.read(heartFile));
-                    System.out.println("โหลดรูปภาพหัวใจสำเร็จ");
                 } else {
                     createDefaultHeartImage();
                 }
@@ -284,17 +261,16 @@ public class ImageManager {
                 File brokenHeartFile = new File("resources/images/broken_heart.png");
                 if (brokenHeartFile.exists()) {
                     images.put("broken_heart", ImageIO.read(brokenHeartFile));
-                    System.out.println("โหลดรูปภาพหัวใจแตกสำเร็จ");
                 } else {
                     createDefaultBrokenHeartImage();
                 }
+                
                 createOtherDefaultImages();
 
                 imagesLoaded = true;
                 System.out.println("โหลดรูปภาพทั้งหมดสำเร็จ!");
             } catch (IOException e) {
-                System.err.println("ไม่สามารถโหลดรูปภาพได้: " + e.getMessage());
-                createAllDefaultImages();
+                throw e;
             }
         } catch (Exception e) {
             System.err.println("เกิดข้อผิดพลาดในการโหลดรูปภาพ: " + e.getMessage());
